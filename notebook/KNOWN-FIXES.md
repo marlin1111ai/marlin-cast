@@ -30,6 +30,21 @@ differing, produced `v11` vs `v10`.
 Consequence when it bites: the old login is not recoverable. Wipe the
 profile and hand-login again *after* the fix is in place.
 
+**Measured directly 2026-09-11 (Task 004).** Launching a logged-in
+`v11` profile once with `--password-store=basic` took its cookie store
+from **48 rows / 17 auth cookies** to **10 rows / 0 auth cookies**, all
+`v10`. Chrome starts cleanly, warns about nothing, and silently discards
+every row it cannot decrypt — the profile is then unrecoverable. There
+is **no supported migration** between the two schemes: re-encryption
+would require decrypting first, which is exactly what fails. Re-login in
+the target scheme; do not attempt to convert a profile.
+
+Conversely, Task 004 also showed what does **not** break a profile:
+copying it, moving it to a completely different path, and changing its
+group ownership and permissions all preserved the session exactly
+(48/`v11`/47/17 in every arm). Path and ownership are not the hazard.
+The scheme is.
+
 **Scope, corrected 2026-09-11 (Task 001c).** This fix is real and
 load-bearing — controlled arms on throwaway profiles put it beyond
 doubt: without the flag a profile's persistent rows go 6 → 0; with it

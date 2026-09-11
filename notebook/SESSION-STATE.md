@@ -192,3 +192,40 @@ Chrome reclaims but a container supervisor should clear at startup.
 Chrome is left running (browser pid 72933) with the session live.
 
 See notebook/reports/task-003-relaunch-survival.md.
+
+---
+
+## Task 004 — a copied profile carries the session (2026-09-11)
+
+**Yes.** Three arms on fresh copies of the backup — a plain copy, a copy
+at a deeply different path, and a copy group-owned by `docker` at mode
+770 — all attached and all read **SIGNED IN**, with cookie stores equal
+to the baseline (48 rows, `v11`, 47 persistent, 17 auth-shaped). Copying,
+relocating and re-permissioning a profile are all harmless. That closes
+Task 003's biggest open question.
+
+**One thing breaks it, totally: the password-store scheme.** Arm D
+launched the same profile once with `--password-store=basic` and took it
+from 48 rows / 17 auth cookies to **10 rows / 0 auth cookies**, all
+`v10`, landing signed out. Chrome starts cleanly and warns about
+nothing. **No supported migration exists** between `v11` and `v10` —
+re-encryption needs decryption first, which is what fails.
+
+**Consequence for Docker: the profile on this machine is not the profile
+that will run in Docker.** A stock container has no keyring, so a `v11`
+profile is unreadable there. Recommended (owner's call): use
+`--password-store=basic` in the container and take the login in that
+scheme — it removes the keyring entirely, and the keyring is the only
+thing measured to destroy a session. A cheap alternative worth weighing:
+switch `scripts/start-chrome.sh` to `basic` and spend one more
+hand-login now, producing a profile that moves to Unraid unchanged.
+
+**Still unknown:** uid. Arm C varied group and mode but not uid (needs
+root; sudo forbidden), and a volume mount commonly presents a different
+uid. That is the remaining portability gap.
+
+Live session untouched: Chrome pid 72933 still alive and signed in,
+cookie store still 48/`v11`/47/17. The backup is unmodified to the
+nanosecond. All arm copies deleted.
+
+See notebook/reports/task-004-profile-portability.md.
