@@ -1,0 +1,17 @@
+{
+  "name": "marlin-cast",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "login": "tsx src/login.ts"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "playwright": "^1.63.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}
