@@ -39,6 +39,14 @@ is **no supported migration** between the two schemes: re-encryption
 would require decrypting first, which is exactly what fails. Re-login in
 the target scheme; do not attempt to convert a profile.
 
+**Confirmed workable 2026-09-11 (Task 005).** A login taken *natively*
+in the basic scheme is fine — it is only *converting* an existing v11
+profile that is impossible. A fresh hand-login under
+`--password-store=basic` produced 46 rows tagged `v10` with all 17
+auth-shaped cookies, played 1080p60 with Widevine L3 unchanged, and
+survived two graceful relaunches with the store unchanged. The rule is
+therefore: pick the scheme *before* the login, never after.
+
 Conversely, Task 004 also showed what does **not** break a profile:
 copying it, moving it to a completely different path, and changing its
 group ownership and permissions all preserved the session exactly

@@ -229,3 +229,37 @@ cookie store still 48/`v11`/47/17. The backup is unmodified to the
 nanosecond. All arm copies deleted.
 
 See notebook/reports/task-004-profile-portability.md.
+
+---
+
+## Task 005 — converted to the basic (v10) scheme; login holds (2026-09-11)
+
+D010 recorded. `scripts/start-chrome.sh` now passes
+`--password-store=basic`; the adjacent rationale comment was updated to
+match and cite D010 so it is not reverted.
+
+**The conversion worked.** The old v11 profile was **moved, not
+deleted**, to `data/chrome-profile-v11-20260911-104559` (verified intact
+at 48/`v11`/47/17). A fresh hand-login on an empty profile produced
+**46 rows, tags `v10`, 45 persistent, 17 auth-shaped** — the full auth
+set, no keyring involved.
+
+**No capability was lost:** TNT played at **1920x1080 @ 60.04 fps**,
+Widevine still L3 (software granted, hardware denied). It started at
+720p and needed `setPlaybackQualityRange("hd1080","hd1080")` — the Task
+002 rule reproduced on a fresh profile.
+
+**Two clean relaunches, both signed in**, cookie store unchanged at
+46/`v10`/45/17 across both.
+
+**New backup:** `backups/chrome-profile-basic-<ts>/` — 1842 files,
+270,807,537 bytes, count and size matched, gitignored. **This is the
+container-portable asset.** The two `v11` copies are machine-bound
+fallbacks for this host only and are not a Docker asset.
+
+**Docker blocker status:** the keyring problem is gone by construction —
+there are no v11 rows left to fail on. Still untested: **uid** (needs
+root or a container), and the fact that **no container has ever been
+run** in this project.
+
+See notebook/reports/task-005-basic-scheme.md.
