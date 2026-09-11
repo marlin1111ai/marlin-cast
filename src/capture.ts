@@ -3,7 +3,7 @@
 // Navigates the attached Chrome to a channel deep link, pins 1080p, arms the
 // capture extension (task-006: tabCapture needs activeTab, granted by
 // Extensions.triggerAction on a "tab" target), and pipes the extension's
-// WebM timeslices into ffmpeg, which writes an HLS ladder to disk.
+// WebM timeslices into ffmpeg, which writes an fMP4/CMAF HLS stream to disk.
 
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
@@ -148,7 +148,7 @@ export class Pipeline {
       since: l ? new Date(l.startedAt).toISOString() : null,
       chunksIn: l?.chunksIn ?? 0,
       bytesIn: l?.bytesIn ?? 0,
-      segments: l && existsSync(l.dir) ? readdirSync(l.dir).filter((f) => f.endsWith(".ts")).length : 0,
+      segments: l && existsSync(l.dir) ? readdirSync(l.dir).filter((f) => f.endsWith(".m4s")).length : 0,
       lastAccess: l ? new Date(l.lastAccess).toISOString() : null,
       lastError: this.lastError,
       quality: this.lastQuality,
@@ -316,8 +316,14 @@ export class Pipeline {
       // program_date_time matches the reference stream, which carries
       // EXT-X-PROGRAM-DATE-TIME and which Channels uses to locate the live edge.
       "-f", "hls", "-hls_time", "1", "-hls_list_size", "10",
+      // fMP4/CMAF, not MPEG-TS (task-012): one init segment (ftyp+moov,
+      // referenced by #EXT-X-MAP) plus .m4s media fragments. This is the
+      // container the reference stream uses (task-010: PrismCast serves
+      // init.mp4 + .m4s with EXT-X-VERSION:7). Codec, profile, rate, GOP,
+      // segment length and window are unchanged — only the container.
+      "-hls_segment_type", "fmp4", "-hls_fmp4_init_filename", "init.mp4",
       "-hls_flags", "delete_segments+independent_segments+temp_file+program_date_time",
-      "-hls_segment_filename", join(dir, "seg%05d.ts"),
+      "-hls_segment_filename", join(dir, "seg%05d.m4s"),
       join(dir, "index.m3u8"),
     ];
     const ffmpeg = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });

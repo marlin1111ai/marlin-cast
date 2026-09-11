@@ -612,3 +612,48 @@ Nothing on Unraid was contacted this task. Live session untouched:
 Chrome pid 76888, never restarted, signed in.
 
 See notebook/reports/task-011-tune-latency.md.
+
+---
+
+## Task 012 — HLS output switched from MPEG-TS to fMP4/CMAF (2026-09-11)
+
+**Why:** the owner retested after task-011. Channels DVR's "Remux
+Starting" went from 31 s to 8 s — the faster source reached it — and the
+player **still failed**. Latency joins CORS as a cause eliminated by the
+real player (both recorded in KNOWN-FIXES). What remains of the task-010
+diff is the media: container and profile. This task changed the
+container only.
+
+**Done, two files.** ffmpeg's segmenter now writes an fMP4 init segment
+plus `.m4s` fragments (`-hls_segment_type fmp4 -hls_fmp4_init_filename
+init.mp4`, segment name `seg%05d.m4s`); the server serves `init.mp4` and
+`.m4s` as `video/mp4`. Codec (H.264 High L4.0 + AAC-LC), resolution,
+frame rate, bitrate, 1 s segments, 10-segment window, CORS, the 20 s idle
+watchdog, the `/playlist` URL and the per-channel stream URLs are all
+unchanged — Channels' source needs no edit.
+
+**Verified live on the owner's Chrome (pid 76888, never restarted):**
+cold ESPN tune **4.096 s** to a playlist carrying a playable segment
+(task-011 method; task-011 measured 3.930 s for ESPN under TS). Playlist
+is `#EXT-X-VERSION:7` with `#EXT-X-MAP:URI="init.mp4"` and `.m4s`
+entries. ffprobe on init+segment: `ftyp`+`moov` (two `trex`) then
+`styp`+`sidx`+`moof`+`mdat`, H.264 High L4.0 1920x1080 30 fps + AAC-LC
+48 kHz stereo, one IDR at the head of every 30-frame segment. hls.js
+1.5.13 cross-origin under enforced CORS: PLAYING, 605 decoded frames,
+0 dropped, 0 errors. 30 s pulled: continuous at 30.04 fps, luma varying,
+no black, audio present, A/V skew +16.7 ms. Idle stop still clean: 0
+ffmpeg, 0 HLS directories.
+
+**New in the log:** the mp4 muxer's `Packet duration: -192 … out of
+range` audio warning at ~1 in 15 segment boundaries — absent under TS,
+harmless on every measurement, recorded in KNOWN-FIXES, not acted on.
+
+**Not done, by scope:** H.264 profile still High (PrismCast: Constrained
+Baseline). If fMP4 alone does not make Channels' player start, the
+profile is the last item on the task-010 diff.
+
+Committed on main, **not pushed**. Server left running on 0.0.0.0:8804
+for the owner's Channels DVR test. Nothing on 192.168.1.250 was
+contacted this task.
+
+See notebook/reports/task-012.md.

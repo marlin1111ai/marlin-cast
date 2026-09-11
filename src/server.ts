@@ -3,7 +3,8 @@
 //   GET  /health                      plain status
 //   GET  /playlist                    M3U of the full lineup (D013)
 //   GET  /stream/:id/index.m3u8       HLS playlist for a channel (tunes on demand)
-//   GET  /stream/:id/:segment.ts      HLS segments
+//   GET  /stream/:id/init.mp4         fMP4 init segment (#EXT-X-MAP)
+//   GET  /stream/:id/:segment.m4s     fMP4 media segments
 //   POST /ingest/:id/:token           the capture extension's WebM timeslices
 //
 // Binds 0.0.0.0:8804 and nothing else (D008).
@@ -135,7 +136,7 @@ app.get("/stream/:id/index.m3u8", async (req, res) => {
 
 app.get("/stream/:id/:file", (req, res) => {
   const { id, file } = req.params;
-  if (!/^[A-Za-z0-9_.-]+\.(ts|m4s)$/.test(file)) return res.status(400).end();
+  if (!/^[A-Za-z0-9_.-]+\.(ts|m4s|mp4)$/.test(file)) return res.status(400).end();
   if (!byId.has(id)) return res.status(404).end();
   const path = join(pipeline.dirFor(id), file);
   if (!existsSync(path)) return res.status(404).end();
@@ -147,10 +148,12 @@ app.get("/stream/:id/:file", (req, res) => {
   // no-cache, NOT immutable. Task-009 marked these immutable on the reasoning
   // that a written segment never changes — true of the file, false of the URL.
   // Every tune wipes the directory and ffmpeg restarts numbering at
-  // seg00000.ts, so the same URL returns different media after a retune and a
+  // seg00000.m4s, so the same URL returns different media after a retune and a
   // cached copy would be stale. The reference stream (PrismCast, which plays
   // in the same player) sends `Cache-Control: no-cache` on its segments.
-  res.type("video/mp2t");
+  // fMP4 init segment and .m4s media segments are both video/mp4 (task-012);
+  // .ts stays video/mp2t should a TS segment ever be served again.
+  res.type(file.endsWith(".ts") ? "video/mp2t" : "video/mp4");
   res.setHeader("cache-control", "no-cache");
   res.sendFile(path, (err) => { if (err && !res.headersSent) res.status(404).end(); });
 });

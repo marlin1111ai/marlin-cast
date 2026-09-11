@@ -481,3 +481,42 @@ that carries the last probe. Swallow evaluate exceptions *during* the
 wait — while a navigation commits, the old execution context is
 destroyed and `Runtime.evaluate` throws; that is a transient, and the
 timeout is what stops it becoming an infinite wait.
+
+## Latency was not the cause either — Channels' player still fails at 8 s
+
+Surfaced 2026-09-11 (task-012, from the owner's task-011 retest). Task
+011 cut the cold tune from 16.72 s to ~4 s, and on the owner's Channels
+DVR install that moved "Remux Starting" from **31 s to 8 s** — proof the
+faster source reached Channels — **and the player still failed.** So the
+two leading explanations are now both dead by direct observation:
+
+- **CORS was not the cause** (task-010: PrismCast sends none and plays).
+- **Latency was not the cause** (task-011's retest: 8 s and still fails).
+
+What remains of the task-010 diff is the media itself: **MPEG-TS vs
+fMP4/CMAF** and **High vs Constrained Baseline**. Task-012 switched the
+container (the larger and more plausible of the two, since Channels' web
+player is MSE-based and fMP4 is what MSE consumes natively). Do not
+re-derive the CORS or latency theories; both have been tested against the
+real player and eliminated.
+
+## fMP4 HLS from ffmpeg: init.mp4 + .m4s is two flags, and the mp4 muxer is chattier than TS
+
+Surfaced 2026-09-11 (task-012). `-hls_segment_type fmp4
+-hls_fmp4_init_filename init.mp4` plus a `.m4s` segment filename is the
+entire change; ffmpeg 6.1 then emits `#EXT-X-VERSION:7` and
+`#EXT-X-MAP:URI="init.mp4"` itself. `delete_segments`, `temp_file`,
+`independent_segments` and `program_date_time` all keep working. Serve
+the init segment and the `.m4s` files as `video/mp4`.
+
+One new thing to expect in the log: the mp4 muxer prints
+`Packet duration: -192 / dts: N is out of range` (also `-240`) at roughly
+one segment boundary in fifteen, always on the **audio** track and always
+at a whole-second dts. The MPEG-TS muxer never said this across eleven
+task-011 tunes on the same input, because it does not derive a packet's
+duration from the next packet's dts; the mp4 muxer does, and MediaRecorder's
+1 s timeslices occasionally hand it audio that steps back 4–5 ms. Measured
+effect on the output: none found — hls.js played 605 frames with 0 errors,
+a 30 s pull was continuous at 30.04 fps with +16.7 ms A/V skew and no
+silence. Treat it as a known warning, not a failure signal; if it ever
+needs fixing the lever is on the audio filter side, not the muxer.
