@@ -553,3 +553,43 @@ Diagnostic rule this taught: when a downstream consumer is written in a
 known language, run its standard parser on your output. One `go run`
 settled in seconds what three tasks of playback testing could not see,
 because hls.js and ffmpeg both *ignore* this tag.
+
+## last_seq=1 is not reproducible with a local ffmpeg stream-copy segmenter
+
+Surfaced 2026-09-11 (task-015). Channels DVR stops our stream after one
+output segment (`first_seq=1 last_seq=1`), but a local ffmpeg 6.1.1
+stream-copy segmenter cuts our stream into 16–17 segments in **every**
+configuration tried: live pull, deterministic 30 s harvested file, fMP4
+output, MPEG-TS output, an MPEG-TS-first pass, the trun sync-sample flags
+flipped, and a static single-MAP VOD playlist. PrismCast cuts into 16 the
+same way. So `last_seq=1` is a property of Channels' specific remux path,
+not of our media as a standard ffmpeg segmenter sees it.
+
+Do not re-run local remux reproductions expecting to see `last_seq=1` —
+it does not appear outside Channels. Diagnosis has to come from Channels'
+own log after a change, not from local ffmpeg.
+
+What task-015 *did* find, ranked, as differences from the working
+reference that ffmpeg tolerates but a stricter remuxer might not:
+1. **No in-band SPS/PPS** — our keyframe samples were `(6,5,…)`, params
+   only in the init `avcC`; PrismCast repeats `(7,8,5,…)` before every
+   IDR. Caveat: ffmpeg's mpegts muxer auto-injects them, so this bites
+   only if Channels' copy path does not. Addressed in task-016.
+2. Repeated `EXT-X-MAP` on every 1 s reload → ffmpeg logs "Found
+   duplicated MOOV Atom. Skipped it" (~1 per segment); it keeps cutting.
+   A remuxer that re-inits its output on each moov could stall at seq 1.
+3. `styp`+`sidx` boxes in our segments (PrismCast: bare `moof`).
+4. Identity edit list `(0,0)` in our init moov — a no-op; PrismCast has
+   none.
+
+## libx264 keeps SPS/PPS in avcC only unless repeat-headers=1
+
+Surfaced 2026-09-11 (task-016). By default libx264 with a global-header
+container (fMP4/MP4) writes SPS/PPS **only** in the init `avcC`, not
+in-band. Adding `-x264-params repeat-headers=1` makes it also emit SPS
+and PPS before every IDR while the `avcC` still carries them. Verified:
+keyframe samples went from `(6,5,…)` to `(6,7,8,…,5)` / `(7,8,5,…)`,
+`avcC` still has 1 SPS + 1 PPS, profile stayed High, `has_b_frames=0`,
+1.000 s spacing unchanged, hls.js still PLAYING 0 errors, 30 s pull still
+continuous. This makes each keyframe a self-contained random-access
+point, matching the reference stream.

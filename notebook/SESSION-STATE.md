@@ -708,3 +708,50 @@ Committed on main with the task-013 report, **not pushed** (task-012's
 the owner's Channels DVR test. Nothing on 192.168.1.250 was contacted.
 
 See notebook/reports/task-014.md.
+
+---
+
+## Task 015 — recon: Channels' last_seq=1 not reproducible locally (2026-09-11)
+
+New owner-supplied evidence: after task-014, Channels' `[M3U] stream
+timestamps start_at=end_at` is logged *before* `[TNR] Opened
+connection`, so it is not derived from our media playlist — dropped as a
+lead. Our ESPN session ran 31 s, `first_seq=1 last_seq=1`; PrismCast AMC
+reaches `last_seq=16` in 30 s.
+
+**A local ffmpeg 6.1.1 stream-copy segmenter cuts our stream into 16–17
+segments in every configuration** (live pull, deterministic file, fMP4,
+MPEG-TS, mpegts-first, sync-flags flipped, static playlist), same as
+PrismCast's 16. `last_seq=1` did not reproduce outside Channels. The one
+concrete media difference from the reference: our keyframe samples carry
+**no in-band SPS/PPS** (params only in the init avcC); PrismCast repeats
+them before every IDR. ffmpeg's mpegts muxer auto-injects them, so it is
+uncertain whether Channels trips on this, but it is the cleanest
+one-line lever and the biggest media difference. Full ranking and
+captures in notebook/reports/task-015.md.
+
+---
+
+## Task 016 — repeat SPS/PPS in-band at every keyframe (2026-09-11)
+
+**Done, one line.** `src/capture.ts` gained `-x264-params
+repeat-headers=1` in the libx264 args; nothing else changed — profile
+High, `-g 30 -keyint_min 30 -sc_threshold 0`, zerolatency, `-hls_time 1`,
+fMP4, and the task-014 playlist rewrite are all exactly as they were.
+
+**Verified live (owner's Chrome pid 76888, never restarted):** three
+consecutive keyframe samples read from the actual `mdat` are now
+`(6,7,8,6,5,…)`, `(7,8,5,…)`, `(7,8,5,…)` — SPS + PPS in-band before the
+IDR, where before they were `(6,5,…)`. The init `avcC` still carries 1
+SPS + 1 PPS. ffprobe: profile High, level 40, `has_b_frames=0`, keyframe
+spacing exactly 1.000 s (12 in 12 s). hls.js 1.5.13 cross-origin, CORS
+enforced: PLAYING, 606 frames, 0 dropped, 0 errors. 30 s ffmpeg pull:
+exit 0, 31 segments, continuous — the only warnings are the pre-existing
+"Found duplicated MOOV Atom" from the live EXT-X-MAP reload (task-015),
+no new class. Cold tune 4.317 s (task-011 method).
+
+Committed on main, **not pushed** (74e09c1, 953b6cd also still unpushed).
+Server left running on 0.0.0.0:8804 for the owner's Channels DVR test.
+Nothing on 192.168.1.250 was contacted.
+
+See notebook/reports/task-016.md.

@@ -305,6 +305,12 @@ export class Pipeline {
       // time, which task-010 measured as the thing that matters.
       "-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency",
       "-profile:v", "high", "-pix_fmt", "yuv420p",
+      // repeat-headers=1 writes SPS+PPS in-band before every IDR, so each
+      // keyframe is a self-contained random-access point — as the reference
+      // stream is (task-015: PrismCast's keyframe samples are (7,8,5,...),
+      // ours were (6,5,...) with the parameter sets only in the init avcC).
+      // The avcC still carries them; this adds the in-band copy, nothing else.
+      "-x264-params", "repeat-headers=1",
       // One-second GOP so a one-second segment can still start on an IDR.
       "-g", String(CAPTURE_FPS), "-keyint_min", String(CAPTURE_FPS), "-sc_threshold", "0",
       "-b:v", "6000k", "-maxrate", "6000k", "-bufsize", "12000k",
