@@ -520,3 +520,36 @@ effect on the output: none found — hls.js played 605 frames with 0 errors,
 a 30 s pull was continuous at 30.04 fps with +16.7 ms A/V skew and no
 silence. Treat it as a known warning, not a failure signal; if it ever
 needs fixing the lever is on the audio filter side, not the muxer.
+
+## ffmpeg's EXT-X-PROGRAM-DATE-TIME is not RFC 3339, and Go readers reject it
+
+Surfaced 2026-09-11 (task-013 recon, fixed task-014). ffmpeg's hls muxer
+(`-hls_flags +program_date_time`) formats the tag as local time with a
+strftime `%z` suffix — `2026-09-11T18:57:08.959-0400` — and always writes
+it **after** the segment's `#EXTINF` line. The format string in
+libavformat is literally `#EXT-X-PROGRAM-DATE-TIME:%s.%03d%s`; there is no
+option for UTC, for a `Z`, or for the position. Under `TZ=UTC` you get
+`+0000`, still not `Z`.
+
+`-0400` (no colon) is **not** RFC 3339. Go's `time.Parse(time.RFC3339, …)`
+fails with `cannot parse "-0400" as "Z07:00"` — measured with Go 1.27.
+Channels DVR is a Go program, and on this playlist it logged
+`[M3U] stream timestamps: … start_at=X end_at=X live_delay=3s` with
+start and end identical, then stopped after one output segment. The
+reference stream that plays (PrismCast) writes `2026-09-11T22:57:42.736Z`
+and places it **before** `#EXTINF`, and Channels logs no timestamps line
+for it at all.
+
+Fix (task-014): rewrite the playlist at serve time in `src/server.ts`.
+Every date-time is converted to the **same instant** in UTC with a
+trailing `Z` and millisecond precision, and moved to immediately precede
+its segment's `#EXTINF`. Verified: served `23:15:05.977Z` against raw
+`19:15:05.977-0400` differ by 0 ms; Go RFC3339 parse OK; hls.js and
+ffmpeg unaffected. Do not try to fix this with muxer flags — there are
+none. Whether it is what Channels' player was refusing is for the
+owner's retest; the format defect is real regardless.
+
+Diagnostic rule this taught: when a downstream consumer is written in a
+known language, run its standard parser on your output. One `go run`
+settled in seconds what three tasks of playback testing could not see,
+because hls.js and ffmpeg both *ignore* this tag.

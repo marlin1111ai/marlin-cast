@@ -657,3 +657,54 @@ for the owner's Channels DVR test. Nothing on 192.168.1.250 was
 contacted this task.
 
 See notebook/reports/task-012.md.
+
+---
+
+## Task 013 — read-only recon against PrismCast, tag by tag (2026-09-11)
+
+Owner supplied Channels DVR log lines: for our ESPN stream `[M3U] stream
+timestamps: … start_at=2026-09-11T18:52:30-04:00 end_at=<same>
+live_delay=3s`, session stopped after 12 s with `first_seq=1 last_seq=1`;
+for PrismCast AMC no timestamps line, 30 s to `last_seq=16`.
+
+**Finding:** the one tag carrying timestamps is where we differ from the
+reference in two ways at once. ffmpeg writes `EXT-X-PROGRAM-DATE-TIME` as
+`…T18:57:08.959-0400` (not RFC 3339 — Go 1.27 `time.RFC3339` rejects it)
+and places it after `#EXTINF`; PrismCast writes `…T22:57:42.736Z` before
+`#EXTINF`. PrismCast's segments are **fMP4** (`moof` first byte, no TS
+sync byte), Constrained Baseline L4.2, two fragments per segment, no
+`styp`/`sidx`, no edit lists; it starts every session at MEDIA-SEQUENCE
+15 behind an `EXT-X-DISCONTINUITY`. Neither M3U carries any catchup or
+time attribute. ffmpeg's own hls demuxer read both streams 30 s clean.
+Ranked candidates and full captures in notebook/reports/task-013.md.
+No changes, no commit at the time; report saved at the start of task-014.
+
+---
+
+## Task 014 — PROGRAM-DATE-TIME as RFC 3339 UTC, before EXTINF (2026-09-11)
+
+**Done, one source file.** The media playlist is rewritten at serve time
+in `src/server.ts`: each `EXT-X-PROGRAM-DATE-TIME` is converted to the
+same instant in UTC with a trailing `Z` and millisecond precision and
+moved to immediately precede its segment's `#EXTINF`, matching
+PrismCast's layout. **Muxer flags could not do it** — libavformat's
+format is hard-coded `%s.%03d%s` with a strftime `%z` suffix and the tag
+is always written after `EXTINF`; `TZ=UTC` would only yield `+0000`.
+ffmpeg's command line is untouched; VERSION, TARGETDURATION,
+MEDIA-SEQUENCE, INDEPENDENT-SEGMENTS, MAP, durations, window and
+discontinuity handling are byte-for-byte as task-012 left them.
+
+**Verified live (owner's Chrome pid 76888, never restarted):** cold ESPN
+tune 4.31 s; served `2026-09-11T23:15:05.977Z` against ffmpeg's raw
+`2026-09-11T19:15:05.977-0400` — **0 ms difference**, and 0.48 s before
+the cold response; Go 1.27 `time.Parse(time.RFC3339)` **OK** on the
+emitted value, still ERR on the raw one. hls.js 1.5.13 cross-origin:
+PLAYING, 604 frames, 0 dropped, 0 errors. 30 s ffmpeg pull: 31 segments,
+900 frames at 30.03 fps, every PTS step exactly 33.3 ms, A/V skew
++30 ms, no warnings, no black, no silence.
+
+Committed on main with the task-013 report, **not pushed** (task-012's
+74e09c1 is also still unpushed). Server left running on 0.0.0.0:8804 for
+the owner's Channels DVR test. Nothing on 192.168.1.250 was contacted.
+
+See notebook/reports/task-014.md.

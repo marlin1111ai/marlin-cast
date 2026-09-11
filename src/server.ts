@@ -106,6 +106,52 @@ app.get("/playlist", (req, res) => {
 });
 
 // --- HLS --------------------------------------------------------------------
+
+// ffmpeg's hls muxer writes EXT-X-PROGRAM-DATE-TIME as local time with a
+// strftime %z suffix ("2026-09-11T18:57:08.959-0400") and places it AFTER
+// the segment's #EXTINF line. It has no option for either. Task-013 measured
+// what that costs: Go's time.RFC3339 parser rejects "-0400" ("cannot parse
+// "-0400" as "Z07:00""), Channels DVR is a Go program, and it logged
+// start_at == end_at for our stream while the reference stream — which
+// writes "2026-09-11T22:57:42.736Z" BEFORE #EXTINF — produced no such line.
+// So the playlist is rewritten at serve time: same instant converted to UTC
+// with a trailing Z and millisecond precision, moved to immediately precede
+// its segment's #EXTINF. Nothing else in the playlist is touched (task-014).
+const PDT_TAG = "#EXT-X-PROGRAM-DATE-TIME:";
+const PDT_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-]\d{2}:?\d{2})?$/;
+
+/** "2026-09-11T18:57:08.959-0400" -> "2026-09-11T22:57:08.959Z"; unparseable
+ *  input is returned unchanged rather than relabelled. */
+export function pdtToUtc(value: string): string {
+  const m = PDT_RE.exec(value.trim());
+  if (!m) return value;
+  const [, Y, Mo, D, h, mi, s, frac = "0", tz = "Z"] = m;
+  const ms = Number((frac + "00").slice(0, 3));
+  let utc = Date.UTC(+Y, +Mo - 1, +D, +h, +mi, +s, ms);
+  if (tz !== "Z") {
+    const sign = tz[0] === "-" ? -1 : 1;
+    const digits = tz.slice(1).replace(":", "");
+    utc -= sign * (Number(digits.slice(0, 2)) * 60 + Number(digits.slice(2, 4))) * 60_000;
+  }
+  return new Date(utc).toISOString();
+}
+
+export function rewritePlaylist(text: string): string {
+  const out: string[] = [];
+  for (const line of text.split("\n")) {
+    if (!line.startsWith(PDT_TAG)) { out.push(line); continue; }
+    const fixed = PDT_TAG + pdtToUtc(line.slice(PDT_TAG.length));
+    // Walk back over the tags of the pending segment (never past a URI line)
+    // to find its #EXTINF, and insert the date-time immediately before it.
+    let at = -1;
+    for (let i = out.length - 1; i >= 0 && out[i].startsWith("#"); i--) {
+      if (out[i].startsWith("#EXTINF:")) { at = i; break; }
+    }
+    if (at >= 0) out.splice(at, 0, fixed); else out.push(fixed);
+  }
+  return out.join("\n");
+}
+
 app.get("/stream/:id/index.m3u8", async (req, res) => {
   const channel = byId.get(req.params.id);
   if (!channel) return res.status(404).type("text/plain").send("unknown channel\n");
@@ -124,7 +170,7 @@ app.get("/stream/:id/index.m3u8", async (req, res) => {
       pipeline.touch(channel.id);
       res.type("application/vnd.apple.mpegurl");
       res.setHeader("cache-control", "no-cache");
-      return res.send(readFileSync(file));
+      return res.send(rewritePlaylist(readFileSync(file, "utf8")));
     }
     if (pipeline.currentChannelId() !== channel.id) {
       return res.status(409).type("text/plain").send("tune switched away\n");
