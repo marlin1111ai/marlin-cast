@@ -113,3 +113,40 @@ Keyring is reachable and unlocked from both the SSH session and the
 `:10` desktop session — same bus, same daemon, no silent fallback.
 
 See notebook/reports/task-001c-cookie-destruction.md.
+
+---
+
+## Task 002 — CDP attach works; YouTube TV plays at 1080p (2026-09-11)
+
+D009 recorded: the app attaches to an owner-launched Chrome
+(`scripts/start-chrome.sh` + `connectOverCDP`) and never launches or
+owns the profile. `src/login.ts` rewritten accordingly. Debug port
+listens on 127.0.0.1:9333 only — refused on the LAN address.
+
+**The hand-login held.** `navigator.webdriver` reads `false` under
+attach (it read `true` under launchPersistentContext), and the session
+survived six attach/detach cycles — `browser.close()` detaches without
+killing Chrome.
+
+**YouTube TV plays: 1920x1080 @ 59.96 fps, VP9 + AAC, ~43 Mbps, on
+Widevine L3.** No wall of any kind. Task 001's worry that L3 might be
+capped below 1080p is **closed** — L3 reaches 1080p.
+
+Three things to carry forward:
+- **1080p must be pinned explicitly.** The player serves 720p by
+  default and stayed there through page fullscreen *and* a maximized
+  window; only `setPlaybackQualityRange("hd1080","hd1080")` moved it.
+- **The page has 40 `<video>` elements** and `querySelector("video")`
+  returns an empty one. Use `#movie_player video.html5-main-video`.
+- **16.7% of frames drop at presentation** — exactly 1/6, because this
+  xrdp screen is 50 Hz and the content is 60 fps. Decode keeps up
+  fine. Any capture benchmark on this display will under-report.
+
+Deep link confirmed live: `https://tv.youtube.com/watch/<ID>?vp=<opaque>`,
+guide at `/live`, 150 channels via `ytu-endpoint.tenx-thumb[aria-label]`.
+
+Chrome (pid 70364) is deliberately left running with the session live.
+Do not restart it without reason — the durability of the login across a
+Chrome restart is the biggest untested question.
+
+See notebook/reports/task-002-cdp-attach.md.

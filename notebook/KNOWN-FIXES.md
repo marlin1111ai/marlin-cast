@@ -50,3 +50,47 @@ reads as 0 rows. Dwell ~70 s before shutting down, or the test silently
 measures nothing. Also never judge by row count alone — a revisit to
 the same site repopulates the store with fresh rows and hides a total
 wipe (count identical, tags flipped `v11` → `v10`).
+
+
+## YouTube TV: querySelector("video") returns an empty element
+
+Surfaced 2026-09-11 (Task 002). A playing YouTube TV page carries **40
+`<video>` elements**. `document.querySelector("video")` returns one with
+`readyState: 0`, `networkState: 0`, `videoWidth: 0` — reading it makes
+live playback look dead. Task 002's first probe concluded "playback did
+not start" while the screen was visibly playing.
+
+Use `#movie_player video.html5-main-video`, or pick the element with
+`videoWidth > 0 && !paused`. Both verified against a live 1080p stream.
+
+## YouTube TV serves 720p unless 1080p is explicitly demanded
+
+Surfaced 2026-09-11 (Task 002). `getAvailableQualityLevels()` lists
+`hd1080`, but ABR stays on `hd720` through page fullscreen *and* a
+maximized window at a 2252x1267 player box. Only
+`#movie_player.setPlaybackQualityRange("hd1080","hd1080")` moved it, and
+it then delivered a measured 1920x1080@59.96.
+
+Do not rely on window size or fullscreen to reach 1080p. Pin it.
+
+## Frame drops on the xrdp display are a 50 Hz artifact, not a decode fault
+
+Surfaced 2026-09-11 (Task 002). Steady 16.7% dropped frames (150 of 900)
+during 1080p60 playback — exactly 1/6, which is 60 fps content presented
+on a 50 Hz screen. `xrandr` reports this xrdp session as
+`2468x1381 50.00*`. The media clock advanced 15.0 s in 15.0 s, so decode
+is keeping up; the loss is at presentation.
+
+Any capture method that reads the composited screen inherits this
+ceiling. Benchmark capture on a 60 Hz virtual display, not here.
+
+## esbuild breaks page.evaluate with "__name is not defined"
+
+Surfaced 2026-09-11 (Task 002). A named arrow/function inside a
+`page.evaluate(() => ...)` callback makes esbuild (via tsx) emit a
+`__name` helper that does not exist in the page, and the evaluate throws
+`ReferenceError: __name is not defined`.
+
+Either avoid named inner functions inside evaluate callbacks, or pass
+the body as a **string** to ``page.evaluate(`(() => { ... })()`)``, which
+skips the transform entirely.
