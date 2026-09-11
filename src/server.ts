@@ -141,9 +141,16 @@ app.get("/stream/:id/:file", (req, res) => {
   pipeline.touch(id);
   // sendFile honours Range and sets Accept-Ranges/Content-Range; the previous
   // createReadStream().pipe() answered `Range: bytes=0-99` with a 200 and the
-  // whole file. A segment never changes once written, so it is cacheable.
+  // whole file.
+  //
+  // no-cache, NOT immutable. Task-009 marked these immutable on the reasoning
+  // that a written segment never changes — true of the file, false of the URL.
+  // Every tune wipes the directory and ffmpeg restarts numbering at
+  // seg00000.ts, so the same URL returns different media after a retune and a
+  // cached copy would be stale. The reference stream (PrismCast, which plays
+  // in the same player) sends `Cache-Control: no-cache` on its segments.
   res.type("video/mp2t");
-  res.setHeader("cache-control", "public, max-age=31536000, immutable");
+  res.setHeader("cache-control", "no-cache");
   res.sendFile(path, (err) => { if (err && !res.headersSent) res.status(404).end(); });
 });
 

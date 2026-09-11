@@ -370,3 +370,53 @@ A client doing a partial retry gets the wrong bytes silently.
 `Content-Range: bytes 0-99/1361684`). Segments are immutable once
 written, so they can also carry
 `cache-control: public, max-age=31536000, immutable`.
+
+## Channels DVR's player does NOT need CORS — PrismCast proves it
+
+Surfaced 2026-09-11 (Task 010), correcting Task 009. The reference
+implementation that plays correctly in the same Channels DVR install
+sends **no** `Access-Control-Allow-Origin` at all — verified with a GET
+carrying `Origin: http://192.168.1.250:8089`. It also does **not**
+support Range (`Range: bytes=0-99` → `200` with the whole body).
+
+So neither CORS nor Range can be what separates a stream that plays from
+one that does not in that player. Task 009's CORS fix is still correct
+for a browser fetching Marlin Cast directly, but it did not fix the
+owner's bug. Keep it; do not credit it.
+
+Corollary for diagnosis: when a reference implementation is available,
+diff against it *before* theorising. Three candidates that survived
+careful reasoning in Task 009 — CORS, Range, and the one-segment cold
+window — were all eliminated in minutes by observing that PrismCast does
+the same thing and works.
+
+## Live HLS segment URLs are reused — never mark them immutable
+
+Surfaced 2026-09-11 (Task 010). Task 009 set
+`cache-control: public, max-age=31536000, immutable` on segments,
+reasoning that a written segment never changes. True of the *file*,
+false of the *URL*: every tune wipes the channel's directory and ffmpeg
+restarts numbering at `seg00000.ts`, so the same URL returns different
+media after a retune, and any cache in the path may serve the old one.
+
+Use `cache-control: no-cache`, which is what PrismCast sends.
+
+## First-playlist latency is a first-class HLS defect
+
+Surfaced 2026-09-11 (Task 010). A server-side remuxer waits patiently;
+a player does not. Channels DVR pulled and remuxed Marlin Cast at 1.02x
+while its player showed "The media could not be loaded" — the classic
+signature of a source that is *correct* but *too slow to start*.
+
+Benchmark measured against PrismCast on the same install:
+
+| cold request -> playlist with a playable segment | |
+|---|---|
+| PrismCast | 5.2 s |
+| Marlin Cast | 19.4 s |
+
+Instrument the split before optimising. Ours was **14.2 s tune path**
+(hardcoded sleeps) **+ 5.1 s HLS output**. Segmenter levers that help
+the output half: `-hls_time 1`, a matching `-g`/`-keyint_min` so 1 s
+segments still start on an IDR, and `-tune zerolatency` to drop B-frames
+and encoder lookahead.

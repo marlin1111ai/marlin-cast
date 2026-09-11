@@ -489,3 +489,66 @@ Live session untouched: Chrome pid 76888, never restarted, signed in,
 playing 1080p.
 
 See notebook/reports/task-009-hls-compliance.md.
+
+---
+
+## Task 010 — PrismCast diff: CORS was never the cause; latency is (2026-09-11)
+
+**Correction to Task 009, measured directly: PrismCast sends NO CORS
+headers and plays fine in the same Channels DVR player.** A GET carrying
+`Origin: http://192.168.1.250:8089` comes back with no
+`Access-Control-Allow-Origin`. Channels' player does not need CORS, so
+Task 009's fix — a real defect fix for direct browser access — was not
+the cure for this bug.
+
+**The difference that survives is time.**
+
+| cold request -> playlist with a playable segment | |
+|---|---|
+| PrismCast | **5.222 s** |
+| Marlin Cast (before) | **19.355 s** |
+
+Instrumented split of our 19.35 s: **14.17 s tune path** (almost exactly
+the three hardcoded sleeps, 9000+1500+3500 ms) **+ 5.12 s HLS output**.
+The failure is timeout-shaped: the patient component (Channels'
+server-side remuxer) succeeded and ran at 1.02x for 31 s; the impatient
+one (the player) gave up at ~15 s, when our server had returned nothing.
+
+**Ruled out by the diff, not by argument** — PrismCast does all of these
+and works: no CORS, no Range support (200, not 206), single-level media
+playlist with no master, and a **one-segment cold window**. Both are
+single-level; neither serves `EXT-X-STREAM-INF`.
+
+**Real but unacted differences:** container **MPEG-TS vs fMP4/CMAF**
+(PrismCast: `EXT-X-MAP`+`init.mp4`+`.m4s`, `EXT-X-VERSION:7`) and profile
+**High/4.0 vs Constrained Baseline/4.2**. Not changed — Task 009 showed
+hls.js decodes our TS to 739 frames with zero errors, so a format the
+player demonstrably decodes is not why it refuses to start.
+
+**Fixed (HLS output path + server only):** `-hls_time 1`, `-g 30
+-keyint_min 30`, `-tune zerolatency`, `-hls_list_size 10`,
+`+program_date_time`; and segment `cache-control` `immutable` →
+**`no-cache`**. That last is a defect Task 009 introduced — segment URLs
+are reused because every tune wipes the directory and ffmpeg restarts at
+`seg00000.ts`, so a year-long immutable cache could serve stale media on
+exactly the retune the owner performed.
+
+**Result: 19.35 s → 16.72 s.** hls.js cross-origin under enforced CORS:
+PLAYING, 647 frames, 0 errors. 65 s pulled and measured: 1920x1080 H.264
+High L4.0 + AAC-LC, 30.02 fps, 64.97 s, 6.27 Mbps, **65 keyframes in
+1950 frames** (1 s GOP confirmed), luma 48–132 varying, no black
+intervals, audio mean −29.9 dB, 0 silent runs, **A/V drift +13.7 ms over
+65 s**.
+
+**STOP / QUESTION RAISED:** 14.17 s of the remaining 16.72 s is three
+hardcoded sleeps in the tune path, which step 7 forbade touching without
+asking. Replacing them with polls should reach ~6–8 s, comparable to
+PrismCast. **Not done — awaiting the owner.** Honest expectation: the
+retune probably still fails at 16.72 s.
+
+720p pin defect seen again and left alone as instructed:
+`[tune] ESPN {"ok":true,"quality":"hd720","video":"0x0","box":"0x0"}`.
+
+Live session untouched: Chrome pid 76888, never restarted, signed in.
+
+See notebook/reports/task-010-prismcast-diff.md.

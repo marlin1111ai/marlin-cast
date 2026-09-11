@@ -207,12 +207,23 @@ export class Pipeline {
       // and duplicated frames up to it from a 30 fps capture, paying for
       // ~20 extra encoded frames a second that carry no new picture.
       "-fps_mode", "cfr", "-r", String(CAPTURE_FPS),
-      "-c:v", "libx264", "-preset", "veryfast", "-profile:v", "high", "-pix_fmt", "yuv420p",
-      "-g", String(CAPTURE_FPS * 2), "-keyint_min", String(CAPTURE_FPS * 2), "-sc_threshold", "0",
+      // -tune zerolatency drops B-frames and the encoder lookahead. With a
+      // live capture the reordering delay buys nothing and costs start-up
+      // time, which task-010 measured as the thing that matters.
+      "-c:v", "libx264", "-preset", "veryfast", "-tune", "zerolatency",
+      "-profile:v", "high", "-pix_fmt", "yuv420p",
+      // One-second GOP so a one-second segment can still start on an IDR.
+      "-g", String(CAPTURE_FPS), "-keyint_min", String(CAPTURE_FPS), "-sc_threshold", "0",
       "-b:v", "6000k", "-maxrate", "6000k", "-bufsize", "12000k",
       "-c:a", "aac", "-b:a", "128k", "-ac", "2", "-ar", "48000",
-      "-f", "hls", "-hls_time", "2", "-hls_list_size", "6",
-      "-hls_flags", "delete_segments+independent_segments+temp_file",
+      // 1 s segments: the first playable segment is the gate on how fast a
+      // client sees picture, and task-010 measured PrismCast (which plays in
+      // the same Channels DVR player) returning a playable playlist in 5.2 s
+      // against our 19.3 s. hls_list_size 10 keeps the same ~10 s window.
+      // program_date_time matches the reference stream, which carries
+      // EXT-X-PROGRAM-DATE-TIME and which Channels uses to locate the live edge.
+      "-f", "hls", "-hls_time", "1", "-hls_list_size", "10",
+      "-hls_flags", "delete_segments+independent_segments+temp_file+program_date_time",
       "-hls_segment_filename", join(dir, "seg%05d.ts"),
       join(dir, "index.m3u8"),
     ];
