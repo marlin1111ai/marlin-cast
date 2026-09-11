@@ -70,6 +70,7 @@ app.get("/health", (_req, res) => {
       `channels: ${cache.count}`,
       `enumerated: ${cache.enumeratedAt}`,
       `state: ${s.state}`,
+      `quality: ${s.quality ?? "-"}`,
       `channel: ${s.channelName ?? "-"} (${s.channelId ?? "-"})`,
       `since: ${s.since ?? "-"}`,
       `chunks_in: ${s.chunksIn}`,

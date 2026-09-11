@@ -33,6 +33,7 @@ export type Status = {
   segments: number;
   lastAccess: string | null;
   lastError: string | null;
+  quality: string | null;
 };
 
 type Live = {
@@ -47,6 +48,40 @@ type Live = {
   stopping: boolean;
 };
 
+/** Result of a page-side poll probe: `ok` ends the poll, `fatal` aborts it. */
+type Probe = { ok: boolean; fatal?: string; [k: string]: unknown };
+
+/**
+ * Poll a page-side expression until it reports ok, it reports fatal, or the
+ * timeout expires. A timeout is a named, loud failure carrying the last probe
+ * — never a silent proceed-anyway (task-011).
+ *
+ * Exceptions from the evaluate are swallowed *during* the wait on purpose:
+ * while a navigation is committing the old execution context is destroyed and
+ * Runtime.evaluate throws. That is an expected transient, and the timeout is
+ * what stops it becoming an infinite wait.
+ */
+async function pollPage(
+  cdp: Cdp, session: Session, name: string, expression: string,
+  timeoutMs: number, intervalMs = 250,
+): Promise<Probe> {
+  const started = Date.now();
+  let last: unknown = null;
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const r = await evalIn<Probe>(cdp, session, expression);
+      if (r && r.fatal) throw new Error(`${name}: ${r.fatal} (after ${Date.now() - started}ms)`);
+      if (r && r.ok) return r;
+      last = r;
+    } catch (e) {
+      if (e instanceof Error && e.message.startsWith(name + ":")) throw e;
+      last = { evaluateError: String(e) };
+    }
+    await sleep(intervalMs);
+  }
+  throw new Error(`${name}: not satisfied within ${timeoutMs}ms — last probe ${JSON.stringify(last)}`);
+}
+
 export class Pipeline {
   private cdp!: Cdp;
   private port: string;
@@ -56,6 +91,7 @@ export class Pipeline {
   private live: Live | null = null;
   private starting: Promise<void> | null = null;
   private lastError: string | null = null;
+  private lastQuality: string | null = null;
   private watchdog: ReturnType<typeof setInterval> | null = null;
 
   constructor(port: string) { this.port = port; }
@@ -115,6 +151,7 @@ export class Pipeline {
       segments: l && existsSync(l.dir) ? readdirSync(l.dir).filter((f) => f.endsWith(".ts")).length : 0,
       lastAccess: l ? new Date(l.lastAccess).toISOString() : null,
       lastError: this.lastError,
+      quality: this.lastQuality,
     };
   }
 
@@ -158,38 +195,94 @@ export class Pipeline {
     mkdirSync(dir, { recursive: true });
 
     // --- tune -------------------------------------------------------------
+    // Four polls, no fixed sleeps. Task-010 measured the old 9000/1500/3500 ms
+    // sleeps as 14.17 s of a 19.35 s cold tune, against PrismCast's 5.22 s.
+    const t0 = Date.now();
     const url = `https://tv.youtube.com/${channel.href.replace(/^\//, "")}`;
     await this.cdp.send("Page.navigate", { url }, this.page);
-    await sleep(9000);
+
+    // Poll 1 (was sleep 9000): the navigation has actually committed to this
+    // channel's document and the player element is mounted. Checking the id is
+    // in location.href is what stops the next polls reading the OLD document.
+    await pollPage(this.cdp, this.page, "navigation", `(() => {
+      const signedOut = /SIGN IN/i.test((document.body && document.body.innerText) || "");
+      if (signedOut) return { ok: false, fatal: "SIGNED OUT" };
+      const onTarget = location.href.indexOf(${JSON.stringify(channel.id)}) !== -1;
+      const player = !!document.querySelector("#movie_player");
+      return { ok: onTarget && player, onTarget, player, href: location.href.slice(0, 60) };
+    })()`, 30000);
+    const tNav = Date.now() - t0;
 
     // Force a 16:9 layout so the player fills the captured frame instead of
     // being pillarboxed inside this 2560x1381 (non-16:9) display.
     await this.cdp.send("Emulation.setDeviceMetricsOverride", {
       width: CAPTURE_W, height: CAPTURE_H, deviceScaleFactor: 1, mobile: false,
     }, this.page).catch(() => {});
-    await sleep(1500);
 
-    const pinned = await evalIn<any>(this.cdp, this.page, `(async () => {
-      const deadline = Date.now() + 25000;
-      let v = null, p = null;
-      while (Date.now() < deadline) {
-        p = document.querySelector("#movie_player");
-        v = document.querySelector("#movie_player video.html5-main-video");
-        if (p && v && v.videoWidth > 0 && !v.paused) break;
-        await new Promise(r => setTimeout(r, 500));
-      }
-      if (!p || !v || !v.videoWidth) {
-        return { ok: false, why: /SIGN IN/i.test(document.body.innerText||"") ? "SIGNED OUT" : "no playing video element" };
-      }
-      p.setPlaybackQualityRange("hd1080", "hd1080");
-      await new Promise(r => setTimeout(r, 3500));
+    // Poll 2 (was sleep 1500): the override has actually been applied to the
+    // layout, i.e. the page reports the viewport we asked for.
+    await pollPage(this.cdp, this.page, "layout override", `(() => ({
+      ok: innerWidth === ${CAPTURE_W} && innerHeight === ${CAPTURE_H},
+      viewport: innerWidth + "x" + innerHeight
+    }))()`, 10000);
+    const tLayout = Date.now() - t0;
+
+    // Poll 3 (kept from the old page-side loop, now a named stage): a real
+    // video element is decoding and playing.
+    await pollPage(this.cdp, this.page, "player ready", `(() => {
+      const p = document.querySelector("#movie_player");
+      const v = document.querySelector("#movie_player video.html5-main-video");
+      if (!v || !p) return { ok: false, why: "no player yet" };
+      return { ok: v.videoWidth > 0 && !v.paused && v.readyState >= 2,
+               w: v.videoWidth, h: v.videoHeight, paused: v.paused, readyState: v.readyState };
+    })()`, 30000);
+    const tPlaying = Date.now() - t0;
+
+    // Poll 4 (was sleep 3500): wait on the QUALITY ACTUALLY SETTLING with the
+    // element reporting matching real dimensions — not on elapsed time.
+    //
+    // Task-009 saw tunes report success at hd720 with the element reading 0x0.
+    // Two separate causes, and this poll addresses both:
+    //   * a STALE element was measured after the pin, so the element is
+    //     re-queried every iteration and the pin re-applied (it is idempotent);
+    //   * some channels genuinely have NO 1080p rendition — ESPN advertises
+    //     only ["hd720","large","medium","small"]. Demanding hd1080 there can
+    //     never succeed, so the target is the best level the channel actually
+    //     offers at or below hd1080. The level reached is reported, never
+    //     silently accepted: a tune below hd1080 warns in the log and shows in
+    //     /health.
+    const pinned = await pollPage(this.cdp, this.page, "quality pin", `(() => {
+      const p = document.querySelector("#movie_player");
+      const v = document.querySelector("#movie_player video.html5-main-video");
+      if (!p || !v) return { ok: false, why: "player went away" };
+      const avail = (p.getAvailableQualityLevels ? p.getAvailableQualityLevels() : []) || [];
+      if (!avail.length) return { ok: false, why: "no quality levels advertised yet" };
+      const ladder = ["hd1080", "hd720", "large", "medium", "small", "tiny"];
+      const target = ladder.find(function (q) { return avail.indexOf(q) !== -1; });
+      if (!target) return { ok: false, why: "no usable quality level", available: avail };
+      try { p.setPlaybackQualityRange(target, target); } catch (e) {}
+      const minH = { hd1080: 1080, hd720: 720, large: 480, medium: 360, small: 240, tiny: 144 }[target] || 1;
+      const q = p.getPlaybackQuality();
       const r = v.getBoundingClientRect();
-      return { ok: true, quality: p.getPlaybackQuality(), video: v.videoWidth + "x" + v.videoHeight,
-               box: Math.round(r.width) + "x" + Math.round(r.height),
-               viewport: innerWidth + "x" + innerHeight };
-    })()`);
-    if (!pinned.ok) throw new Error(`tune failed for ${channel.name}: ${pinned.why}`);
+      return {
+        ok: q === target && v.videoWidth > 0 && v.videoHeight >= minH,
+        target: target,
+        quality: q,
+        is1080: target === "hd1080",
+        video: v.videoWidth + "x" + v.videoHeight,
+        box: Math.round(r.width) + "x" + Math.round(r.height),
+        viewport: innerWidth + "x" + innerHeight,
+        available: avail.slice(0, 6)
+      };
+    })()`, 20000);
+    if (!pinned.is1080) {
+      console.warn(`[tune] ${channel.name} WARNING: channel offers no hd1080 — settled at ${pinned.quality} (available: ${JSON.stringify(pinned.available)})`);
+    }
+    this.lastQuality = String(pinned.quality ?? "unknown");
+    const tPinned = Date.now() - t0;
+
     console.log(`[tune] ${channel.name} ${JSON.stringify(pinned)}`);
+    console.log(`[tune-ms] ${channel.name} nav=${tNav} layout=${tLayout} playing=${tPlaying} pinned=${tPinned}`);
 
     // --- ffmpeg -----------------------------------------------------------
     // Input is MediaRecorder's VP8/Opus WebM. HLS needs H.264/AAC, so this

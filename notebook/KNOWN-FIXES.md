@@ -420,3 +420,64 @@ Instrument the split before optimising. Ours was **14.2 s tune path**
 the output half: `-hls_time 1`, a matching `-g`/`-keyint_min` so 1 s
 segments still start on an IDR, and `-tune zerolatency` to drop B-frames
 and encoder lookahead.
+
+## Not every YouTube TV channel has a 1080p rendition
+
+Surfaced 2026-09-11 (Task 011). **ESPN advertises only
+`["hd720","large","medium","small","auto"]`** — no `hd1080` at all.
+`setPlaybackQualityRange("hd1080","hd1080")` can never succeed there, and
+code that *waits* for hd1080 will hang until its timeout and then fail
+the tune. An implementation that demanded hd1080 unconditionally turned
+ESPN into an HTTP 503 after 20 s.
+
+Read `getAvailableQualityLevels()` first and pin the best level the
+channel actually offers at or below hd1080:
+
+```js
+const avail = p.getAvailableQualityLevels() || [];
+const ladder = ["hd1080","hd720","large","medium","small","tiny"];
+const target = ladder.find(q => avail.indexOf(q) !== -1);
+p.setPlaybackQualityRange(target, target);
+```
+
+Then wait on `getPlaybackQuality() === target` **and** the element's
+`videoHeight` matching that level. Report loudly when the result is below
+1080p — it is a property of the channel, not a bug, but it must be
+visible.
+
+This also revises part of the task-009 "720p pin defect": some of those
+720p tunes were channels with no 1080p to reach.
+
+## Re-query the YouTube TV video element after a quality change
+
+Surfaced 2026-09-11 (Task 011). Task-009 saw tunes report
+`{"quality":"hd720","video":"0x0"}`. Cause: the element was captured
+*before* `setPlaybackQualityRange`, then read after a sleep. The player
+can swap elements during a quality change (the page carries 40 `<video>`
+elements — see the querySelector entry above), so the stored reference
+goes detached and reads `0x0`.
+
+Re-query `#movie_player video.html5-main-video` on **every** poll
+iteration and re-apply the pin, which is idempotent. After this change,
+not one tune across six channels reported 0x0.
+
+## Poll the condition, never sleep a guess — 14.17 s -> 1.4 s
+
+Surfaced 2026-09-11 (Task 011). The tune path carried three fixed sleeps
+(9000 ms after navigate, 1500 ms after a layout override, 3500 ms after
+the quality pin) totalling **14.17 s of a 19.35 s cold tune**. Measured
+against the real conditions they were standing in for:
+
+| sleep | condition it stood for | actually satisfied in |
+|---|---|---|
+| 9000 ms | navigation committed + player element mounted | **~620 ms** |
+| 1500 ms | `innerWidth/innerHeight` equal the override | **~10 ms after** |
+| 3500 ms | quality settled at target with real dimensions | **2–7 ms after playing** |
+
+Result: cold tune **16.72 s -> 3.85–4.36 s** across six channels.
+
+Give every poll a short interval, a hard timeout, and a named failure
+that carries the last probe. Swallow evaluate exceptions *during* the
+wait — while a navigation commits, the old execution context is
+destroyed and `Runtime.evaluate` throws; that is a transient, and the
+timeout is what stops it becoming an infinite wait.

@@ -552,3 +552,63 @@ retune probably still fails at 16.72 s.
 Live session untouched: Chrome pid 76888, never restarted, signed in.
 
 See notebook/reports/task-010-prismcast-diff.md.
+
+---
+
+## Task 011 — tune-path sleeps replaced with polls: 16.72 s -> 4.05 s (2026-09-11)
+
+Owner approved touching the tune path. All three fixed sleeps
+(9000/1500/3500 ms) are gone, replaced by **four named polls**, each with
+a 250 ms interval, a hard timeout, and a loud named failure carrying the
+last probe:
+
+| # | poll | condition actually waited on | timeout |
+|---|---|---|---|
+| 1 | `navigation` | `location.href` contains the channel's video id **and** `#movie_player` exists; aborts immediately on SIGNED OUT | 30 s |
+| 2 | `layout override` | `innerWidth===1920 && innerHeight===1080` — the override reached layout | 10 s |
+| 3 | `player ready` | `videoWidth>0 && !paused && readyState>=2` (the old page-side loop, kept as a named stage) | 30 s |
+| 4 | `quality pin` | `getPlaybackQuality()===target` **and** real dimensions matching it | 20 s |
+
+**Cold tune latency, six channels, genuinely cold each time:**
+
+| | before | after |
+|---|---|---|
+| TNT / ESPN / AMC | 16.72 s | 3.990 / 3.930 / 3.946 s |
+| CNN / HGTV / Food Network | 16.72 s | 4.217 / 3.845 / 4.359 s |
+
+**Worst case 4.359 s, mean 4.048 s — every channel beats PrismCast's
+5.222 s.** The tune path itself went **14.17 s -> 1.38–1.92 s**. The old
+9000 ms sleep stood in for a condition met in ~620 ms; the 3500 ms
+post-pin sleep for one met in 2–7 ms.
+
+**The 720p defect was two things, and one is not a defect.**
+(a) The old code measured a STALE video element after the pin, hence
+`0x0` — poll 4 re-queries the element every iteration, and not one tune
+reported 0x0 this task. (b) **ESPN genuinely has no 1080p rendition** —
+it advertises only `["hd720","large","medium","small","auto"]`.
+
+My first implementation demanded hd1080 unconditionally and **made ESPN
+untunable** (HTTP 503 after a 23.47 s timeout) — worse than the bug, and
+on the exact channel the owner tested. Poll 4 now targets the best level
+the channel advertises at or below hd1080, waits for it to actually be
+reached with matching dimensions, and warns loudly when below 1080p:
+`[tune] ESPN WARNING: channel offers no hd1080 — settled at hd720`.
+`/health` gained a `quality:` line so this is visible without logs.
+**Flagged: this is a deliberate proceed-anyway for sub-1080p channels;
+one line to make it hard-fail if the owner prefers.**
+
+**1080p held on 5 of 6** (TNT, AMC, CNN, HGTV, Food Network all
+hd1080/1920x1080); ESPN at hd720/1280x720 by the channel's own ceiling.
+
+**Switch still correct:** TNT -> AMC in 3.97 s, TNT's hls dir removed,
+**exactly one encoder**.
+
+**Verified:** hls.js cross-origin under enforced CORS — PLAYING, 737
+frames, 0 errors. 65 s pulled and measured: 1920x1080 H.264 High L4.0 +
+AAC-LC, 30.02 fps, 64.97 s, 6.28 Mbps, luma 26–65 varying, no black
+intervals, audio mean −24.7 dB, 0 silent runs, A/V drift −11.7 ms.
+
+Nothing on Unraid was contacted this task. Live session untouched:
+Chrome pid 76888, never restarted, signed in.
+
+See notebook/reports/task-011-tune-latency.md.
