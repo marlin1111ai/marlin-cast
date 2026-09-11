@@ -10,22 +10,61 @@ standing rule, owner-ruled or owner-confirmed unless marked otherwise.
 
 ---
 
-## D001–D006 — NOT RECORDED: source brief was not supplied
+## D001 — Name
 
-These six decisions are final per the owner and are to be copied
-**verbatim** from `MARLIN-CAST-BRIEF.md`. That file was not present at
-`/Apps/marlin-cast/MARLIN-CAST-BRIEF.md` when Task 001 ran, and no
-copy was pasted. They are therefore **absent, not lost** — nothing was
-guessed, inferred, or reconstructed.
+Name: Marlin Cast. Repo `marlin1111ai/marlin-cast`, container
+`marlin-cast`.
 
-Task 001's report records the only second-hand knowledge of them that
-this session has: D007's own text states that D004 said "on the Mac,
-with software (CPU) encoding" and deferred hardware encoding. That
-fragment is quoted here solely because D007 quotes it — it is **not** a
-reconstruction of D004 and must not be treated as one.
+**Dated 2026-09-11.**
 
-**Action required:** supply the brief; D001–D006 get pasted in above
-D007, in order, verbatim.
+---
+
+## D002 — First provider
+
+First provider: YouTube TV (tv.youtube.com). One provider to start.
+
+**Dated 2026-09-11.**
+
+---
+
+## D003 — Stack
+
+Stack: Node.js 22 + TypeScript, Playwright driving installed Google
+Chrome, ffmpeg. Not Go, not Python.
+
+**Dated 2026-09-11.**
+
+---
+
+## D004 — Where development happens
+
+Where development happens: on the Mac, with software (CPU) encoding.
+Hardware encoding (Intel Quick Sync / VAAPI on the Unraid box's UHD
+770) is wired and tested only at deploy time, by the owner, on Unraid.
+
+**Dated 2026-09-11. SUPERSEDED by D007** — development moved to
+marlinpc (Linux), and VAAPI is tested during development.
+
+---
+
+## D005 — Sessions
+
+Sessions: one login session, one channel playing at a time. No
+multi-session, no concurrent tunes. Not to be revisited.
+
+**Dated 2026-09-11.**
+
+---
+
+## D006 — Output contract
+
+Output contract: an M3U playlist at `/playlist` listing channels, each
+pointing at an HLS stream served by Marlin Cast; consumed by Channels
+DVR as a Custom Channels source (Stream Format HLS, stream limit 1).
+Guide data comes from Channels DVR's own Gracenote matching — Marlin
+Cast produces no XMLTV.
+
+**Dated 2026-09-11.**
 
 ---
 

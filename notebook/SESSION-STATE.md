@@ -47,3 +47,32 @@ comparison (5g) was completed by reading PrismCast's source and is
 the substantive finding of this task.
 
 See notebook/reports/task-001-kickoff.md.
+
+---
+
+## Task 001b — Chrome profile persistence diagnosed and fixed (2026-09-11)
+
+The brief arrived. `notebook/BRIEF-v1.md` and D001–D006 are now
+recorded verbatim, closing Task 001's only unfinished notebook items.
+
+**The hand-login did not carry into Playwright, and the cause was not
+the profile path** — both launches use the identical
+`--user-data-dir=/Apps/marlin-cast/data/chrome-profile` and the same
+`Default/` profile. Playwright injects `--password-store=basic`, so its
+Chrome encrypts cookies with the hardcoded-key `v10` scheme while plain
+Chrome uses keyring-backed `v11`. The `v10` Chrome cannot read `v11`
+rows, drops them, and rewrites the store — which is what destroyed the
+owner's session at 09:14:36.
+
+Fixed by appending `--password-store=gnome-libsecret` to the Playwright
+args in `src/login.ts` (Chrome honours the last repeated switch;
+verified by controlled test). See KNOWN-FIXES.md for the trap.
+
+**The old login is gone and cannot be recovered.** The owner must wipe
+`data/chrome-profile` and hand-login once more — this time the app's own
+Chrome window is keyring-backed, so logging in there is enough.
+
+Playback, resolution and frame rate remain NOT OBSERVED; the Widevine
+L3 → 1080p question is still open and still the biggest unknown.
+
+See notebook/reports/task-001b-profile-persistence.md.

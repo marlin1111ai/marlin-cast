@@ -16,7 +16,15 @@ async function launchChrome(): Promise<BrowserContext> {
   const opts = {
     headless: false,
     viewport: null,
-    args: ["--start-maximized"],
+    /* Playwright's default args include --password-store=basic, which makes Chrome
+     * derive its cookie-encryption key from a hardcoded string (the "v10" scheme).
+     * Plain Chrome on this desktop autodetects gnome-libsecret and writes "v11"
+     * cookies instead, so a hand-login done in plain Chrome is undecryptable to a
+     * Playwright-launched Chrome, which silently drops those cookies and then
+     * overwrites them. Chrome honours the LAST occurrence of a repeated switch, so
+     * appending this overrides Playwright's default and both launches share one
+     * keyring-backed store. */
+    args: ["--start-maximized", "--password-store=gnome-libsecret"],
   };
   try {
     return await chromium.launchPersistentContext(PROFILE_DIR, {
