@@ -47,6 +47,8 @@ self.mcStart = async function mcStart(opts = {}) {
       streamId,
       video: opts.video ?? null,
       mimeType: opts.mimeType ?? null,
+      ingest: opts.ingest ?? null,        // set => stream to the server instead of buffering
+      timeslice: opts.timeslice ?? null,
     });
     self.mcState = { phase: res?.ok ? "recording" : "error", error: res?.error ?? null, file: null, note: res?.note ?? null };
     return self.mcState;
@@ -63,6 +65,23 @@ self.mcStop = async function mcStop(opts = {}) {
       self.mcState = { phase: "error", error: res?.error ?? "stop failed", file: null, note: null };
       return self.mcState;
     }
+    if (res.streamed) {
+      self.mcState = {
+        phase: "stopped",
+        error: res.sendError ?? null,
+        file: {
+          streamed: true,
+          chunksCut: res.chunksCut,
+          chunksSent: res.chunksSent,
+          ingestUrl: res.ingestUrl,
+          mimeType: res.mimeType,
+          durationMs: res.durationMs,
+        },
+        note: res.note ?? null,
+      };
+      return self.mcState;
+    }
+
     const filename = opts.filename ?? `marlin-cast-${Date.now()}.webm`;
     let downloadId = null;
     let via = null;

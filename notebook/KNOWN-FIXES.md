@@ -256,3 +256,70 @@ marlinpc, not a prediction about Unraid**. The Unraid target's UHD 770
 uses `iHD_drv_video.so`, which *is* present in a normal image — so
 hardware decode, and possibly Widevine L1 with it, is a live
 first-run risk there rather than a closed question.
+
+## ffmpeg guesses 50 fps from MediaRecorder WebM — pin the output rate
+
+Surfaced 2026-09-11 (Task 008). MediaRecorder's WebM is variable-rate.
+Transcoding it with no output frame rate pinned made ffmpeg guess **50
+fps** — this xrdp display's refresh rate — from a capture constrained to
+30 fps. The measured result was `r_frame_rate=50/1`, 3502 frames in
+70.08 s (49.97 fps): roughly twenty duplicated frames per second, each
+one paid for in libx264 time and bitrate.
+
+Fix: pin it to the capture rate.
+
+```
+-fps_mode cfr -r 30
+```
+
+Measured after: `r_frame_rate=30/1`, 2102 packets over 70.13 s = 29.97 fps.
+
+Related caution: this raised A/V drift to −139.7 ms over 70 s (task-006's
+comparable figure on the same capture path was −46 ms over 62 s). The CFR
+conversion holds video at exactly 30 fps while audio follows its own
+clock. Not yet characterised over long runs.
+
+## Never pass -use_wallclock_as_timestamps to MediaRecorder WebM
+
+Surfaced 2026-09-11 (Task 008). It replaces the container's timestamps
+with packet arrival time and produced an unending flood of:
+
+```
+[hls] Non-monotonic DTS in output stream 0:1; previous: 5291, current: 1320; changing to 5292.
+[aac] Queue input is backward in time
+```
+
+MediaRecorder already emits correctly synchronised A/V timestamps — that
+is the whole reason D011 chose tab capture over screen grabbing. Let
+ffmpeg use them.
+
+## Tab capture is pillarboxed unless the viewport is forced to 16:9
+
+Surfaced 2026-09-11 (Task 008). This display is 2560x1381 and the page
+viewport 2560x1267 — neither is 16:9 — so a 16:9 player sits in it with
+side bars, and tab capture encodes those bars. Fullscreen does not fix
+it (task-002 measured the player box staying 2252x1267).
+
+Fix: force the layout before capturing, over CDP on the page session:
+
+```js
+Emulation.setDeviceMetricsOverride({ width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false })
+```
+
+Verified: the tune log then reports `box == viewport == 1920x1080`, and
+the player fills the captured frame. Clear it with
+`Emulation.clearDeviceMetricsOverride` on teardown.
+
+## HLS gives no client-disconnect signal — use an idle watchdog
+
+Surfaced 2026-09-11 (Task 008). HLS is pull-based: the client fetches a
+playlist and segments over separate short-lived requests, so no socket
+close means "the viewer left". Stopping capture on response end would
+stop it after the first playlist fetch.
+
+Marlin Cast stops the tune after **20 s** with no request for that
+channel's playlist or any segment (`MC_IDLE_MS`). Verified: after the
+client stopped, state went idle with 0 ffmpeg processes and 0 HLS
+directories. The 20 s figure is a default with no evidence behind it —
+too short loses a paused client's tune, too long holds the browser
+captured with nobody watching.

@@ -368,3 +368,58 @@ every throwaway Chrome killed, backup verified byte-identical at 1842
 files / 270,807,537 bytes.
 
 See notebook/reports/task-007-gpu-drm-capture.md.
+
+---
+
+## Task 008 — the pipeline: a channel streams end to end (2026-09-11)
+
+D013 (full unfiltered lineup) and D014 (GPU decode deferred to Unraid)
+recorded.
+
+**It works.** `http://192.168.1.245:8804/playlist` serves a **144-channel**
+M3U; requesting an entry tunes the live Chrome, pins 1080p, tab-captures,
+and serves HLS. Pulled back over HTTP and measured from the received
+file: **1920x1080 H.264 High + AAC-LC 48 kHz stereo, 29.97 fps, 70.13 s,
+≈5.88 Mbps**, whole-frame luma 32–143 varying, **no black intervals**,
+audio mean −26.9 dB with no silence ≥ 1 s. A/V drift −139.7 ms over 70 s.
+
+**Real-time confirmed by direct measurement: 0.97x** (29 one-second
+timeslices in 30 s wall), libx264 at ~86 % of one core. The pipeline
+keeps pace with live TV on software encoding alone.
+
+**Two defects found by measuring, both fixed.** `-use_wallclock_as_timestamps`
+was overwriting the timestamps D011 exists to preserve and produced a
+flood of non-monotonic DTS — removed. And ffmpeg, given VFR WebM with no
+output rate pinned, guessed **50 fps** (this xrdp display's refresh rate)
+and duplicated ~20 frames/s from a 30 fps capture — fixed with
+`-fps_mode cfr -r 30`.
+
+**Layout:** `Emulation.setDeviceMetricsOverride` forces a 1920x1080
+viewport before capture, so the player fills the frame
+(`box == viewport == 1920x1080`) instead of being pillarboxed inside this
+2560x1267 non-16:9 display.
+
+**D005 — switch, not refuse.** A request for a second channel tears down
+the first and retunes; refusing would break every Channels DVR channel
+change until an idle timeout expired. Verified: TNT → AMC swapped the HLS
+directory, left **exactly one** ffmpeg encoder, and AMC came through at
+1920x1080 with picture and audio.
+
+**Stopping:** HLS is pull-based and gives no disconnect signal, so "client
+gone" is a **20 s idle watchdog**. After the pull stopped: state idle,
+**0 ffmpeg, 0 HLS directories**. No orphans in any arm.
+
+**Dependencies added: none.** `src/cdp.ts` is ~80 lines over Node 22's
+built-in WebSocket. One extension permission was widened —
+`host_permissions: ["http://127.0.0.1:8804/*"]` — so the offscreen
+document can POST timeslices to the server.
+
+**Not observed:** reachability from a second machine (no other host used,
+firewall not queryable without sudo); anything longer than ~2 minutes;
+Channels DVR actually consuming it. Tune latency is **19–22 s**, which is
+the most likely thing to make it feel broken in real use.
+
+**Live session untouched:** Chrome pid 76888, never restarted, still
+signed in and playing 1080p.
+
+See notebook/reports/task-008-pipeline.md.

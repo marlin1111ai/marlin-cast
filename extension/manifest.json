@@ -1,9 +1,21 @@
 {
   "manifest_version": 3,
   "name": "Marlin Cast Capture Spike",
-  "version": "0.0.1",
-  "description": "Task 006 spike: tab-capture the active tab, record with MediaRecorder, write one file.",
-  "permissions": ["tabCapture", "offscreen", "activeTab", "downloads"],
-  "background": { "service_worker": "background.js" },
-  "action": { "default_title": "Marlin Cast capture" }
+  "version": "0.0.2",
+  "description": "Tab-captures the active tab. Writes a file, or streams the recording to the local Marlin Cast server.",
+  "permissions": [
+    "tabCapture",
+    "offscreen",
+    "activeTab",
+    "downloads"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Marlin Cast capture"
+  },
+  "host_permissions": [
+    "http://127.0.0.1:8804/*"
+  ]
 }

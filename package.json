@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "chrome": "bash scripts/start-chrome.sh",
-    "login": "tsx src/login.ts"
+    "login": "tsx src/login.ts",
+    "channels": "tsx src/channels.ts",
+    "serve": "tsx src/server.ts"
   },
   "dependencies": {
     "express": "^5.2.1",

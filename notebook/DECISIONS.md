@@ -146,3 +146,26 @@ home. Reason: Unraid runs 24/7 alongside Channels DVR; marlinpc is a
 desktop in active use for other GPU work.
 
 **Dated 2026-09-11.**
+
+---
+
+## D013 — Channel list
+
+Channel list (owner, 2026-09-11): the playlist carries the full YouTube
+TV lineup as enumerated from the guide, unfiltered. Channels DVR hides
+unwanted channels on its side. No curation, whitelist, or config-file
+channel list in Marlin Cast.
+
+**Dated 2026-09-11.**
+
+---
+
+## D014 — Hardware decode testing
+
+Hardware decode testing (owner, 2026-09-11): the GPU decode question is
+deferred to first run on Unraid. marlinpc's /dev/dri has no usable VAAPI
+driver (NVIDIA card, no nvidia_drv_video.so), so testing it here would
+measure the wrong GPU. Amends D007's premise that VAAPI is tested during
+development. No VAAPI driver is installed on marlinpc.
+
+**Dated 2026-09-11.**
