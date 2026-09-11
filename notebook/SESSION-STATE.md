@@ -423,3 +423,69 @@ the most likely thing to make it feel broken in real use.
 signed in and playing 1080p.
 
 See notebook/reports/task-008-pipeline.md.
+
+---
+
+## Task 009 — Channels DVR played nothing: it was CORS (2026-09-11)
+
+**Diagnosed, reproduced, fixed, verified.** Marlin Cast sent no
+`Access-Control-Allow-Origin` on the playlist or segments and answered a
+CORS preflight with `404`. A server-side puller — ffmpeg, curl, Channels
+DVR's own remuxer — is unaffected, which is exactly why Channels could
+report `Remux Starting: 17s @ 1.04x` while the picture stayed black. A
+**browser** player fetches the playlist with XHR/fetch and the browser
+refuses to hand it the response.
+
+Reproduced with hls.js (the library behind Video.js, whose
+"The media could not be loaded…" string is what the owner saw):
+
+| hls.js, cross-origin, CORS enforced | before | after |
+|---|---|---|
+| | FATAL `manifestLoadError`, 0 frames | **PLAYING, 739 frames, 0 errors** |
+
+The control that settles it: identical stream, identical player, browser
+started with `--disable-web-security` → **plays**. Only the browser's
+willingness to read a cross-origin response changed.
+
+**Three validators disagreed, and that disagreement was the diagnosis:**
+ffprobe accepted it; GStreamer `hlsdemux` reached PLAYING with 0 errors;
+hls.js could not read the manifest at all.
+
+**The media was never the problem.** Every segment: h264 High Level 4.0
+1920x1080 + AAC-LC 48 kHz stereo, 60 video packets, exactly one keyframe,
+**starts with an IDR**, PTS continuous across every boundary
+(1.4667 → 3.4667 → 5.4667 → …). Sliding window confirmed
+(MEDIA-SEQUENCE 72 → 74 → 77, six entries). EXTINF 2.000000 against
+TARGETDURATION 2.
+
+**Fix, in `src/server.ts` only:** CORS middleware + `OPTIONS` preflight
+(the named cause), and segments served via `res.sendFile` so `Range` is
+honoured — it previously answered `Range: bytes=0-99` with `200` and the
+whole file. Segments also gained immutable `cache-control`.
+
+**Post-fix, 65 s pulled and measured from the output:** 1920x1080 H.264
+High L4.0 + AAC-LC, **30.02 fps**, 65.00 s, 6.18 Mbps, luma 28–182
+varying, **no black intervals**, audio mean −24.6 dB, 0 silent runs,
+**A/V drift +1.7 ms over 65 s**. First-request latency **21.12 s** —
+unchanged; the fix does not touch it.
+
+**Ruled out by measurement:** codec/profile/level, resolution, frame
+rate, keyframe alignment, segment independence, PTS/DTS continuity,
+missing streams, target-duration mismatch, playlist syntax, Content-Type.
+The 19 s blocking first request and the one-segment cold-start window are
+**real but not fatal** (hls.js survived both) — left alone deliberately,
+raised as questions.
+
+**Only Channels DVR can confirm the last step:** whether its player
+fetches Marlin Cast's URL directly (CORS applies, this is the cure) or
+plays a remuxed copy from its own origin (something else is wrong). The
+container was never queried, per the scope lock.
+
+**Also spotted, not fixed (tune path was out of scope):** the server log
+recorded `[tune] Freeform {"ok":true,"quality":"hd720","video":"0x0"}` —
+a tune reporting success at 720p with a stale video element reference.
+
+Live session untouched: Chrome pid 76888, never restarted, signed in,
+playing 1080p.
+
+See notebook/reports/task-009-hls-compliance.md.

@@ -323,3 +323,50 @@ client stopped, state went idle with 0 ffmpeg processes and 0 HLS
 directories. The 20 s figure is a default with no evidence behind it —
 too short loses a paused client's tune, too long holds the browser
 captured with nobody watching.
+
+## An HLS server needs CORS headers or no browser player can read it
+
+Surfaced 2026-09-11 (Task 009). Marlin Cast served a perfectly
+well-formed HLS stream that ffmpeg, curl and GStreamer all played, and
+that **no browser-based player could load at all**. Symptom: Channels DVR
+reported `Remux Starting: 17s @ 1.04x` — it was pulling real video at
+real time — while its player showed
+"The media could not be loaded, either because the server or network
+failed or because the format is not supported."
+
+Cause: no `Access-Control-Allow-Origin` header, and `OPTIONS` preflight
+returning `404`. A server-side puller does not care. A browser player
+fetches the playlist with XHR/fetch and the browser blocks the response
+before a byte is parsed. hls.js reports it as a fatal
+`networkError / manifestLoadError` with no `MANIFEST_PARSED` — which
+looks like "bad media" and is not.
+
+Fix: send CORS on every route and answer preflight.
+
+```ts
+res.setHeader("access-control-allow-origin", "*");
+res.setHeader("access-control-allow-methods", "GET, HEAD, OPTIONS");
+res.setHeader("access-control-allow-headers", "range, origin, accept, content-type");
+res.setHeader("access-control-expose-headers", "content-length, content-range, accept-ranges, date");
+if (req.method === "OPTIONS") { res.status(204).end(); return; }
+```
+
+**Diagnostic rule this taught:** ffprobe and ffmpeg are the wrong
+validators for a browser playback bug. They share no code with a browser
+media stack and will happily accept a stream a browser refuses to
+*fetch*. Test with hls.js in a real browser, and use
+`--disable-web-security` in a throwaway browser as the A/B control — if
+disabling it makes the stream play, the problem is CORS, not the media.
+
+## express createReadStream().pipe() ignores Range — use res.sendFile
+
+Surfaced 2026-09-11 (Task 009). HLS segments served with
+`createReadStream(path).pipe(res)` answered `Range: bytes=0-99` with
+`HTTP 200` and the entire file — no `Content-Range`, no `Accept-Ranges`.
+A client doing a partial retry gets the wrong bytes silently.
+
+`res.sendFile(absolutePath)` implements `Range`, `Accept-Ranges` and
+`Content-Range` correctly (verified: `206 Partial Content`,
+`Content-Range: bytes 0-99/1361684`). Segments are immutable once
+written, so they can also carry
+`cache-control: public, max-age=31536000, immutable`.

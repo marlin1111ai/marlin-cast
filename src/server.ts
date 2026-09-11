@@ -9,7 +9,7 @@
 // Binds 0.0.0.0:8804 and nothing else (D008).
 
 import express from "express";
-import { createReadStream, existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadChannels, type Channel } from "./channels.js";
 import { Pipeline, IDLE_MS } from "./capture.js";
@@ -34,6 +34,24 @@ console.log(`attached to Chrome ${browser} on 127.0.0.1:${CDP_PORT}`);
 
 const app = express();
 app.disable("x-powered-by");
+
+// A browser-based HLS player (Channels DVR's web player is Video.js + hls.js)
+// fetches the playlist and segments with XHR/fetch, so a stream served from a
+// different origin than the page is blocked by CORS before a single byte is
+// parsed. Task-009 reproduced exactly that: hls.js reported a fatal
+// `manifestLoadError` cross-origin, and played the identical stream when the
+// test browser was started with --disable-web-security. A server-side
+// remuxer (ffmpeg, curl, Channels' own puller) is unaffected, which is why the
+// stream could be "received" and still play nothing.
+app.use((req, res, next) => {
+  res.setHeader("access-control-allow-origin", "*");
+  res.setHeader("access-control-allow-methods", "GET, HEAD, OPTIONS");
+  res.setHeader("access-control-allow-headers", "range, origin, accept, content-type");
+  res.setHeader("access-control-expose-headers", "content-length, content-range, accept-ranges, date");
+  res.setHeader("access-control-max-age", "86400");
+  if (req.method === "OPTIONS") { res.status(204).end(); return; }
+  next();
+});
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -121,8 +139,12 @@ app.get("/stream/:id/:file", (req, res) => {
   const path = join(pipeline.dirFor(id), file);
   if (!existsSync(path)) return res.status(404).end();
   pipeline.touch(id);
+  // sendFile honours Range and sets Accept-Ranges/Content-Range; the previous
+  // createReadStream().pipe() answered `Range: bytes=0-99` with a 200 and the
+  // whole file. A segment never changes once written, so it is cacheable.
   res.type("video/mp2t");
-  createReadStream(path).pipe(res);
+  res.setHeader("cache-control", "public, max-age=31536000, immutable");
+  res.sendFile(path, (err) => { if (err && !res.headersSent) res.status(404).end(); });
 });
 
 app.use((_req, res) => res.status(404).type("text/plain").send("not found\n"));
