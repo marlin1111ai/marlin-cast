@@ -1,67 +1,55 @@
-import { createInterface } from "node:readline/promises";
-import { mkdirSync } from "node:fs";
-import { resolve } from "node:path";
-import { chromium, type BrowserContext } from "playwright";
+import { chromium, type Browser, type Page } from "playwright";
 
-const PROFILE_DIR = resolve("data/chrome-profile");
-const CHROME_PATH = "/usr/bin/google-chrome";
+const PORT = process.env.CDP_PORT ?? "9333";
+const ENDPOINT = `http://127.0.0.1:${PORT}`;
 const TARGET = "https://tv.youtube.com";
 
 /**
- * Launch the INSTALLED Google Chrome, not Playwright's bundled Chromium:
- * bundled Chromium ships no Widevine CDM, so DRM playback cannot be
- * evaluated there. Prefer channel resolution; fall back to the known path.
+ * Attach to the Chrome the owner launched with scripts/start-chrome.sh (D009).
+ *
+ * This never launches Chrome, never creates a profile and never passes a
+ * profile path. Playwright owning the profile is what the launchPersistentContext
+ * approach did, and it reported navigator.webdriver === true; attaching reports
+ * false. See notebook/reports/task-001c-cookie-destruction.md.
  */
-async function launchChrome(): Promise<BrowserContext> {
-  const opts = {
-    headless: false,
-    viewport: null,
-    /* Playwright's default args include --password-store=basic, which makes Chrome
-     * derive its cookie-encryption key from a hardcoded string (the "v10" scheme).
-     * Plain Chrome on this desktop autodetects gnome-libsecret and writes "v11"
-     * cookies instead, so a hand-login done in plain Chrome is undecryptable to a
-     * Playwright-launched Chrome, which silently drops those cookies and then
-     * overwrites them. Chrome honours the LAST occurrence of a repeated switch, so
-     * appending this overrides Playwright's default and both launches share one
-     * keyring-backed store. */
-    args: ["--start-maximized", "--password-store=gnome-libsecret"],
-  };
+const attach = async (): Promise<Browser> => {
   try {
-    return await chromium.launchPersistentContext(PROFILE_DIR, {
-      ...opts,
-      channel: "chrome",
-    });
-  } catch (err) {
-    console.error(`channel:"chrome" failed (${(err as Error).message.split("\n")[0]}); falling back to ${CHROME_PATH}`);
-    return await chromium.launchPersistentContext(PROFILE_DIR, {
-      ...opts,
-      executablePath: CHROME_PATH,
-    });
+    return await chromium.connectOverCDP(ENDPOINT);
+  } catch {
+    console.error(
+      `No Chrome is listening on ${ENDPOINT}.\n\n` +
+        "Start it first, in a terminal on the marlinpc desktop:\n" +
+        "    cd /Apps/marlin-cast && ./scripts/start-chrome.sh\n\n" +
+        "Leave that running, then run this again.",
+    );
+    process.exit(1);
   }
-}
+};
+
+const firstPage = async (browser: Browser): Promise<Page> => {
+  const context = browser.contexts()[0];
+  if (!context) throw new Error("attached, but Chrome exposed no browser context");
+  return context.pages()[0] ?? (await context.newPage());
+};
 
 const main = async () => {
-  mkdirSync(PROFILE_DIR, { recursive: true });
+  const browser = await attach();
+  console.log(`attached: yes  (${ENDPOINT}, Chrome ${browser.version()})`);
 
-  const context = await launchChrome();
-  const page = context.pages()[0] ?? (await context.newPage());
+  const page = await firstPage(browser);
   await page.goto(TARGET, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(6000);
 
-  console.log(
-    "\nOWNER: connect to marlinpc with Jump Desktop, log in to YouTube TV " +
-      "in the Chrome window on that desktop, then press Enter here",
-  );
+  const webdriver = await page.evaluate(() => navigator.webdriver);
+  console.log(`navigator.webdriver: ${webdriver}`);
 
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  await rl.question("");
-  rl.close();
-
-  const shot = resolve(`notebook/reports/login-state-${Date.now()}.png`);
-  await page.screenshot({ path: shot });
-  console.log(`screenshot: ${shot}`);
+  const signedOut = await page.evaluate(() => /SIGN IN/i.test(document.body.innerText ?? ""));
+  console.log(`tv.youtube.com: ${signedOut ? "SIGNED OUT" : "signed in"}`);
   console.log(`url: ${page.url()}`);
 
-  await context.close();
+  // Detaches only. Chrome keeps running and keeps the session (task-001c).
+  await browser.close();
+  console.log("detached (Chrome left running)");
 };
 
 main().catch((err) => {

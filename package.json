@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "chrome": "bash scripts/start-chrome.sh",
     "login": "tsx src/login.ts"
   },
   "dependencies": {

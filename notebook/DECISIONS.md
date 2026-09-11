@@ -89,3 +89,19 @@ http://<marlinpc-LAN-IP>:8804. Unraid container port remains 8091.
 Never bind 3000, 5173, 5188, 5189, 8420, 8800, 8801, 8802, 8803.
 
 **Dated 2026-09-11.**
+
+---
+
+## D009 — Browser control method
+
+Browser control method (owner, 2026-09-11): the app attaches to an
+owner-launched Chrome over CDP (chromium.connectOverCDP), rather than
+Playwright launching and owning the profile via
+launchPersistentContext. Reason: CDP attach is the only tested
+configuration reporting navigator.webdriver === false, and automation
+detection is the best-supported remaining explanation for server-side
+session invalidation (task-001c). The debug port binds loopback only
+and is never published from the container. Supersedes the
+launchPersistentContext approach in Task 001's src/login.ts.
+
+**Dated 2026-09-11.**
