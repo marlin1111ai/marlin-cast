@@ -150,3 +150,45 @@ Do not restart it without reason — the durability of the login across a
 Chrome restart is the biggest untested question.
 
 See notebook/reports/task-002-cdp-attach.md.
+
+---
+
+## Task 003 — the session survives a Chrome relaunch (2026-09-11)
+
+**Yes, twice.** Graceful `SIGTERM` stop, restart via
+`scripts/start-chrome.sh`, attach — `signed in` both times, with
+`navigator.webdriver: false`. Playback after relaunch measured at
+**1920x1080 @ 60.03 fps**. The fifth login was **not** spent; the
+session is still live.
+
+The cookie store came through **byte-identical**: 48 rows, all `v11`,
+47 persistent, 17 auth-shaped, before and after. That is the clean
+opposite of the 001b/001c signature (0 rows, or every tag flipped to
+`v10`). D009's attach model needs no change to handle restarts.
+
+**A verified backup of the logged-in profile now exists** at
+`backups/chrome-profile-loggedin-20260911-101619/` — 1408 files,
+214,080,533 bytes, file count and byte size both matched, gitignored
+via a new `/backups/` line. It is the rollback path and the only copy
+of a working logged-in profile. Never commit it.
+
+**The untested gap that matters:** this proves a restart *in place*, not
+that a **copied or moved** profile works — and a container start is the
+second thing. Step 5e's restore test was scoped to the signed-out
+branch and never ran. The backup exists so it can be tried without
+risking the live profile.
+
+**Docker warning, reasoned not measured:** every cookie is `v11`, the
+gnome-libsecret scheme, and a stock container has no keyring. 001c
+measured what a scheme mismatch costs (persistent rows 6 → 0). Either
+the image provides a keyring, or the container commits to
+`--password-store=basic` and takes its own hand-login in that scheme.
+
+Two smaller observations: the guide enumerated **153** channels this
+time against 150 in Task 002, so a channel list must not assume a fixed
+count; and `SIGTERM` leaves `Singleton*` lock files behind, which
+Chrome reclaims but a container supervisor should clear at startup.
+
+Chrome is left running (browser pid 72933) with the session live.
+
+See notebook/reports/task-003-relaunch-survival.md.
