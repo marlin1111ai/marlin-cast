@@ -121,3 +121,28 @@ filesystem access to the profile volume. Supersedes
 --password-store=gnome-libsecret in scripts/start-chrome.sh.
 
 **Dated 2026-09-11.**
+
+---
+
+## D011 — Capture method
+
+Capture method (owner, 2026-09-11): video and audio are captured with a
+purpose-built Chrome extension using chrome.tabCapture, not CDP
+screencast and not X11/ffmpeg screen grab. Reason: tab capture is the
+only method that yields video and tab audio as one already-synchronised
+stream, and A/V drift is what ruins long recordings. PrismCast achieves
+this via puppeteer-stream, which is Puppeteer-only and therefore
+unavailable to this stack.
+
+**Dated 2026-09-11.**
+
+---
+
+## D012 — Deployment target
+
+Deployment target (owner, 2026-09-11): Marlin Cast runs in Docker on
+Unraid. marlinpc is the development machine only, not the permanent
+home. Reason: Unraid runs 24/7 alongside Channels DVR; marlinpc is a
+desktop in active use for other GPU work.
+
+**Dated 2026-09-11.**

@@ -263,3 +263,57 @@ root or a container), and the fact that **no container has ever been
 run** in this project.
 
 See notebook/reports/task-005-basic-scheme.md.
+
+---
+
+## Task 006 — capture spike: DRM video captures, it is not black (2026-09-11)
+
+D011 (capture via a `chrome.tabCapture` extension) and D012 (Unraid
+Docker is the deployment target; marlinpc is development only) recorded.
+
+**The make-or-break result is positive: Widevine-protected YouTube TV
+video passes through `chrome.tabCapture` intact.** A 60-second TNT
+recording produced a 20.4 MB WebM — 2560x1380, 30.01 fps, 61.69 s,
+1851 frames, real moving picture (whole-frame luma 36–92, `blackdetect`
+found nothing), real audio (mean −23.4 dB, peak −4.1 dB, no silence
+≥1 s), audio 28 ms behind video at the start and 46 ms of drift across
+the whole minute. Measured from the file, not from the recorder.
+
+**Caveat that matters:** this was measured at Widevine **L3**, with
+Chrome on Mesa `llvmpipe` and no GPU video path at all. That is exactly
+where capture is expected to work. Hardware decode / L1 is the
+configuration that classically returns black, and it is untested.
+
+**`--load-extension` is dead on Chrome 153** — five controlled arms
+(alone, with `--disable-extensions-except`, with
+`--enable-unsafe-extension-debugging`, with
+`--disable-features=DisableLoadExtensionCommandLineSwitch`, and with
+both) every one reporting an empty `Extensions.getExtensions`. The
+working route is the CDP command **`Extensions.loadUnpacked`** over the
+existing loopback port — no extra flag, **no Chrome restart**.
+`scripts/start-chrome.sh` gained a comment block recording this; its
+`exec` line is byte-for-byte unchanged.
+
+**`chrome.tabCapture` requires `activeTab`**, i.e. the extension must be
+*invoked* on the tab. Over CDP that is `Extensions.triggerAction`, which
+needs a **`tab` target, not a `page` target** (`Target.getTargets({filter:[{}]})`).
+
+**Capture resolution follows neither the window nor the video.**
+Unconstrained it is the *display* size — proven with the window measured
+at 1219x1334 mid-recording and the file still 2560x1380. Constrained to
+1920x1080 it is exactly 1920x1080. Default frame rate is 30; asking for
+60 gave 38.6.
+
+**Occluded capture is fine; minimized capture goes black** while audio
+keeps running — a plausible-looking file with no picture. `Xvfb` is not
+installed, so "a display nobody is connected to" is **not observed**.
+
+MediaRecorder's default output is **VP8 + Opus in WebM** (source is VP9).
+Encoding is **all software**: `prefer-hardware` is false for VP8, VP9,
+H.264 and AV1; the host is an i9-14900KF (no iGPU) with an RTX 4070 Ti
+SUPER that Chrome is not using.
+
+**Live session untouched:** Chrome pid 76888 was never restarted, is
+still signed in, still playing 1080p, `navigator.webdriver` still false.
+
+See notebook/reports/task-006-capture-spike.md.

@@ -28,6 +28,35 @@ echo
 echo "Log in to YouTube TV in the window that opens. Leave this running."
 echo
 
+# --- The capture extension (Task 006) ---------------------------------------
+#
+# The flag that WOULD load it here is:
+#
+#     --load-extension=/Apps/marlin-cast/extension
+#
+# What it does: installs an unpacked (unzipped, un-signed) extension directory
+# at startup, the command-line equivalent of "Load unpacked" on
+# chrome://extensions, skipping the Web Store and Developer Mode.
+#
+# It is deliberately NOT passed, because on this Chrome it does nothing.
+# Measured on Chrome 153.0.8010.36, five throwaway-profile arms, every one
+# reporting an empty Extensions.getExtensions and no extension service worker:
+#
+#   --load-extension alone                                         -> ignored
+#   + --disable-extensions-except=<same path>                      -> ignored
+#   + --enable-unsafe-extension-debugging                          -> ignored
+#   + --disable-features=DisableLoadExtensionCommandLineSwitch     -> ignored
+#   + both of the above together                                   -> ignored
+#
+# Chrome removed the switch (M137) and there is no flag here that revives it.
+# The extension is therefore installed at RUN TIME, over the loopback debug
+# port this script already opens, by scripts/capture-spike.mjs calling the CDP
+# command Extensions.loadUnpacked. That needs no extra flag, no Developer Mode,
+# and — importantly — no Chrome restart, so the live login is never at risk.
+#
+# Nothing below this comment changed for Task 006: same port, same profile,
+# same --password-store=basic (D010).
+
 # --remote-debugging-address is deliberately not passed: Chrome binds the
 # debugging port to loopback by default, and naming another address is what
 # would expose it. --password-store=basic pins the cookie encryption scheme

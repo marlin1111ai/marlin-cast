@@ -117,3 +117,94 @@ Surfaced 2026-09-11 (Task 002). A named arrow/function inside a
 Either avoid named inner functions inside evaluate callbacks, or pass
 the body as a **string** to ``page.evaluate(`(() => { ... })()`)``, which
 skips the transform entirely.
+
+## --load-extension is ignored by Chrome 137+; use Extensions.loadUnpacked
+
+Surfaced 2026-09-11 (Task 006). `--load-extension=<dir>` silently does
+nothing on Chrome 153.0.8010.36 — Chrome starts normally, warns about
+nothing, and the extension is simply absent. Five throwaway-profile arms
+all reported an empty `Extensions.getExtensions` and no extension service
+worker: the flag alone; plus `--disable-extensions-except=<same dir>`;
+plus `--enable-unsafe-extension-debugging`; plus
+`--disable-features=DisableLoadExtensionCommandLineSwitch`; and plus both.
+
+Fix: install it at run time over CDP instead —
+`Extensions.loadUnpacked({ path })` on the **browser-level** session.
+It works over the ordinary loopback `--remote-debugging-port` (no
+`--remote-debugging-pipe` needed), needs no Developer Mode, and needs
+**no Chrome restart** — which is what makes it safe to use against a
+live logged-in browser. `Extensions.uninstall({ id })` reloads it after
+a code change.
+
+## chrome.tabCapture needs activeTab, and triggerAction needs a *tab* target
+
+Surfaced 2026-09-11 (Task 006). `chrome.tabCapture.getMediaStreamId()`
+fails with *"Extension has not been invoked for the current page (see
+activeTab permission)"* if the extension was merely installed. Declaring
+`activeTab` is not enough — something must **invoke** the extension on
+that tab.
+
+Over CDP the equivalent of clicking the toolbar icon is
+`Extensions.triggerAction({ id, targetId })`. The trap: `targetId` must
+be a **`tab` target, not the `page` target**. Passing a page target
+returns *"Action can only be triggered on a tab target."* `tab` targets
+are hidden from `Target.getTargets()` unless asked for explicitly:
+
+```js
+await cdp.send("Target.getTargets", { filter: [{}] });   // includes type "tab"
+```
+
+Also: an MV3 service worker is lazy and often has no target yet.
+`triggerAction` wakes it — so make the extension's `onClicked` handler a
+no-op unless the driver has armed it first, or waking it starts a
+recording by accident.
+
+## Tab capture: resolution follows the display, not the window or the video
+
+Surfaced 2026-09-11 (Task 006). With no `getUserMedia` size constraint,
+`chrome.tabCapture` output is the size of the **display**, regardless of
+window size, viewport size, or the video element's own resolution. The
+Chrome window was measured at 1219x1334 (viewport 1211x1243) mid-capture
+while playing a 1920x1080 stream; the file came out **2560x1380** — the
+2560x1381 screen, height rounded even. Shrinking the window only lays
+the page out smaller inside the same frame.
+
+Control it with the constraint, not the window:
+
+```js
+video: { mandatory: { chromeMediaSource: "tab", chromeMediaSourceId: id,
+                      maxWidth: 1920, maxHeight: 1080, maxFrameRate: 30 } }
+```
+
+Asking for 1920x1080 delivered exactly 1920x1080. Default frame rate is
+**30**, so a 60 fps source is halved unless asked otherwise — and asking
+for 60 delivered 38.6 fps on this 50 Hz software-rendered session.
+
+This is a *second*, independent 1080p pin. `setPlaybackQualityRange`
+controls what is decoded; the capture constraint controls what is
+encoded. Neither implies the other.
+
+## Minimizing the Chrome window makes tab capture record black
+
+Surfaced 2026-09-11 (Task 006). Minimizing does **not** stop the
+recording — frames and audio keep flowing at 30 fps — but the picture
+goes black and freezes, producing a plausible-looking file with sound
+over a black screen. Mean luma went 65 → 14 and then identical to four
+decimal places, recovering the moment the window was restored.
+
+**Occlusion is harmless**: a second maximized window completely covering
+the browser produced a recording indistinguishable from an unobstructed
+one. So what matters is that the window is *mapped and rendering*, not
+that anyone can see it. Never minimize a capturing window; covering it
+is fine.
+
+## MediaRecorder.isTypeSupported is optimistic — cross-check WebCodecs
+
+Surfaced 2026-09-11 (Task 006). `MediaRecorder.isTypeSupported(
+"video/webm;codecs=h264,opus")` returned `true` on a machine where
+`VideoEncoder.isConfigSupported` reported H.264 encoding **unsupported
+at every** `hardwareAcceleration` setting. Do not pick a recording codec
+from `isTypeSupported` alone.
+
+Left to itself, MediaRecorder chose **`video/webm;codecs=vp8,opus`** —
+VP8, even though the YouTube TV source is VP9.

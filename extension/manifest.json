@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Marlin Cast Capture Spike",
+  "version": "0.0.1",
+  "description": "Task 006 spike: tab-capture the active tab, record with MediaRecorder, write one file.",
+  "permissions": ["tabCapture", "offscreen", "activeTab", "downloads"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Marlin Cast capture" }
+}
