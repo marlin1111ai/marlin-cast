@@ -30,12 +30,14 @@ echo
 
 # --remote-debugging-address is deliberately not passed: Chrome binds the
 # debugging port to loopback by default, and naming another address is what
-# would expose it. --password-store=gnome-libsecret pins the cookie encryption
-# scheme so a hand-login stays readable (see notebook/KNOWN-FIXES.md).
+# would expose it. --password-store=basic pins the cookie encryption scheme
+# to v10 (hardcoded key) rather than v11 (machine-bound keyring), so this
+# profile stays readable in a container that has no keyring. Do not change
+# it back: D010, and notebook/KNOWN-FIXES.md.
 exec /usr/bin/google-chrome \
   --user-data-dir="$PROFILE" \
   --remote-debugging-port="$PORT" \
-  --password-store=gnome-libsecret \
+  --password-store=basic \
   --no-first-run \
   --no-default-browser-check \
   https://tv.youtube.com/

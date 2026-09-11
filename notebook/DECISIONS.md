@@ -105,3 +105,19 @@ and is never published from the container. Supersedes the
 launchPersistentContext approach in Task 001's src/login.ts.
 
 **Dated 2026-09-11.**
+
+---
+
+## D010 — Cookie encryption scheme
+
+Cookie encryption scheme (owner, 2026-09-11): Chrome runs with
+--password-store=basic everywhere, development and container alike, and
+the YouTube TV login is taken in that scheme. Reason: v11 keyring
+encryption is machine-bound and a stock container has no keyring;
+task-004 measured one basic-scheme launch destroying 17 of 17 auth
+cookies, and no supported v11-to-v10 migration exists. Accepted cost:
+v10 uses a hardcoded key, so the cookie store is readable by anyone with
+filesystem access to the profile volume. Supersedes
+--password-store=gnome-libsecret in scripts/start-chrome.sh.
+
+**Dated 2026-09-11.**
