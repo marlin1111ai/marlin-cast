@@ -29,3 +29,24 @@ differing, produced `v11` vs `v10`.
 
 Consequence when it bites: the old login is not recoverable. Wipe the
 profile and hand-login again *after* the fix is in place.
+
+**Scope, corrected 2026-09-11 (Task 001c).** This fix is real and
+load-bearing — controlled arms on throwaway profiles put it beyond
+doubt: without the flag a profile's persistent rows go 6 → 0; with it
+they survive, and the result is byte-identical to what plain Chrome
+leaves behind (session cookies dropped, persistent rows kept, `v11`
+tags intact). It holds for Google's own domain too — 9 of 9 persistent
+`.youtube.com` cookies survived.
+
+**But it is not the whole story.** The owner's YouTube TV session kept
+dying *after* this fix was in place, and 001c shows local cookie
+destruction is not the cause. Do not read this entry as "profile
+persistence is solved". It means one specific destroyer was removed.
+See notebook/reports/task-001c-cookie-destruction.md.
+
+**Measuring trap:** Chrome batches cookie commits. A profile inspected
+less than ~60 s after launch shows a store last written at startup, and
+reads as 0 rows. Dwell ~70 s before shutting down, or the test silently
+measures nothing. Also never judge by row count alone — a revisit to
+the same site repopulates the store with fresh rows and hides a total
+wipe (count identical, tags flipped `v11` → `v10`).

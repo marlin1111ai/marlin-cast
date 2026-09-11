@@ -76,3 +76,40 @@ Playback, resolution and frame rate remain NOT OBSERVED; the Widevine
 L3 → 1080p question is still open and still the biggest unknown.
 
 See notebook/reports/task-001b-profile-persistence.md.
+
+---
+
+## Task 001c — cookie destruction ruled out locally (2026-09-11)
+
+Reproduced the whole question on throwaway profiles with no Google
+account, no login, no `accounts.google.com`.
+
+**The 001b fix holds.** With `--password-store=gnome-libsecret`,
+Playwright preserves every persistent cookie and leaves a profile
+indistinguishable from what plain Chrome leaves — proven on github.com
+(2 of 2 persistent rows kept, matching a plain-Chrome control exactly)
+and on `.youtube.com` anonymously (9 of 9 persistent rows kept,
+`__Secure-` ones included). Without the flag the same profile goes to
+**0 rows**. The flag is load-bearing; `launchPersistentContext` does
+**not** re-initialise the profile.
+
+**So the session is not dying locally.** The owner's symptom — plain
+Chrome also signed out afterwards — cannot come from a decryption
+fault. The leading explanation is now **server-side invalidation by
+Google** once the session is used from a browser it flags as automated.
+That is inference from elimination, not a measurement, and it stays
+labelled as such.
+
+**CDP attach is the promising route.** `connectOverCDP` against a Chrome
+started independently with `--remote-debugging-port` gives full
+automation *and reports `navigator.webdriver === false`*, where
+`launchPersistentContext` reports `true`. Playwright never owns the
+profile, so the 001b trap cannot recur. Cost: we manage Chrome's
+lifecycle, and the debug port is an unauthenticated local control
+channel. Recommended to the owner; `src/login.ts` deliberately
+unchanged pending his call.
+
+Keyring is reachable and unlocked from both the SSH session and the
+`:10` desktop session — same bus, same daemon, no silent fallback.
+
+See notebook/reports/task-001c-cookie-destruction.md.
