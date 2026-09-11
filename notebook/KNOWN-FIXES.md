@@ -208,3 +208,51 @@ from `isTypeSupported` alone.
 
 Left to itself, MediaRecorder chose **`video/webm;codecs=vp8,opus`** —
 VP8, even though the YouTube TV source is VP9.
+
+## chrome://gpu reports policy, not silicon — check media-internals instead
+
+Surfaced 2026-09-11 (Task 007). Launched with `--ignore-gpu-blocklist`
+plus the usual VAAPI feature flags, `chrome://gpu` reported
+**"Video Decode: Hardware accelerated"**, along with Canvas, Compositing,
+Rasterization and WebGL. None of it meant a hardware decoder was running.
+In the same browser:
+
+```
+GL_RENDERER   : ANGLE (Mesa, llvmpipe ...)   <- still the software rasterizer
+videoDecoding : (none)                        <- zero HW decode profiles
+```
+
+and `chrome://media-internals`, read while the stream was playing:
+
+```
+kVideoDecoderName       = "DecryptingVideoDecoder"
+kIsPlatformVideoDecoder = false      <- the authoritative answer
+use_hw_secure_codecs    : false      <- still Widevine L3
+```
+
+`--ignore-gpu-blocklist` removes a *block*; it does not create a decoder.
+To find out what is really decoding, open `chrome://media-internals`,
+click the active player in `#player-list` (the entries are
+`div.tree-item`, the live one carries `active-player`; click its
+`.tree-item-header`), and read `#player-property-table`. Never conclude
+"hardware decode is on" from the green text on `chrome://gpu`.
+
+## Chrome cannot hardware-decode on marlinpc — there is no VAAPI driver for the GPU
+
+Surfaced 2026-09-11 (Task 007). Chrome on Linux hardware-decodes video
+**only** through VAAPI. On marlinpc:
+
+- the only GPU is NVIDIA (`/sys/class/drm/renderD128/device/uevent` →
+  `DRIVER=nvidia`, one `/dev/dri/by-path` entry at `pci-0000:01:00.0`);
+- the CPU is an **i9-14900KF** — the `F` means no integrated graphics;
+- `/usr/lib/x86_64-linux-gnu/dri/` carries VAAPI drivers for Intel
+  (`i965`, `iHD`), nouveau, AMD, d3d12 and virtio — none for the
+  proprietary NVIDIA driver;
+- a whole-filesystem `find / -name '*nvidia*drv_video*'` returns nothing.
+
+So no flag combination enables hardware decode here, and every "no
+hardware acceleration" result in this project is **a fact about
+marlinpc, not a prediction about Unraid**. The Unraid target's UHD 770
+uses `iHD_drv_video.so`, which *is* present in a normal image — so
+hardware decode, and possibly Widevine L1 with it, is a live
+first-run risk there rather than a closed question.

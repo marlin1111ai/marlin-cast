@@ -317,3 +317,54 @@ SUPER that Chrome is not using.
 still signed in, still playing 1080p, `navigator.webdriver` still false.
 
 See notebook/reports/task-006-capture-spike.md.
+
+---
+
+## Task 007 — GPU path vs DRM capture: not answerable on marlinpc (2026-09-11)
+
+**The central question is still open, and now we know why it will stay
+open on this machine.** Hardware video decode cannot be enabled in
+Chrome on marlinpc at all: Chrome hardware-decodes on Linux only through
+VAAPI, the only GPU here is the NVIDIA RTX 4070 Ti SUPER (the i9-14900KF
+has no iGPU), and `nvidia_drv_video.so` is absent from the entire
+filesystem. The VAAPI drivers that are installed are Intel/nouveau/AMD.
+
+**Arm 1 (baseline software)** reproduced Task 006 on a copy of the
+backup profile: 2560x1380, 29.91 fps, 61.68 s, picture present, no black
+intervals, audio present. The copy-based harness is sound.
+
+**Arm 2 (VAAPI flags) did not test what it was meant to.** `chrome://gpu`
+went green and reported **"Video Decode: Hardware accelerated"** — and it
+was not true. `GL_RENDERER` was still Mesa llvmpipe, `videoDecoding`
+advertised no profiles, and `chrome://media-internals` read during
+playback showed `kVideoDecoderName = "DecryptingVideoDecoder"` with
+`kIsPlatformVideoDecoder = false` and `use_hw_secure_codecs: false`.
+**`chrome://gpu` reports policy, not silicon** — `--ignore-gpu-blocklist`
+removes the block, it does not conjure a decoder.
+
+**Neither arm came through black.** Arm 2 did flip Canvas / Compositing /
+Rasterization / WebGL to "Hardware accelerated" and capture was
+unaffected — so *accelerated compositing on a software GL* does not black
+the capture. Hardware decode remains untested, and Widevine stayed L3
+throughout, which is exactly where capture is expected to work.
+
+Step 6's decode-vs-compositing arm was **not run**: its trigger (Arm 2
+black) did not fire.
+
+**For the container:** marlinpc has a `/dev/dri` with no VAAPI driver
+behind it, so **D007's premise that VAAPI can be tested during
+development is not true on this host** — the black-frame risk moves to
+first run on Unraid, where `iHD_drv_video.so` plus an UHD 770 is exactly
+the configuration that could produce hardware decode and L1. Under D011,
+`/dev/dri` is *not* a no-op: it could feed decode, MediaRecorder's own
+encode, and compositing, all inside Chrome — no ffmpeg step exists yet.
+Any container acceptance test should read
+`chrome://media-internals` → `kIsPlatformVideoDecoder`, not the green
+text on `chrome://gpu`.
+
+**Live session untouched:** Chrome pid 76888, 2 h 38 m, signed in,
+playing 1080p, port 9333 loopback only. Every throwaway copy deleted,
+every throwaway Chrome killed, backup verified byte-identical at 1842
+files / 270,807,537 bytes.
+
+See notebook/reports/task-007-gpu-drm-capture.md.
