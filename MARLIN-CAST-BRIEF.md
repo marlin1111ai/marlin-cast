@@ -1,94 +1,80 @@
-# MARLIN CAST — COLD-START BRIEF (v1, 2026-09-11)
+# MARLIN CAST — COLD-START BRIEF (v3, 2026-09-11 late evening)
 
-This is the founding brief for a NEW project. There is no code, no repo, and no notebook yet. Task 001 creates them.
+Supersedes v2 (which was never committed; its founding content is restated here) and v1 (`notebook/BRIEF-v1.md`). This file lives at the repo root as `MARLIN-CAST-BRIEF.md`.
 
-## FOREMAN: READ EVERYTHING BEFORE WRITING ANY PROMPT
+## FOREMAN: READ BEFORE WRITING ANY PROMPT
 
-Before writing a single builder prompt in this project, the foreman reads, in full: the FOREMAN INSTRUCTIONS (v4.1) the owner pastes at the top of the chat, this entire brief, and — once they exist — `notebook/SESSION-STATE.md`, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/OPEN-ITEMS.md`, and the most recent report in `notebook/reports/`. The first reply in every chat is a CONTEXT CHECK per the template. Nothing settled below gets re-asked, re-derived, or re-litigated.
+Read in full: the FOREMAN INSTRUCTIONS (v5) the owner pastes at the top of the chat, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-013, task-015, task-019 at minimum; task-020 has no report — its record is the Task 020 section of SESSION-STATE.md). First reply in every chat is a CONTEXT CHECK. Nothing settled below gets re-asked or re-derived.
 
-## WHAT IT IS
+## WHERE THE PROJECT STANDS
 
-Marlin Cast is the owner's own self-hosted browser-capture live-TV tool — a replacement for PrismCast that the owner controls and can fix himself. It logs into a streaming provider in a real Chrome browser, captures the playing video, encodes it, and serves an M3U playlist plus per-channel HLS streams that Channels DVR consumes as a Custom Channels source — exactly the way PrismCast is wired into Channels DVR today.
+Marlin Cast works end to end on marlinpc and is in use. It enumerates the YouTube TV lineup, serves an M3U at `/playlist`, tunes a channel in a logged-in Chrome, tab-captures it, and serves fMP4 HLS. Cold tune ≈ 4.2 s.
 
-Why: the owner does not want to depend on a third-party maintainer when the tool breaks.
+**Consumer (D016):** Marlin DVR, via Marlin IPTV Editor (the editor supplies playlist + guide), confirmed playing on Apple TV. PrismCast stays as the Channels DVR source.
 
-## DECISIONS ALREADY MADE (owner, 2026-09-11) — these go into notebook/DECISIONS.md verbatim in Task 001
+**Parked defect (D016):** Channels DVR cannot play it. Its remuxer probes the stream fine, starts a session in ~1.1 s, emits exactly one output segment (`first_seq=1 last_seq=1`) and never a second, however long it runs; the player then shows "The media could not be loaded…". Tasks 009–019 changed and ruled out, one at a time: CORS headers, tune latency, container (TS→fMP4), PROGRAM-DATE-TIME format, PROGRAM-DATE-TIME presence, in-band SPS/PPS, guide data. Untested remaining differences from PrismCast: 1 s segments / `TARGETDURATION:1`; `MEDIA-SEQUENCE` restarting at 0 with no `EXT-X-DISCONTINUITY`. Do not reopen this unless the owner asks.
 
-- **D001 — Name:** Marlin Cast. Repo `marlin1111ai/marlin-cast`, container `marlin-cast`.
-- **D002 — First provider:** YouTube TV (tv.youtube.com). One provider to start.
-- **D003 — Stack:** Node.js 22 + TypeScript, Playwright driving installed Google Chrome, ffmpeg. Not Go, not Python.
-- **D004 — Where development happens:** on the Mac, with software (CPU) encoding. Hardware encoding (Intel Quick Sync / VAAPI on the Unraid box's UHD 770) is wired and tested only at deploy time, by the owner, on Unraid.
-- **D005 — Sessions:** one login session, one channel playing at a time. No multi-session, no concurrent tunes. Not to be revisited.
-- **D006 — Output contract:** an M3U playlist at `/playlist` listing channels, each pointing at an HLS stream served by Marlin Cast; consumed by Channels DVR as a Custom Channels source (Stream Format HLS, stream limit 1). Guide data comes from Channels DVR's own Gracenote matching — Marlin Cast produces no XMLTV.
+**Current build (task-019):** fMP4/CMAF segments, H.264 High L4.0 + AAC-LC, 1 s segments, 1 s GOP (`-g 30 -keyint_min 30 -sc_threshold 0`), zerolatency, `repeat-headers=1` (SPS/PPS before every IDR), no PROGRAM-DATE-TIME, 10-segment window, 20 s idle stop that kills the encoder and parks the capture tab on `https://tv.youtube.com/live`. The task-014 serve-time date-time rewrite in `src/server.ts` is still present and is now a no-op. `tvc-guide-stationid="32645"` is hardcoded on the one ESPN entry (`MrXg0chrojg`) only.
 
-## FACTS THE FOREMAN MUST KNOW (established elsewhere; quoted, not inferred)
+## DECISIONS (full wording in notebook/DECISIONS.md — quote from there, never from memory)
 
-- YouTube TV playback is Widevine DRM. Stream interception does not work; the video must be captured from the rendered browser. Playwright's bundled Chromium has no Widevine — the app must drive the installed Google Chrome (`channel: "chrome"`).
-- Google refuses logins from browsers it detects as automated. The app NEVER types credentials. The owner logs in manually, once, in a persistent Chrome profile the app reuses. The app has no knowledge of the password.
-- From the owner's Unraid notes on PrismCast (2026-09-10): quality preset 1080p High was chosen over 720p and 4K ("4K raised bitrate but cost ~a third of the frame rate"); Channels transcoder stays "none"; PrismCast's HDHomeRun emulation on :5004 does not work with Channels DVR ("its auto-discovery assumes port 80") — Marlin Cast does not emulate HDHomeRun.
-- Design references, read-only, no code copied: PrismCast (github.com/hjdhjd/prismcast) and Chrome Capture for Channels. They prove the approach works for YouTube TV; they are not a license to lift code.
+D001 name/repo · D002 YouTube TV first · D003 Node 22 + TypeScript + Playwright + ffmpeg · D005 one session, one channel at a time · D006 M3U + HLS out, no XMLTV from Marlin Cast · D007 dev on marlinpc, not the Mac (supersedes D004) · D008 dev server 0.0.0.0:8804, Unraid container port 8091 · D009 attach to owner-launched Chrome over CDP, never own the profile · D010 `--password-store=basic` everywhere · D011 capture via purpose-built extension + `chrome.tabCapture` · D012 deployment target Docker on Unraid, marlinpc is dev only · D013 playlist carries the full unfiltered lineup · D014 GPU decode deferred to first run on Unraid.
+
+**D015** — station-ID guide matching: name→ID pairs from PrismCast's `/playlist` (read-only GET), hand mapping as fallback. Only the ESPN test sliver is built (task-017). Full mapping for 144 channels and the four duplicate "ESPN"-named feeds is unbuilt.
+
+**D016** — Marlin DVR via Marlin IPTV Editor is the consumer; PrismCast stays on Channels; Channels defect parked (see above).
+
+## HARD-WON FACTS (all measured)
+
+Carried from earlier sessions:
+- YouTube TV plays under CDP attach at 1920×1080, Widevine L3. `setPlaybackQualityRange("hd1080","hd1080")` is required; window size is not a knob; some channels (ESPN) have no 1080p rendition.
+- Use `#movie_player video.html5-main-video` — the page has ~40 video elements.
+- `--load-extension` is inert on Chrome 153; the extension loads over CDP via `Extensions.loadUnpacked`.
+- Profiles copy safely; what destroys a session is a cookie-encryption scheme mismatch (v11 keyring vs v10 basic). No v11→v10 migration exists. Sessions survive graceful Chrome restarts.
+- `chrome://gpu` reports policy, not silicon — verify decode with media-internals.
+- The xrdp display (~2468×1380 @ 50 Hz) exists only while Jump Desktop is connected; don't benchmark on it. Tab capture works occluded; minimized goes black. Capture resolution follows the display — constrain via maxWidth/maxHeight.
+
+New this session (tasks 012–019):
+- PrismCast serves fMP4 (bare `moof` segments, no styp/sidx), H.264 Constrained Baseline L4.2, SPS/PPS in-band per keyframe, variable 0.9–4.9 s segments, `TARGETDURATION` 2–5, cold playlist starts at `MEDIA-SEQUENCE:15` with `EXT-X-DISCONTINUITY`, PROGRAM-DATE-TIME in UTC `Z` form before `EXTINF`. It sends no CORS headers.
+- ffmpeg's hls muxer writes PROGRAM-DATE-TIME as local time with `%z` (`-0400`) after `EXTINF`; Go's RFC 3339 parser rejects that form. There is no muxer option for UTC or position — only a serve-time rewrite.
+- Channels' `[M3U] stream timestamps start_at=end_at live_delay=3s` line came from a pre-fetch of our media playlist reading equal first/last PROGRAM-DATE-TIME values on a one-segment cold playlist; it vanished when the tag was removed. It was not the cause of the stall.
+- A local stock ffmpeg stream-copy segmenter (`-c copy -f hls -hls_time 2`) cuts our stream into 16–17 segments per 30 s, same as PrismCast's. The Channels stall is not reproducible outside Channels.
+- ffmpeg cuts on the IDR NAL, not the trun sync flag. ffmpeg's mpegts muxer auto-injects SPS/PPS at keyframes; the mp4 path does not.
+- libx264 keeps SPS/PPS in avcC only unless `-x264-params repeat-headers=1`.
+- Live pulls of our HLS log "Found duplicated MOOV Atom. Skipped it" once per playlist reload (EXT-X-MAP re-read); harmless to ffmpeg and hls.js.
+- The mp4 muxer logs "Packet duration: -192 … out of range" on audio at ~1 in 15 segment boundaries; no measured effect.
+- Parking the tab on the YouTube TV guide leaves a paused 0×0 `#movie_player`; re-tune from the guide is same-origin and costs nothing (nav 644 ms). Long-dwell auto-preview behaviour is unverified.
+- Restarting the dev server from the builder: background launches via `&` die when the shell call returns; use the tool's background mode.
 
 ## ENVIRONMENT
 
-- Builder: Claude Code on the Mac Studio. Repo at `/Apps/marlin-cast`. Read-only reference tree: `/Apps/marlin-iptv-editor` (for its GitHub Actions → GHCR image pipeline and notebook conventions only).
-- Deploy target: Unraid at 192.168.1.250, Docker, bridge network, `--device /dev/dri`, image pulled from GHCR by a pinned version tag, container added by the owner through the Unraid GUI. A pinned tag shows "not available" in Unraid's VERSION column — that is expected.
-- Ports (foreman's contained call, 2026-09-11): Mac dev port **8804**. Unraid container port **8091** (8091–8099 are unoccupied per the owner's Unraid notes). Never bind on the Mac: 3000, 5173, 5188, 5189, 8420, 8800, 8801, 8802, 8803.
-- Chrome and ffmpeg on the Mac are prerequisites. The builder checks for them; it never installs them. Installs are the owner's step.
+- Builder: Claude Code on marlinpc (Pop!_OS 24.04). Repo `/Apps/marlin-cast`, remote `git@github.com:marlin1111ai/marlin-cast.git` over SSH (never switch to HTTPS). main is fully pushed as of task-020 (a7edccb).
+- Read-only reference tree: `/Apps/marlin-iptv-editor`.
+- Owner logs in by hand over Jump Desktop on display `:10`. The app never types credentials and never navigates to accounts.google.com.
+- Chrome: owner-launched via `scripts/start-chrome.sh`, `--password-store=basic`, loopback debug port 9333. The app attaches; it launches nothing.
+- Server: `npm run serve` on 0.0.0.0:8804; `npm run channels` refreshes the lineup; `pkill -f 'src/server.ts'` stops it. Playlist at `http://192.168.1.245:8804/playlist`.
+- Channels DVR still has a MarlinCast custom source configured (HLS, stream limit 1, XMLTV empty); it is not the consumer.
+- Profiles on disk: `data/chrome-profile` (v10, live) · `backups/chrome-profile-basic-20260911-110129/` (v10, container-portable) · `data/chrome-profile-v11-20260911-104559/` and `backups/chrome-profile-loggedin-20260911-101619/` (v11, machine-bound, NOT Docker fallbacks).
 
 ## STANDING PROHIBITIONS — every prompt carries these
 
-- The builder never connects to the Unraid host (no ssh, no curl, no docker commands against it) and never touches any container on it: `prismcast`, `channelsdvr_intel`, `fastchannels`, `marlin-iptv-editor`, `marlin-cad`.
+- Never connect to the Unraid host at 192.168.1.250 — no ssh, docker, container inspection, logs, nothing on port 8089. Plain HTTP GETs to PrismCast on port 5589 are permitted for comparison only.
+- Never touch any container on it: `prismcast`, `channelsdvr_intel`, `fastchannels`, `marlin-iptv-editor`, `marlin-cad`.
 - `/Apps/marlin-iptv-editor` is never written to.
-- No credentials, cookies, tokens, session IDs, or account identifiers in the repo, logs, reports, or commits. The Chrome profile directory is gitignored. Everything sensitive is `[REDACTED]` in reports.
-- Nothing is ever force-pushed or history-rewritten.
-- Scope lock and the do-not-touch list bind every prompt, every time.
+- Never restart or interfere with the live logged-in Chrome without saying so first.
+- `backups/` and `data/chrome-profile-v11-*` are read-only.
+- No installers: apt, snap, flatpak, brew. Installs are the owner's step.
+- No credentials, cookies, tokens, session IDs or account identifiers in the repo, logs, reports or commits.
+- Never force-push or rewrite history. Pushes verified by `git fetch` + SHA comparison.
 
-## NOTEBOOK LAYOUT (created in Task 001, same shape as the IPTV Editor)
+## NOT YET BUILT
 
-`notebook/SESSION-STATE.md` (running log, newest at bottom), `notebook/DECISIONS.md` (D-numbers, wording verbatim), `notebook/KNOWN-FIXES.md`, `notebook/OPEN-ITEMS.md`, `notebook/reports/task-NNN-*.md`. This brief is copied in as `notebook/BRIEF-v1.md`.
+Dockerfile · Xvfb · GitHub Actions/GHCR pipeline · full D015 station-ID mapping · any UI beyond `/playlist`, the stream endpoint and `/health` · hardware encoding · concurrency beyond one stream. The owner wants no settings pages.
 
-## CONTEXT PANEL FOR THIS PROJECT
+## KNOWN OPEN QUESTIONS
 
-Start: add this file (`MARLIN-CAST-BRIEF.md`). After Task 001 lands: add `notebook/SESSION-STATE.md`, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/OPEN-ITEMS.md`. Delete before re-adding, never drag-and-replace.
-
-## TASK 001 — KICKOFF (the first builder prompt; the foreman pastes it as written)
-
-Task 001 scaffolds the repo and notebook, gets the owner logged in through a persistent Chrome profile, and does a read-only investigation of tv.youtube.com plus a comparison of capture methods — and then STOPS. It writes no capture code, no encoder, no HLS server, no Dockerfile. The capture method is a genuine implementation choice and is raised to the owner as a decision before any of it is built (Task 002). The full prompt text is in the foreman's handoff message and is reproduced below.
-
----
-
-TASK 001 — MARLIN CAST KICKOFF: scaffold, manual login, read-only investigation. NO CAPTURE CODE.
-
-1. READ FIRST — do not re-derive what these settle: MARLIN-CAST-BRIEF.md (the owner will place it at /Apps/marlin-cast/MARLIN-CAST-BRIEF.md before you start, or paste it; if it is not present, STOP and ask for it). Decisions D001–D006 are final.
-
-2. WORKING DIRECTORY: /Apps/marlin-cast — create it. This is the only writable tree.
-
-3. READ-ONLY REFERENCE: /Apps/marlin-iptv-editor — read its .github/workflows/*.yml, Dockerfile, and notebook/ for the GHCR pipeline pattern and notebook conventions ONLY. Do not copy files from it; do not run anything in it.
-
-4. ABSOLUTE DO-NOT-TOUCH — if anything pulls you toward these, STOP and report:
-   - The Unraid host at 192.168.1.250 and every container on it (prismcast, channelsdvr_intel, fastchannels, marlin-iptv-editor, marlin-cad). No ssh, no curl, no docker against it.
-   - /Apps/marlin-iptv-editor — no writes.
-   - Any streaming site other than tv.youtube.com, and tv.youtube.com only via the steps in 5d–5e.
-   - Google's login page — you never type into it. The owner logs in by hand.
-   - brew, apt, or any system installer. You check for prerequisites; you never install them.
-
-5. THE TASK — numbered, do only these:
-   a. Prerequisite check, read-only: confirm Node 22+, Google Chrome (the real one, at /Applications/Google Chrome.app), and ffmpeg are present on this Mac, with versions. If any is missing, finish the rest of this task where possible and report the missing item as a blocker — do not install.
-   b. Repo: `git init` at /Apps/marlin-cast on branch main. Create the GitHub repo marlin1111ai/marlin-cast (private) with `gh repo create` if gh is installed and authenticated; if not, STOP after committing locally and report that the owner must create the remote. Add origin, push main.
-   c. Notebook: create notebook/SESSION-STATE.md (a Task 001 entry, newest at bottom), notebook/DECISIONS.md (D001–D006 copied verbatim from the brief), notebook/KNOWN-FIXES.md (empty template), notebook/OPEN-ITEMS.md (empty template), notebook/reports/, and notebook/BRIEF-v1.md (a copy of the brief).
-   d. Scaffold: package.json with exactly these dependencies and no others — playwright, express, typescript, tsx. `.gitignore` covering node_modules, dist, data/, and any *.log. A `data/chrome-profile/` directory (gitignored) for the persistent Chrome profile. A single `src/login.ts` that launches the INSTALLED Google Chrome (Playwright `chromium.launchPersistentContext` with `channel: "chrome"`, headed, profile at data/chrome-profile) and opens https://tv.youtube.com, then waits. Nothing else in src/.
-   e. Manual login: run src/login.ts, print "OWNER: log in to YouTube TV in the Chrome window that just opened, then press Enter here" and wait. After the owner confirms, close Chrome, relaunch with the same profile, and prove with a screenshot (saved under notebook/reports/, account name blurred or cropped) that the session persisted and the live guide loads without a login prompt.
-   f. Read-only investigation of tv.youtube.com, in the logged-in Chrome, by observation only (DevTools/DOM inspection, URL bar, network tab — no scripted playback beyond navigating and clicking play once): how a specific channel is selected (deep-link URL scheme, or DOM interaction — record the exact URL pattern and/or selectors); the video element and how the player is made fullscreen / UI hidden; whether playback runs at all in Playwright-driven Chrome (Widevine present, no "unsupported browser" wall, no automation-detection wall — record exactly what you see); resolution and frame rate the player delivers at the chosen 1080p setting.
-   g. Capture-method comparison, by reading only: read how PrismCast (github.com/hjdhjd/prismcast, read-only, no code copied) captures the browser video, and list the realistic methods available to this stack on the Mac now and in Docker on Unraid later — at minimum: CDP screencast, Chrome tab capture via an extension/getDisplayMedia, X11/Xvfb screen grab by ffmpeg, and any other method you find in use. For each: fps and quality ceiling, CPU cost, whether it works headless vs needs a virtual display, whether it works in a Docker container with /dev/dri, and how audio is captured. Recommend one, with the single reason. This is a decision for the owner, not a choice you make.
-
-6. EXPLICITLY OUT OF SCOPE — the scope lock: no capture code, no ffmpeg invocation, no encoder, no HLS server, no /playlist endpoint, no channel list, no Dockerfile, no GitHub Actions workflow, no tests framework, no linter, no config system, no logging library, no dependencies beyond the four named. If you believe something extra is needed, finish what you can, STOP, and report it as a question: what, why, what breaks without it. Nothing unrequested gets built.
-
-7. CONSTRAINTS: dependency budget is exactly playwright, express, typescript, tsx. Port 8804 is reserved for this project but nothing binds it in this task. Never bind 3000, 5173, 5188, 5189, 8420, 8800, 8801, 8802, 8803. No process is left running at the end — prove it with `ps`.
-
-8. EVIDENCE RULES: every finding in 5f carries a screenshot or a copied DOM/URL snippet. Every claim about PrismCast in 5g carries the file path and line range in its repo. Versions in 5a are command output, not memory. Anything you could not observe is written as "not observed" — never guessed. Every URL, cookie, token, account name, and email is [REDACTED].
-
-9. DELIVERABLE: notebook/reports/task-001-kickoff.md with, in order: (i) prerequisite results; (ii) login persistence proof; (iii) tv.youtube.com findings (5f); (iv) capture-method comparison and one recommendation (5g); (v) OPEN QUESTIONS; (vi) SCOPE CHECK — every file created, mapped to the step that required it. Print the SCOPE CHECK table in the terminal too. Commit everything with "Task 001: kickoff — scaffold, login, investigation" and push to origin/main. Verify the push with `git fetch` and comparing `git rev-parse HEAD` to `git rev-parse origin/main` — not by trusting the push output. State what was pushed.
-
-10. STOP AND REPORT: stop at 5b if the remote cannot be created; stop at 5e if login cannot be completed; stop at 5f if playback is blocked by a wall of any kind (report the exact wall — that finding alone is a valid outcome). On any failure: snapshot state, diagnose with evidence, do not retry blind.
-
-11. CLOSING SUMMARY for the owner, plain English: does YouTube TV play inside automated Chrome, yes or no; which capture method you recommend and why in one sentence; the three things you are least certain about.
+- Whether the 20 s idle timeout is the right number (no evidence behind it).
+- Whether YouTube TV's guide page auto-starts a preview after a long idle.
+- Whether tab capture survives a container with `/dev/dri` passed through (D014).
+- Whether a volume-mounted profile with a different uid behaves like a copied one.
+- A/V drift measured between −11.7 ms and −139.7 ms; nothing has run longer than ~2 minutes under measurement.
