@@ -755,3 +755,42 @@ Server left running on 0.0.0.0:8804 for the owner's Channels DVR test.
 Nothing on 192.168.1.250 was contacted.
 
 See notebook/reports/task-016.md.
+
+---
+
+## Task 017 — tvc-guide-stationid on ESPN only (test sliver of D015) (2026-09-11)
+
+**Done, one line in the /playlist generator.** The ESPN entry the owner
+tunes in every test (channel id `MrXg0chrojg`) now carries
+`tvc-guide-stationid="32645"` — PrismCast's own Gracenote station id for
+ESPN, read live from its /playlist. Every other attribute on that entry
+(tvg-id, tvg-name, tvg-logo, group-title) is unchanged, and every other
+channel's entry is untouched, including the three other channels also
+named "ESPN" (gaT2Q_KZxns, arlkwb9_uTw, n33BiPboLfo), which get no
+station id.
+
+**Why a test sliver:** D006 says guide data comes from Channels' own
+Gracenote matching and Marlin Cast produces no XMLTV. PrismCast
+nonetheless ships an explicit `tvc-guide-stationid` per channel. This
+task adds it to one channel only to see whether Channels' behaviour
+changes, without committing to a mapping table for 144 channels. **Note:
+there is no D015 recorded in DECISIONS.md yet** — the brief refers to it
+as the decision this is a sliver of; it remains to be written by the
+owner. Hardcoded, no mapping/file/config (task scope).
+
+**Verified live (server restarted, owner's Chrome untouched):** /playlist
+still 144 channels (289 lines, unchanged); exactly one
+`tvc-guide-stationid` in the whole playlist; the full prior-vs-new diff
+is a single line (the ESPN #EXTINF). Our new ESPN line and PrismCast's:
+
+```
+ours: #EXTINF:-1 tvg-id="MrXg0chrojg" tvg-name="ESPN" tvg-logo="…=ns-nd" group-title="YouTube TV" tvc-guide-stationid="32645",ESPN
+pc:   #EXTINF:-1 channel-id="espn" group-title="Sports" tvg-name="ESPN" tvc-guide-stationid="32645",ESPN
+```
+
+Committed on main, **not pushed** (ea788bb, 953b6cd, 74e09c1 also still
+unpushed). Server left running on 0.0.0.0:8804 for the owner's Channels
+DVR test. Only PrismCast's /playlist on 5589 was fetched; nothing else on
+192.168.1.250.
+
+See notebook/reports/task-017.md.

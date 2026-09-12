@@ -98,6 +98,13 @@ app.get("/playlist", (req, res) => {
       `tvg-name="${c.name.replace(/"/g, "")}"`,
       c.logo ? `tvg-logo="${c.logo}"` : null,
       `group-title="YouTube TV"`,
+      // Test sliver toward D015 (task-017): give Channels DVR an explicit
+      // Gracenote station id for ONE channel only — ESPN, the channel the
+      // owner tunes in every test — to see whether it changes Channels'
+      // behaviour. 32645 is PrismCast's own tvc-guide-stationid for ESPN.
+      // Hardcoded on this one channel id; no mapping table, file, or config.
+      // We carry four channels named "ESPN"; MrXg0chrojg is the tuned one.
+      c.id === "MrXg0chrojg" ? `tvc-guide-stationid="32645"` : null,
     ].filter(Boolean).join(" ");
     lines.push(`#EXTINF:-1 ${attrs},${c.name}`);
     lines.push(`${base}/stream/${c.id}/index.m3u8`);

@@ -593,3 +593,15 @@ keyframe samples went from `(6,5,…)` to `(6,7,8,…,5)` / `(7,8,5,…)`,
 1.000 s spacing unchanged, hls.js still PLAYING 0 errors, 30 s pull still
 continuous. This makes each keyframe a self-contained random-access
 point, matching the reference stream.
+
+## Channels' "stream timestamps start_at=end_at" is logged before it opens the connection
+
+Surfaced 2026-09-11 (task-015, owner-supplied log). Channels DVR's
+`[M3U] stream timestamps … start_at=X end_at=X live_delay=Ns` line is
+printed **before** `[TNR] Opened connection`, i.e. before Channels
+fetches our media playlist at all. So it is **not derived from our media
+playlist** — it comes from the M3U/source entry or Channels' own state,
+not from EXT-X-PROGRAM-DATE-TIME or the segment list. Do not chase the
+media playlist to explain that line; it was already a dead lead by
+task-014 (start_at=end_at persisted after the PDT fix) and this confirms
+the mechanism.
