@@ -22,6 +22,9 @@ const TIMESLICE_MS = Number(process.env.MC_TIMESLICE ?? 1000);
 /** HLS is pull-based and gives no disconnect signal, so "client gone" is
  *  inferred from silence. See the report. */
 export const IDLE_MS = Number(process.env.MC_IDLE_MS ?? 20000);
+/** Where the capture tab parks after an idle stop: the YouTube TV live
+ *  guide, logged in, with no channel playing (task-018). */
+const GUIDE_URL = "https://tv.youtube.com/live";
 
 export type Status = {
   state: "idle" | "starting" | "streaming" | "stopping";
@@ -168,7 +171,7 @@ export class Pipeline {
     const l = this.live;
     if (!l || l.stopping) return;
     if (Date.now() - l.lastAccess > IDLE_MS) {
-      void this.stop(`idle ${IDLE_MS}ms with no client request`);
+      void this.stop(`idle ${IDLE_MS}ms with no client request`, { returnToGuide: true });
     }
   }
 
@@ -379,7 +382,7 @@ export class Pipeline {
     return true;
   }
 
-  async stop(reason: string): Promise<void> {
+  async stop(reason: string, opts: { returnToGuide?: boolean } = {}): Promise<void> {
     const l = this.live;
     if (!l || l.stopping) return;
     l.stopping = true;
@@ -400,6 +403,18 @@ export class Pipeline {
     await this.cdp.send("Emulation.clearDeviceMetricsOverride", {}, this.page).catch(() => {});
     rmSync(l.dir, { recursive: true, force: true });
     this.live = null;
+
+    // On an idle stop, park the capture tab on the live guide so no channel
+    // keeps playing while nobody is watching (task-018). Not done on a
+    // channel switch (start() navigates straight to the next channel) or on
+    // shutdown. The tab stays open and logged in; the next tune navigates to
+    // its channel URL from here exactly as it would from any other page.
+    if (opts.returnToGuide) {
+      try {
+        await this.cdp.send("Page.navigate", { url: GUIDE_URL }, this.page);
+        console.log(`[stop] parked capture tab on the live guide`);
+      } catch (e) { console.error(`[stop] guide navigation failed: ${String(e)}`); }
+    }
   }
 
   async shutdown(): Promise<void> {

@@ -794,3 +794,35 @@ DVR test. Only PrismCast's /playlist on 5589 was fetched; nothing else on
 192.168.1.250.
 
 See notebook/reports/task-017.md.
+
+---
+
+## Task 018 — park the capture tab on the live guide after an idle stop (2026-09-11)
+
+**Done, `src/capture.ts` only.** When the 20 s idle watchdog fires and the
+encoder is torn down, `stop()` now navigates the capture tab to
+`https://tv.youtube.com/live` so no channel keeps playing while nobody is
+watching. The navigation is gated by a new `stop(reason, { returnToGuide })`
+option, passed only from `checkIdle`; a channel switch (which navigates
+straight to the next channel) and shutdown do not park. The idle value,
+the tune path, and the encoder/playlist settings are unchanged.
+
+**Step 2:** the next tune works unchanged from the guide — `start()`
+always navigates to the channel URL and poll 1 waits on `location.href`
+containing the channel id plus `#movie_player`, assuming nothing about
+the prior page. No code change was needed there.
+
+**Verified live (server restarted, owner's Chrome never restarted):**
+tuned ESPN, pulled 10 s, stopped, waited 25 s. Server log shows
+`[stop] parked capture tab on the live guide`. A read-only in-page eval
+reported tab URL `https://tv.youtube.com/live`, the
+`#movie_player video.html5-main-video` element present but **paused,
+readyState 0, 0x0** — nothing playing — with 0 ffmpeg and 0 HLS
+directories. Re-tuning ESPN from the guide: **4.212 s** (baseline ~4.3 s;
+task-016 4.317 s), tune-ms nav=644. Left idle with the tab parked on the
+guide again for the owner's Channels DVR test.
+
+Committed on main, **not pushed** (53651b2, ea788bb, 953b6cd, 74e09c1
+also unpushed). Nothing on 192.168.1.250 was contacted.
+
+See notebook/reports/task-018.md.
