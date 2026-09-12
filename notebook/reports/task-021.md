@@ -608,3 +608,32 @@ must not enter the repo.
    and pages them. The guide itself asks for 10 dense + 200 sparse. Both
    give the same 226 rows and the same ids today; I have not checked that
    they always agree.
+
+---
+
+## Push verification
+
+```
+$ git push origin main
+To github.com:marlin1111ai/marlin-cast.git
+   1b5dabb..0218f24  main -> main
+
+$ git fetch origin
+HEAD        0218f24ca951b1391e055835299210e2c59f2741
+origin/main 0218f24ca951b1391e055835299210e2c59f2741
+MATCH
+```
+
+One commit, `0218f24`, carrying all of it: `src/providers/` (4 new files),
+`src/capture.ts`, `src/cdp.ts`, `src/channels.ts`, `src/server.ts`,
+`src/login.ts`, `scripts/start-chrome.sh`, `notebook/DECISIONS.md`,
+`notebook/SESSION-STATE.md`, this report and its four screenshots. Nothing
+is left local. `git status` is clean apart from this closing section, which
+is committed on top.
+
+Working tree state at hand-off: the dev server is running on
+`0.0.0.0:8804`; the owner's Chrome (pid 174888) is untouched, with the
+YouTube TV tab on a `/watch/` URL from the last YouTube TV tune and the
+Philo tab parked on `/player/guide`. `scripts/start-chrome.sh` now opens
+both tabs but has **not** been executed — it takes effect at the owner's
+next Chrome launch.
