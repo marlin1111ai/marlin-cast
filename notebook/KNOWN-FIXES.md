@@ -605,3 +605,24 @@ not from EXT-X-PROGRAM-DATE-TIME or the segment list. Do not chase the
 media playlist to explain that line; it was already a dead lead by
 task-014 (start_at=end_at persisted after the PDT fix) and this confirms
 the mechanism.
+
+## Guide data did not change last_seq=1; the timestamps line is a media-playlist pre-fetch
+
+Surfaced 2026-09-11 (task-019, owner-supplied log). After task-017 gave
+ESPN a `tvc-guide-stationid`, Channels still logged
+`[M3U] stream timestamps: ESPN: start_at=21:01:44 end_at=21:01:44
+live_delay=3s` at 21:01:45.3 — **before** `Opened connection` — and still
+stopped at `last_seq=1`. So an explicit station id changed neither the
+timestamps line nor the stop.
+
+The `start_at == end_at` line is consistent with Channels **pre-fetching
+the media playlist** and reading its first and last
+`EXT-X-PROGRAM-DATE-TIME`: on a cold playlist those are the *same*
+segment's value (one segment in the window), so the window is zero and
+Channels appears to fetch nothing further. This is why it precedes
+`Opened connection` (the pre-fetch happens first) yet still reflects our
+media playlist. Task-019 removes the tag (`-hls_flags` no longer carries
+`program_date_time`) to eliminate the two equal values that pre-fetch
+reads. The task-014 serve-time UTC rewrite in src/server.ts stays as a
+no-op. Whether this changes Channels' behaviour is unverified — it cannot
+be reproduced locally (task-015), only the owner's log can confirm.

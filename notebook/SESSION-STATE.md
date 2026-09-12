@@ -826,3 +826,35 @@ Committed on main, **not pushed** (53651b2, ea788bb, 953b6cd, 74e09c1
 also unpushed). Nothing on 192.168.1.250 was contacted.
 
 See notebook/reports/task-018.md.
+
+---
+
+## Task 019 — remove EXT-X-PROGRAM-DATE-TIME from the media playlist (2026-09-11)
+
+**Done, one flag in `src/capture.ts`.** `program_date_time` is gone from
+the ffmpeg `-hls_flags` (now `delete_segments+independent_segments+temp_file`),
+so no `EXT-X-PROGRAM-DATE-TIME` line is written. Every other encoder,
+muxer, and playlist setting is unchanged. The task-014 serve-time rewrite
+in `src/server.ts` is left in place, now a no-op (no PDT lines to fix).
+
+**Why:** with guide data present (task-017), Channels still logged
+`[M3U] stream timestamps start_at=end_at` before `Opened connection` and
+still stopped at `last_seq=1`. The working theory: Channels pre-fetches
+the media playlist and reads the first and last PROGRAM-DATE-TIME, which
+on a cold one-segment playlist are equal → a zero window. Removing the
+tag removes those two equal values.
+
+**Verified live (server restarted, owner's Chrome never restarted):**
+cold and +5 s playlists carry **no PROGRAM-DATE-TIME** (0 occurrences),
+everything else unchanged (VERSION 7, TARGETDURATION 1, MEDIA-SEQUENCE 0,
+INDEPENDENT-SEGMENTS, MAP, EXTINF 1.0, .m4s). hls.js cross-origin, CORS
+enforced: PLAYING, 604 frames, 0 dropped, 0 errors. 30 s ffmpeg pull:
+exit 0, 31 segments, continuous — only the pre-existing duplicated-MOOV
+warnings (task-015 EXT-X-MAP reload artifact), no new class. Cold tune
+**4.228 s** (baseline ~4.3 s). Left idle with the tab parked on the guide
+(task-018).
+
+Committed on main, **not pushed** (ded91c6, 53651b2, ea788bb, 953b6cd,
+74e09c1 also unpushed). Nothing on 192.168.1.250 was contacted.
+
+See notebook/reports/task-019.md.

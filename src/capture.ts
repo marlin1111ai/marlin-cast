@@ -322,8 +322,6 @@ export class Pipeline {
       // client sees picture, and task-010 measured PrismCast (which plays in
       // the same Channels DVR player) returning a playable playlist in 5.2 s
       // against our 19.3 s. hls_list_size 10 keeps the same ~10 s window.
-      // program_date_time matches the reference stream, which carries
-      // EXT-X-PROGRAM-DATE-TIME and which Channels uses to locate the live edge.
       "-f", "hls", "-hls_time", "1", "-hls_list_size", "10",
       // fMP4/CMAF, not MPEG-TS (task-012): one init segment (ftyp+moov,
       // referenced by #EXT-X-MAP) plus .m4s media fragments. This is the
@@ -331,7 +329,16 @@ export class Pipeline {
       // init.mp4 + .m4s with EXT-X-VERSION:7). Codec, profile, rate, GOP,
       // segment length and window are unchanged — only the container.
       "-hls_segment_type", "fmp4", "-hls_fmp4_init_filename", "init.mp4",
-      "-hls_flags", "delete_segments+independent_segments+temp_file+program_date_time",
+      // No program_date_time (task-019). It was added in task-010 to match the
+      // reference stream, but task-013 found ffmpeg writes it as local time
+      // with a strftime %z offset that Go's RFC 3339 parser rejects, and
+      // task-014's serve-time rewrite made it valid UTC. It stayed a suspect
+      // anyway: Channels logs "[M3U] stream timestamps start_at=end_at" from a
+      // pre-fetch of the media playlist (start==end because a cold playlist
+      // holds one segment), then stops at last_seq=1. Removing the tag removes
+      // the two equal PROGRAM-DATE-TIME values that pre-fetch reads. The
+      // task-014 rewrite in src/server.ts is left in place as a no-op.
+      "-hls_flags", "delete_segments+independent_segments+temp_file",
       "-hls_segment_filename", join(dir, "seg%05d.m4s"),
       join(dir, "index.m3u8"),
     ];
