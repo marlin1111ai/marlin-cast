@@ -1,15 +1,20 @@
 // Tune-and-capture: one channel at a time (D005).
 //
-// Navigates the attached Chrome to a channel deep link, pins 1080p, arms the
-// capture extension (task-006: tabCapture needs activeTab, granted by
-// Extensions.triggerAction on a "tab" target), and pipes the extension's
-// WebM timeslices into ffmpeg, which writes an fMP4/CMAF HLS stream to disk.
+// Selects the tab for the channel's provider (D018), hands the tune to that
+// provider's module (src/providers/), arms the capture extension (task-006:
+// tabCapture needs activeTab, granted by Extensions.triggerAction on a "tab"
+// target), and pipes the extension's WebM timeslices into ffmpeg, which writes
+// an fMP4/CMAF HLS stream to disk.
+//
+// Nothing provider-specific lives in this file: no URL, no selector, no player
+// API, no session marker. Everything encoder-side is unchanged from task-019.
 
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Cdp, evalIn, findPageTarget, sleep, tabTargetId, type Session } from "./cdp.js";
-import { ROOT, type Channel } from "./channels.js";
+import { ROOT } from "./channels.js";
+import { providerFor, type Channel, type Probe, type Provider, type TuneCtx } from "./providers/index.js";
 
 const EXT_DIR = join(ROOT, "extension");
 const EXT_NAME = "Marlin Cast Capture Spike";
@@ -22,12 +27,10 @@ const TIMESLICE_MS = Number(process.env.MC_TIMESLICE ?? 1000);
 /** HLS is pull-based and gives no disconnect signal, so "client gone" is
  *  inferred from silence. See the report. */
 export const IDLE_MS = Number(process.env.MC_IDLE_MS ?? 20000);
-/** Where the capture tab parks after an idle stop: the YouTube TV live
- *  guide, logged in, with no channel playing (task-018). */
-const GUIDE_URL = "https://tv.youtube.com/live";
 
 export type Status = {
   state: "idle" | "starting" | "streaming" | "stopping";
+  provider: string | null;
   channelId: string | null;
   channelName: string | null;
   since: string | null;
@@ -41,6 +44,10 @@ export type Status = {
 
 type Live = {
   channel: Channel;
+  provider: Provider;
+  /** The page session of the tab this tune is driving (D018). */
+  session: Session;
+  pageTargetId: string;
   token: string;
   dir: string;
   ffmpeg: ChildProcessWithoutNullStreams;
@@ -50,9 +57,6 @@ type Live = {
   bytesIn: number;
   stopping: boolean;
 };
-
-/** Result of a page-side poll probe: `ok` ends the poll, `fatal` aborts it. */
-type Probe = { ok: boolean; fatal?: string; [k: string]: unknown };
 
 /**
  * Poll a page-side expression until it reports ok, it reports fatal, or the
@@ -88,9 +92,10 @@ async function pollPage(
 export class Pipeline {
   private cdp!: Cdp;
   private port: string;
-  private pageTargetId!: string;
-  private page!: Session;
   private extId!: string;
+  /** One attached session per tab, keyed by page target id. Re-resolved every
+   *  tune, so a tab the owner closed and reopened is picked up. */
+  private sessions = new Map<string, Session>();
   private live: Live | null = null;
   private starting: Promise<void> | null = null;
   private lastError: string | null = null;
@@ -101,15 +106,24 @@ export class Pipeline {
 
   async connect(): Promise<string> {
     this.cdp = await Cdp.attach(this.port);
-    const t = await findPageTarget(this.port);
-    this.pageTargetId = t.id;
-    const { sessionId } = await this.cdp.send<any>("Target.attachToTarget", { targetId: t.id, flatten: true });
-    this.page = sessionId;
-    await this.cdp.send("Page.enable", {}, this.page);
-    await this.cdp.send("Runtime.enable", {}, this.page);
     await this.loadExtension();
     this.watchdog = setInterval(() => this.checkIdle(), 2000);
     return this.cdp.browser;
+  }
+
+  /** D018: the page target whose URL host is this provider's, attached and
+   *  ready to drive. Throws loud if that tab is not open. */
+  private async selectTab(provider: Provider): Promise<{ id: string; session: Session; url: string }> {
+    const t = await findPageTarget(this.port, provider);
+    let session = this.sessions.get(t.id);
+    if (!session) {
+      const { sessionId } = await this.cdp.send<any>("Target.attachToTarget", { targetId: t.id, flatten: true });
+      session = sessionId as Session;
+      await this.cdp.send("Page.enable", {}, session);
+      await this.cdp.send("Runtime.enable", {}, session);
+      this.sessions.set(t.id, session);
+    }
+    return { id: t.id, session, url: t.url };
   }
 
   /** --load-extension is dead on Chrome 153 (task-006); Extensions.loadUnpacked
@@ -123,7 +137,7 @@ export class Pipeline {
     this.extId = id;
   }
 
-  private async swSession(): Promise<Session> {
+  private async swSession(pageSession: Session): Promise<Session> {
     for (let i = 0; i < 30; i++) {
       const { targetInfos } = await this.cdp.send<any>("Target.getTargets");
       const sw = targetInfos.find((t: any) => t.type === "service_worker" && t.url.includes(this.extId));
@@ -133,7 +147,7 @@ export class Pipeline {
         return sessionId;
       }
       if (i === 4 || i === 14) {
-        const tid = await tabTargetId(this.cdp, this.page).catch(() => null);
+        const tid = await tabTargetId(this.cdp, pageSession).catch(() => null);
         // An unarmed invocation is a no-op in the extension; it only wakes the worker.
         if (tid) await this.cdp.send("Extensions.triggerAction", { id: this.extId, targetId: tid }).catch(() => {});
       }
@@ -146,6 +160,7 @@ export class Pipeline {
     const l = this.live;
     return {
       state: l ? (l.stopping ? "stopping" : "streaming") : (this.starting ? "starting" : "idle"),
+      provider: l?.provider.label ?? null,
       channelId: l?.channel.id ?? null,
       channelName: l?.channel.name ?? null,
       since: l ? new Date(l.startedAt).toISOString() : null,
@@ -192,99 +207,64 @@ export class Pipeline {
     if (this.live) await this.stop(`switching to ${channel.name}`);
     this.lastError = null;
 
+    const provider = providerFor(channel);
     const token = Math.random().toString(36).slice(2, 10);
     const dir = this.dirFor(channel.id);
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
 
-    // --- tune -------------------------------------------------------------
-    // Four polls, no fixed sleeps. Task-010 measured the old 9000/1500/3500 ms
-    // sleeps as 14.17 s of a 19.35 s cold tune, against PrismCast's 5.22 s.
-    const t0 = Date.now();
-    const url = `https://tv.youtube.com/${channel.href.replace(/^\//, "")}`;
-    await this.cdp.send("Page.navigate", { url }, this.page);
+    // --- pick the tab (D018) ----------------------------------------------
+    const tab = await this.selectTab(provider);
+    const session = tab.session;
+    await this.cdp.send("Target.activateTarget", { targetId: tab.id });
+    console.log(`[tune] ${channel.name}: provider ${provider.id}, tab ${tab.id} (${tab.url.slice(0, 60)})`);
 
-    // Poll 1 (was sleep 9000): the navigation has actually committed to this
-    // channel's document and the player element is mounted. Checking the id is
-    // in location.href is what stops the next polls reading the OLD document.
-    await pollPage(this.cdp, this.page, "navigation", `(() => {
-      const signedOut = /SIGN IN/i.test((document.body && document.body.innerText) || "");
-      if (signedOut) return { ok: false, fatal: "SIGNED OUT" };
-      const onTarget = location.href.indexOf(${JSON.stringify(channel.id)}) !== -1;
-      const player = !!document.querySelector("#movie_player");
-      return { ok: onTarget && player, onTarget, player, href: location.href.slice(0, 60) };
-    })()`, 30000);
+    // --- tune -------------------------------------------------------------
+    // Provider-defined stages around one shared layout override. Task-010
+    // measured the old 9000/1500/3500 ms sleeps as 14.17 s of a 19.35 s cold
+    // tune, against PrismCast's 5.22 s; every stage is a poll, not a sleep.
+    const ctx: TuneCtx = {
+      cdp: this.cdp,
+      session,
+      poll: (name, expression, timeoutMs, intervalMs) =>
+        pollPage(this.cdp, session, name, expression, timeoutMs, intervalMs),
+      click: async (x, y) => {
+        await this.cdp.send("Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 }, session);
+        await this.cdp.send("Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", clickCount: 1 }, session);
+      },
+      move: async (x, y) => {
+        await this.cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y }, session);
+      },
+      captureW: CAPTURE_W,
+      captureH: CAPTURE_H,
+    };
+
+    const t0 = Date.now();
+    await provider.navigate(ctx, channel);
     const tNav = Date.now() - t0;
 
     // Force a 16:9 layout so the player fills the captured frame instead of
     // being pillarboxed inside this 2560x1381 (non-16:9) display.
     await this.cdp.send("Emulation.setDeviceMetricsOverride", {
       width: CAPTURE_W, height: CAPTURE_H, deviceScaleFactor: 1, mobile: false,
-    }, this.page).catch(() => {});
+    }, session).catch(() => {});
 
     // Poll 2 (was sleep 1500): the override has actually been applied to the
     // layout, i.e. the page reports the viewport we asked for.
-    await pollPage(this.cdp, this.page, "layout override", `(() => ({
+    await pollPage(this.cdp, session, "layout override", `(() => ({
       ok: innerWidth === ${CAPTURE_W} && innerHeight === ${CAPTURE_H},
       viewport: innerWidth + "x" + innerHeight
     }))()`, 10000);
     const tLayout = Date.now() - t0;
 
-    // Poll 3 (kept from the old page-side loop, now a named stage): a real
-    // video element is decoding and playing.
-    await pollPage(this.cdp, this.page, "player ready", `(() => {
-      const p = document.querySelector("#movie_player");
-      const v = document.querySelector("#movie_player video.html5-main-video");
-      if (!v || !p) return { ok: false, why: "no player yet" };
-      return { ok: v.videoWidth > 0 && !v.paused && v.readyState >= 2,
-               w: v.videoWidth, h: v.videoHeight, paused: v.paused, readyState: v.readyState };
-    })()`, 30000);
+    await provider.play(ctx, channel);
     const tPlaying = Date.now() - t0;
 
-    // Poll 4 (was sleep 3500): wait on the QUALITY ACTUALLY SETTLING with the
-    // element reporting matching real dimensions — not on elapsed time.
-    //
-    // Task-009 saw tunes report success at hd720 with the element reading 0x0.
-    // Two separate causes, and this poll addresses both:
-    //   * a STALE element was measured after the pin, so the element is
-    //     re-queried every iteration and the pin re-applied (it is idempotent);
-    //   * some channels genuinely have NO 1080p rendition — ESPN advertises
-    //     only ["hd720","large","medium","small"]. Demanding hd1080 there can
-    //     never succeed, so the target is the best level the channel actually
-    //     offers at or below hd1080. The level reached is reported, never
-    //     silently accepted: a tune below hd1080 warns in the log and shows in
-    //     /health.
-    const pinned = await pollPage(this.cdp, this.page, "quality pin", `(() => {
-      const p = document.querySelector("#movie_player");
-      const v = document.querySelector("#movie_player video.html5-main-video");
-      if (!p || !v) return { ok: false, why: "player went away" };
-      const avail = (p.getAvailableQualityLevels ? p.getAvailableQualityLevels() : []) || [];
-      if (!avail.length) return { ok: false, why: "no quality levels advertised yet" };
-      const ladder = ["hd1080", "hd720", "large", "medium", "small", "tiny"];
-      const target = ladder.find(function (q) { return avail.indexOf(q) !== -1; });
-      if (!target) return { ok: false, why: "no usable quality level", available: avail };
-      try { p.setPlaybackQualityRange(target, target); } catch (e) {}
-      const minH = { hd1080: 1080, hd720: 720, large: 480, medium: 360, small: 240, tiny: 144 }[target] || 1;
-      const q = p.getPlaybackQuality();
-      const r = v.getBoundingClientRect();
-      return {
-        ok: q === target && v.videoWidth > 0 && v.videoHeight >= minH,
-        target: target,
-        quality: q,
-        is1080: target === "hd1080",
-        video: v.videoWidth + "x" + v.videoHeight,
-        box: Math.round(r.width) + "x" + Math.round(r.height),
-        viewport: innerWidth + "x" + innerHeight,
-        available: avail.slice(0, 6)
-      };
-    })()`, 20000);
-    if (!pinned.is1080) {
-      console.warn(`[tune] ${channel.name} WARNING: channel offers no hd1080 — settled at ${pinned.quality} (available: ${JSON.stringify(pinned.available)})`);
-    }
-    this.lastQuality = String(pinned.quality ?? "unknown");
+    const pinned = await provider.quality(ctx, channel);
+    this.lastQuality = pinned.quality;
     const tPinned = Date.now() - t0;
 
-    console.log(`[tune] ${channel.name} ${JSON.stringify(pinned)}`);
+    console.log(`[tune] ${channel.name} ${JSON.stringify(pinned.detail)}`);
     console.log(`[tune-ms] ${channel.name} nav=${tNav} layout=${tLayout} playing=${tPlaying} pinned=${tPinned}`);
 
     // --- ffmpeg -----------------------------------------------------------
@@ -354,14 +334,14 @@ export class Pipeline {
     });
 
     this.live = {
-      channel, token, dir, ffmpeg,
+      channel, provider, session, pageTargetId: tab.id, token, dir, ffmpeg,
       startedAt: Date.now(), lastAccess: Date.now(),
       chunksIn: 0, bytesIn: 0, stopping: false,
     };
 
     // --- arm the extension and record ------------------------------------
-    const sw = await this.swSession();
-    await this.cdp.send("Target.activateTarget", { targetId: this.pageTargetId });
+    const sw = await this.swSession(session);
+    await this.cdp.send("Target.activateTarget", { targetId: tab.id });
     const opts = JSON.stringify({
       video: { maxWidth: CAPTURE_W, maxHeight: CAPTURE_H, maxFrameRate: CAPTURE_FPS },
       ingest: `http://127.0.0.1:8804/ingest/${channel.id}/${token}`,
@@ -372,7 +352,7 @@ export class Pipeline {
     if (started.phase !== "recording") {
       // tabCapture refuses until the extension has been INVOKED on the tab.
       await evalIn(this.cdp, sw, `(() => { self.mcOpts = ${opts}; self.mcArmed = true; return true; })()`);
-      await this.cdp.send("Extensions.triggerAction", { id: this.extId, targetId: await tabTargetId(this.cdp, this.page) });
+      await this.cdp.send("Extensions.triggerAction", { id: this.extId, targetId: await tabTargetId(this.cdp, session) });
       await sleep(1800);
       started = await evalIn<any>(this.cdp, sw, `self.mcState`);
     }
@@ -396,7 +376,7 @@ export class Pipeline {
     console.log(`[stop] ${l.channel.name}: ${reason}`);
 
     try {
-      const sw = await this.swSession();
+      const sw = await this.swSession(l.session);
       await evalIn(this.cdp, sw, `self.mcStop({})`);
     } catch (e) { console.error(`[stop] recorder stop failed: ${String(e)}`); }
 
@@ -407,19 +387,20 @@ export class Pipeline {
       try { l.ffmpeg.kill("SIGTERM"); } catch { clearTimeout(t); res(); }
     });
 
-    await this.cdp.send("Emulation.clearDeviceMetricsOverride", {}, this.page).catch(() => {});
+    await this.cdp.send("Emulation.clearDeviceMetricsOverride", {}, l.session).catch(() => {});
     rmSync(l.dir, { recursive: true, force: true });
     this.live = null;
 
-    // On an idle stop, park the capture tab on the live guide so no channel
-    // keeps playing while nobody is watching (task-018). Not done on a
-    // channel switch (start() navigates straight to the next channel) or on
-    // shutdown. The tab stays open and logged in; the next tune navigates to
-    // its channel URL from here exactly as it would from any other page.
+    // On an idle stop, park the tab on that provider's guide so no channel
+    // keeps playing while nobody is watching (task-018). Not done on a channel
+    // switch (start() navigates straight to the next channel) or on shutdown.
+    // The tab stays open and logged in; the next tune navigates to its channel
+    // URL from here exactly as it would from any other page. Only the tab that
+    // was driven is parked — the other provider's tab is not touched.
     if (opts.returnToGuide) {
       try {
-        await this.cdp.send("Page.navigate", { url: GUIDE_URL }, this.page);
-        console.log(`[stop] parked capture tab on the live guide`);
+        await this.cdp.send("Page.navigate", { url: l.provider.parkUrl }, l.session);
+        console.log(`[stop] parked the ${l.provider.id} tab on ${l.provider.parkUrl}`);
       } catch (e) { console.error(`[stop] guide navigation failed: ${String(e)}`); }
     }
   }

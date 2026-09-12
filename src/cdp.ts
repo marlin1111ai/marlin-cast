@@ -72,22 +72,66 @@ export async function evalIn<T = any>(cdp: Cdp, session: Session, expression: st
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** The page target showing YouTube TV, or any page target as a fallback. */
-export async function findPageTarget(port: string | number): Promise<{ id: string; url: string }> {
+/** Navigate and wait for the NEW document.
+ *
+ *  Page.navigate returns as soon as the navigation is scheduled, so a probe
+ *  run straight afterwards reads the OLD document — which matters for the
+ *  signed-in checks, where the old page can already be on the very path the
+ *  check is looking for. A sentinel stamped on the outgoing document is gone
+ *  once the document is replaced, so its absence is the signal. */
+export async function navigateAndSettle(
+  cdp: Cdp, session: Session, url: string, timeoutMs = 30000,
+): Promise<void> {
+  await evalIn(cdp, session, `(() => { window.__mcNav = 1; return 1; })()`).catch(() => {});
+  await cdp.send("Page.navigate", { url }, session);
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const fresh = await evalIn<boolean>(cdp, session,
+      `(() => typeof window.__mcNav === "undefined" && document.readyState !== "loading")()`).catch(() => false);
+    if (fresh) return;
+    await sleep(200);
+  }
+  throw new Error(`navigation to ${url} did not settle within ${timeoutMs}ms`);
+}
+
+/** D018: one tab per provider, both opened by the owner via
+ *  scripts/start-chrome.sh. The tab is the page target whose URL HOST is the
+ *  provider's, and there is no fallback to "any page" — with two providers
+ *  logged in to one Chrome, "any page" would silently drive the wrong tab. */
+export async function findPageTarget(
+  port: string | number,
+  provider: { id: string; host: string },
+): Promise<{ id: string; url: string }> {
   const list = await fetch(`http://127.0.0.1:${port}/json/list`).then((r) => r.json() as any);
-  const t = list.find((x: any) => x.type === "page" && x.url.includes("tv.youtube.com"))
-         ?? list.find((x: any) => x.type === "page");
-  if (!t) throw new Error("no page target to drive");
+  const t = list.find((x: any) => {
+    if (x.type !== "page") return false;
+    try { return new URL(x.url).host === provider.host; } catch { return false; }
+  });
+  if (!t) {
+    const open = list.filter((x: any) => x.type === "page").map((x: any) => x.url).join(", ") || "(none)";
+    throw new Error(`fatal: no ${provider.id} tab open — no page target with host ${provider.host}; open pages: ${open}`);
+  }
   return { id: t.id, url: t.url };
 }
 
 /** Extensions.triggerAction insists on a "tab" target, which is a different
- *  target type from the "page" target and is hidden unless asked for. */
+ *  target type from the "page" target and is hidden unless asked for.
+ *
+ *  With two provider tabs in one Chrome the old "else tabs[0]" fallback could
+ *  arm capture on the wrong tab, so the match is exact URL first, then same
+ *  host, and only a single-tab browser is allowed to fall through. */
 export async function tabTargetId(cdp: Cdp, pageSession: Session): Promise<string> {
   const { targetInfos } = await cdp.send<any>("Target.getTargets", { filter: [{}] });
   const tabs = targetInfos.filter((t: any) => t.type === "tab");
   if (!tabs.length) throw new Error("no tab target found");
   if (tabs.length === 1) return tabs[0].targetId;
   const here = await evalIn<string>(cdp, pageSession, "location.href").catch(() => null);
-  return (tabs.find((t: any) => t.url === here) ?? tabs[0]).targetId;
+  if (!here) throw new Error("cannot identify the tab target: the page would not report location.href");
+  const exact = tabs.find((t: any) => t.url === here);
+  if (exact) return exact.targetId;
+  let host = "";
+  try { host = new URL(here).host; } catch { /* not a URL */ }
+  const sameHost = host ? tabs.filter((t: any) => { try { return new URL(t.url).host === host; } catch { return false; } }) : [];
+  if (sameHost.length === 1) return sameHost[0].targetId;
+  throw new Error(`cannot identify the tab target for ${here} among ${tabs.length} tabs`);
 }

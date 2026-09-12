@@ -25,7 +25,7 @@ echo "  profile      : $PROFILE"
 echo "  display      : $DISPLAY"
 echo "  CDP endpoint : http://127.0.0.1:${PORT}  (loopback only)"
 echo
-echo "Log in to YouTube TV in the window that opens. Leave this running."
+echo "Log in to YouTube TV and Philo in the tabs that open. Leave this running."
 echo
 
 # --- The capture extension (Task 006) ---------------------------------------
@@ -63,10 +63,15 @@ echo
 # to v10 (hardcoded key) rather than v11 (machine-bound keyring), so this
 # profile stays readable in a container that has no keyring. Do not change
 # it back: D010, and notebook/KNOWN-FIXES.md.
+#
+# Two start URLs, one tab per provider (D018). Marlin Cast picks the tab by URL
+# host and never falls back to "any page", so both tabs must be open and logged
+# in before a tune: YouTube TV and Philo.
 exec /usr/bin/google-chrome \
   --user-data-dir="$PROFILE" \
   --remote-debugging-port="$PORT" \
   --password-store=basic \
   --no-first-run \
   --no-default-browser-check \
-  https://tv.youtube.com/
+  https://tv.youtube.com/ \
+  https://www.philo.com/player/guide

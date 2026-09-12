@@ -206,3 +206,56 @@ differences: 1 s segments / TARGETDURATION 1; MEDIA-SEQUENCE restarting
 at 0 with no DISCONTINUITY.
 
 **Dated 2026-09-11 (evening).**
+
+---
+
+## D017 — Second provider: Philo
+
+Second provider: Philo (www.philo.com), alongside YouTube TV. This
+supersedes D002's "one provider to start" — D002's choice of YouTube TV
+as the first provider stands; only its "one provider" clause is spent.
+
+Philo tops out at **1280×720 @ 30 fps** under Widevine L3 (its AMC
+manifest's top rung is the 4300000 representation at 1280×720; there is
+no 1080p rung, and the player exposes no JS API to pin one). That is
+accepted: the Philo picture is upscaled into the 1920×1080 capture frame
+exactly as ESPN is today.
+
+D005 is read as **one tune at a time**. Two logged-in provider sessions
+in the one Chrome profile is the normal state and is not the
+"multi-session" D005 rules out; what D005 forbids is two channels
+playing or two tunes at once, and that is unchanged.
+
+**Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D018 — One tab per provider, selected by URL host
+
+One tab per provider, both opened by the owner via
+`scripts/start-chrome.sh`. The app selects the tab by **URL host** —
+`tv.youtube.com` for YouTube TV, `www.philo.com` for Philo — and never
+falls back to "any page". If the provider's tab is not open the tune
+fails loud with `fatal: no <provider> tab open`.
+
+Reason: with two providers logged in to one Chrome, the old
+`findPageTarget` rule ("the page whose URL includes tv.youtube.com, else
+any page") would silently drive the wrong tab — a Philo tune would have
+landed in the YouTube TV tab.
+
+**Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D019 — Philo lineup: every row, all three tiers
+
+Philo lineup: **every row the guide's channel list returns, unfiltered**,
+across all three tiers (Favorite channels / All channels / Free
+channels). This extends D013 — which is worded for YouTube TV and says
+nothing about a tiered lineup — to Philo without changing its rule.
+Philo entries carry `group-title="Philo"`.
+
+Curation stays in Marlin IPTV Editor. No whitelist, tier filter, or
+config-file channel list in Marlin Cast.
+
+**Dated 2026-09-12. Owner-ruled.**

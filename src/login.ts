@@ -1,23 +1,22 @@
-import { chromium, type Browser, type Page } from "playwright";
+// npm run login — report the session state of every provider (D017/D018).
+//
+// Attaches to the Chrome the owner launched with scripts/start-chrome.sh
+// (D009). This never launches Chrome, never creates a profile and never passes
+// a profile path. It never types credentials and never navigates to a login or
+// accounts page: it navigates each provider's own tab to that provider's home
+// URL and reads where it lands.
+
+import { Cdp, evalIn, findPageTarget, type Session } from "./cdp.js";
+import { PROVIDERS } from "./providers/index.js";
 
 const PORT = process.env.CDP_PORT ?? "9333";
-const ENDPOINT = `http://127.0.0.1:${PORT}`;
-const TARGET = "https://tv.youtube.com";
 
-/**
- * Attach to the Chrome the owner launched with scripts/start-chrome.sh (D009).
- *
- * This never launches Chrome, never creates a profile and never passes a
- * profile path. Playwright owning the profile is what the launchPersistentContext
- * approach did, and it reported navigator.webdriver === true; attaching reports
- * false. See notebook/reports/task-001c-cookie-destruction.md.
- */
-const attach = async (): Promise<Browser> => {
+const attach = async (): Promise<Cdp> => {
   try {
-    return await chromium.connectOverCDP(ENDPOINT);
+    return await Cdp.attach(PORT);
   } catch {
     console.error(
-      `No Chrome is listening on ${ENDPOINT}.\n\n` +
+      `No Chrome is listening on http://127.0.0.1:${PORT}.\n\n` +
         "Start it first, in a terminal on the marlinpc desktop:\n" +
         "    cd /Apps/marlin-cast && ./scripts/start-chrome.sh\n\n" +
         "Leave that running, then run this again.",
@@ -26,30 +25,40 @@ const attach = async (): Promise<Browser> => {
   }
 };
 
-const firstPage = async (browser: Browser): Promise<Page> => {
-  const context = browser.contexts()[0];
-  if (!context) throw new Error("attached, but Chrome exposed no browser context");
-  return context.pages()[0] ?? (await context.newPage());
-};
-
 const main = async () => {
-  const browser = await attach();
-  console.log(`attached: yes  (${ENDPOINT}, Chrome ${browser.version()})`);
+  const cdp = await attach();
+  console.log(`attached: yes  (127.0.0.1:${PORT}, Chrome ${cdp.browser})`);
 
-  const page = await firstPage(browser);
-  await page.goto(TARGET, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(6000);
+  let bad = 0;
+  for (const provider of PROVIDERS) {
+    let target;
+    try {
+      // D018: no fallback to "any page" — a missing tab is a loud failure.
+      target = await findPageTarget(PORT, provider);
+    } catch (e) {
+      console.log(`${provider.id}: ${String(e instanceof Error ? e.message : e)}`);
+      bad++;
+      continue;
+    }
+    const { sessionId } = await cdp.send<any>("Target.attachToTarget", { targetId: target.id, flatten: true });
+    const session = sessionId as Session;
+    await cdp.send("Page.enable", {}, session);
+    await cdp.send("Runtime.enable", {}, session);
 
-  const webdriver = await page.evaluate(() => navigator.webdriver);
-  console.log(`navigator.webdriver: ${webdriver}`);
-
-  const signedOut = await page.evaluate(() => /SIGN IN/i.test(document.body.innerText ?? ""));
-  console.log(`tv.youtube.com: ${signedOut ? "SIGNED OUT" : "signed in"}`);
-  console.log(`url: ${page.url()}`);
+    // checkSignedIn navigates the tab to the provider's home URL itself.
+    const { signedIn, detail } = await provider.checkSignedIn(cdp, session);
+    const webdriver = await evalIn<boolean>(cdp, session, `navigator.webdriver`).catch(() => null);
+    const href = await evalIn<string>(cdp, session, `location.href`).catch(() => "?");
+    console.log(`${provider.id}: ${detail}`);
+    console.log(`  navigator.webdriver: ${webdriver}`);
+    console.log(`  url: ${href}`);
+    if (!signedIn) bad++;
+  }
 
   // Detaches only. Chrome keeps running and keeps the session (task-001c).
-  await browser.close();
+  cdp.close();
   console.log("detached (Chrome left running)");
+  if (bad) process.exit(1);
 };
 
 main().catch((err) => {

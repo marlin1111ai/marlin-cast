@@ -1,5 +1,6 @@
 // Marlin Cast HTTP server — D006's output contract.
 //
+//   GET  /                            one plain status page
 //   GET  /health                      plain status
 //   GET  /playlist                    M3U of the full lineup (D013)
 //   GET  /stream/:id/index.m3u8       HLS playlist for a channel (tunes on demand)
@@ -12,8 +13,9 @@
 import express from "express";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadChannels, type Channel } from "./channels.js";
+import { loadChannels } from "./channels.js";
 import { Pipeline, IDLE_MS } from "./capture.js";
+import { PROVIDERS, type Channel } from "./providers/index.js";
 
 const PORT = 8804;
 const HOST = "0.0.0.0";
@@ -27,7 +29,7 @@ if (!cache) {
   process.exit(1);
 }
 const byId = new Map<string, Channel>(cache.channels.map((c) => [c.id, c]));
-console.log(`channels: ${cache.count} (enumerated ${cache.enumeratedAt})`);
+console.log(`channels: ${cache.count} (enumerated ${cache.enumeratedAt}) ${JSON.stringify(cache.byProvider ?? {})}`);
 
 const pipeline = new Pipeline(CDP_PORT);
 const browser = await pipeline.connect();
@@ -72,6 +74,7 @@ app.get("/health", (_req, res) => {
       `enumerated: ${cache.enumeratedAt}`,
       `state: ${s.state}`,
       `quality: ${s.quality ?? "-"}`,
+      `provider: ${s.provider ?? "-"}`,
       `channel: ${s.channelName ?? "-"} (${s.channelId ?? "-"})`,
       `since: ${s.since ?? "-"}`,
       `chunks_in: ${s.chunksIn}`,
@@ -92,22 +95,27 @@ function baseUrl(req: express.Request): string {
 app.get("/playlist", (req, res) => {
   const base = baseUrl(req);
   const lines = ["#EXTM3U"];
-  for (const c of cache.channels) {
-    const attrs = [
-      `tvg-id="${c.id}"`,
-      `tvg-name="${c.name.replace(/"/g, "")}"`,
-      c.logo ? `tvg-logo="${c.logo}"` : null,
-      `group-title="YouTube TV"`,
-      // Test sliver toward D015 (task-017): give Channels DVR an explicit
-      // Gracenote station id for ONE channel only — ESPN, the channel the
-      // owner tunes in every test — to see whether it changes Channels'
-      // behaviour. 32645 is PrismCast's own tvc-guide-stationid for ESPN.
-      // Hardcoded on this one channel id; no mapping table, file, or config.
-      // We carry four channels named "ESPN"; MrXg0chrojg is the tuned one.
-      c.id === "MrXg0chrojg" ? `tvc-guide-stationid="32645"` : null,
-    ].filter(Boolean).join(" ");
-    lines.push(`#EXTINF:-1 ${attrs},${c.name}`);
-    lines.push(`${base}/stream/${c.id}/index.m3u8`);
+  // Providers in registry order (D017: YouTube TV first, then Philo), each
+  // channel in the order its provider enumerated it. The YouTube TV section is
+  // byte-for-byte what task-019 emitted.
+  for (const provider of PROVIDERS) {
+    for (const c of cache.channels.filter((x) => x.provider === provider.id)) {
+      const attrs = [
+        `tvg-id="${c.id}"`,
+        `tvg-name="${c.name.replace(/"/g, "")}"`,
+        c.logo ? `tvg-logo="${c.logo}"` : null,
+        `group-title="${provider.label}"`,
+        // Test sliver toward D015 (task-017): give Channels DVR an explicit
+        // Gracenote station id for ONE channel only — ESPN, the channel the
+        // owner tunes in every test — to see whether it changes Channels'
+        // behaviour. 32645 is PrismCast's own tvc-guide-stationid for ESPN.
+        // Hardcoded on this one channel id; no mapping table, file, or config.
+        // We carry four channels named "ESPN"; MrXg0chrojg is the tuned one.
+        c.id === "MrXg0chrojg" ? `tvc-guide-stationid="32645"` : null,
+      ].filter(Boolean).join(" ");
+      lines.push(`#EXTINF:-1 ${attrs},${c.name}`);
+      lines.push(`${base}/stream/${c.id}/index.m3u8`);
+    }
   }
   res.type("application/x-mpegurl").send(lines.join("\n") + "\n");
 });
@@ -209,6 +217,80 @@ app.get("/stream/:id/:file", (req, res) => {
   res.type(file.endsWith(".ts") ? "video/mp2t" : "video/mp4");
   res.setHeader("cache-control", "no-cache");
   res.sendFile(path, (err) => { if (err && !res.headersSent) res.status(404).end(); });
+});
+
+// --- status page ------------------------------------------------------------
+// One plain page: the two URLs a client needs (built from the request's Host
+// header so they are copyable from whatever address the browser reached us on),
+// the server's status, what is tuned, and the last reported quality. No
+// framework, no dependency, nothing editable — read-only, like /health.
+function esc(v: unknown): string {
+  return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+app.get("/", (req, res) => {
+  const base = baseUrl(req);
+  const s = pipeline.status();
+  const tuned = s.channelName
+    ? `${esc(s.provider ?? "?")} — ${esc(s.channelName)}`
+    : "idle — nothing tuned";
+  const rows: [string, string][] = [
+    ["server", `listening on ${HOST}:${PORT}`],
+    ["channels", `${cache.count}${cache.byProvider ? " (" + Object.entries(cache.byProvider).map(([k, v]) => `${esc(k)} ${v}`).join(", ") + ")" : ""}`],
+    ["enumerated", esc(cache.enumeratedAt)],
+    ["state", esc(s.state)],
+    ["tuned", tuned],
+    ["last quality", esc(s.quality ?? "—")],
+    ["idle stop", `${IDLE_MS} ms with no client request`],
+  ];
+  const url = (href: string) =>
+    `<div class="u"><code id="${esc(href)}">${esc(href)}</code>` +
+    `<button type="button" data-url="${esc(href)}">Copy</button></div>`;
+  res.type("text/html").send(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marlin Cast</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; max-width: 720px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 24px; opacity: .7; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; opacity: .6; margin: 24px 0 8px; }
+  .u { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .u code { flex: 1 1 320px; padding: 8px 10px; border: 1px solid rgba(128,128,128,.4); border-radius: 6px; overflow-x: auto; }
+  button { padding: 8px 14px; border: 1px solid rgba(128,128,128,.4); border-radius: 6px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  button:hover { border-color: currentColor; }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 6px 0; border-bottom: 1px solid rgba(128,128,128,.2); vertical-align: top; }
+  td:first-child { width: 160px; opacity: .6; }
+</style></head><body>
+<h1>Marlin Cast</h1>
+<p class="sub">Tunes one channel at a time in a logged-in Chrome and serves it as HLS.</p>
+<h2>URLs</h2>
+${url(`${base}/playlist`)}
+${url(`${base}/health`)}
+<h2>Status</h2>
+<table>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}</table>
+<script>
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("button[data-url]");
+  if (!b) return;
+  var text = b.getAttribute("data-url");
+  var done = function () { var o = b.textContent; b.textContent = "Copied"; setTimeout(function () { b.textContent = o; }, 1200); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, fallback);
+  } else { fallback(); }
+  function fallback() {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (err) { b.textContent = "Copy failed"; }
+    document.body.removeChild(ta);
+  }
+});
+</script>
+</body></html>
+`);
 });
 
 app.use((_req, res) => res.status(404).type("text/plain").send("not found\n"));

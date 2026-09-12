@@ -885,3 +885,83 @@ owner's Chrome (pid 76888) is untouched.
 
 See notebook/reports/ for the per-task reports; this task added no report
 (decision + push only).
+
+---
+
+## Task 021 — Philo as a second provider (2026-09-12)
+
+**Shipped.** Marlin Cast now serves two providers. `/playlist` carries 145
+YouTube TV entries then 226 Philo entries (`group-title="Philo"`), 371 in
+all; a Philo channel tunes, plays at the live edge, and captures.
+
+**Decisions recorded (D017–D019).** D017: Philo is a second provider,
+superseding D002's "one provider to start"; Philo tops out at 1280×720 under
+Widevine L3 and is upscaled into the 1920×1080 capture as ESPN is; D005
+means one *tune* at a time, and two logged-in sessions in the one profile is
+normal. D018: one tab per provider, selected by URL host, no fallback to
+"any page", `fatal: no <provider> tab open` if it is missing. D019: the
+whole Philo guide, all three tiers, unfiltered.
+
+**Structure.** Everything provider-specific now lives in `src/providers/`
+(`types.ts`, `youtubetv.ts`, `philo.ts`, `index.ts`). A grep for
+`tv.youtube.com|philo.com|movie_player|setPlaybackQualityRange|html5-main-video|tenx-thumb|SIGN IN|video#video`
+over `src/` outside that directory returns nothing. YouTube TV was **moved,
+not rewritten**: enumerate body, poll 1, poll 3, poll 4 and the ffmpeg
+argument list are all identical to `HEAD`.
+
+**Philo mechanics, all measured:** the lineup is the guide's own persisted
+`page` GraphQL query re-issued in the page with the page's own session,
+paged on `groups.pageInfo` (5 requests, ~1.4 s, 226 rows = `totalCount`);
+logo is `colorSquare` with `${width}` filled with 400; a tune resolves the
+currently-airing Broadcast id from the channel's `tileGroupId` (opaque and
+server-validated, so it is carried from enumeration, not derived) and
+navigates straight to `/player/player/broadcast/<id>`.
+
+**Two things the recon had not seen, both found here and both fixed:**
+
+1. **Direct navigation does not land at the live edge** — it starts at the
+   beginning of the DVR availability window. Measured 2 h 05 m behind wall
+   clock on AMC. Fixed by assigning a `currentTime` past the seek range and
+   letting the page's own player clamp to live.
+2. **Philo's control overlay was being burnt into every captured frame.**
+   The click that satisfies Chrome's autoplay policy also shows the
+   controls, and Philo arms the auto-hide timer from a `mousemove` handler
+   only — so a tune that clicks and never moves the pointer leaves the
+   title, scrubber, START OVER, LIVE and the button row on the picture
+   indefinitely (49 of 49 samples across a 5.7-minute capture). Tab capture
+   and tab activation were both eliminated by single-variable tests first.
+   Fixed by sweeping the pointer and polling the overlay's own state
+   classes until they clear, warning loudly if they do not. **This fix is
+   the least certain part of the task** — one tune cleared after 1 sweep,
+   another needed 3, an earlier single-sweep version failed.
+
+**Verified live** (server restarted, owner's Chrome pid 174888 never
+restarted, no tab ever closed): `/playlist` YouTube TV section byte-identical
+to the pre-change baseline (same md5, run as a code-isolation diff);
+226 Philo = `totalCount`; a 330 s Philo capture in 165 segments with zero
+errors, H.264 High L4.0 1920×1080 + AAC-LC, the overlay clear in all 69
+samples; provider switching drives the tab matching the host each way and
+leaves the other alone; hd1080 still reached on YouTube TV channels that
+advertise it (TNT, USA, Discovery Channel); idle stop parks only the tab it
+drove; a provider with no tab fails loud with a 503 and
+`fatal: no philo tab open`; `GET /` renders with both copy buttons verified
+against the clipboard.
+
+**Two facts that are lineup drift, not regressions:** YouTube TV enumerated
+**145** channels today against 144 yesterday (3 ESPN ids rotated, NBCSN
+Extra added, 138 logo URLs refreshed), and ESPN still advertises no
+`hd1080` — the recorded task-011 property of that channel.
+
+**Not done, deliberately:** no Philo `tvc-guide-stationid` mapping (step 10
+was a read-only check; 28 exact name matches are recorded in the report),
+`scripts/capture-spike.mjs` untouched, `extension/` untouched,
+`scripts/start-chrome.sh` updated but **not executed** — the owner runs it at
+the next Chrome launch, and until then the Philo tab is the one already
+open.
+
+**Biggest open question:** a programme boundary *inside* a running capture
+is untested. The boundary was handled correctly between tunes (2012 → The
+Perfect Storm), but a capture still running when its broadcast ends may
+stop. Test that on a long recording before trusting Philo for a DVR job.
+
+See notebook/reports/task-021.md.
