@@ -465,5 +465,22 @@ after; it was never attached to.
 
 Committed on `main` and pushed to `origin/main`: this file and the four
 PNGs under `notebook/reports/recon-philo/`. Nothing else (`git status` was
-clean apart from that directory before the commit). Verification by
-`git fetch` + SHA comparison is recorded in the closing note below.
+clean apart from that directory before the commit).
+
+```
+d607214 Recon: Philo as a second provider (read-only)
+ notebook/reports/recon-philo.md                    | 469 +++++
+ notebook/reports/recon-philo/guide.png             | Bin 0 -> 123279 bytes
+ notebook/reports/recon-philo/player-paused-controls.png | Bin 0 -> 1512055 bytes
+ notebook/reports/recon-philo/player-quality-menu.png    | Bin 0 -> 518732 bytes
+ notebook/reports/recon-philo/player.png            | Bin 0 -> 709770 bytes
+To github.com:marlin1111ai/marlin-cast.git
+   ad41c42..d607214  main -> main
+git fetch origin; HEAD d60721433884f6577611fd52b921f14df388ee34 == origin/main d60721433884f6577611fd52b921f14df388ee34
+```
+
+A second commit, touching only this file, adds the block above and is
+verified the same way (SHA recorded in the closing summary given to the
+owner). `src/`, `scripts/`, `extension/`, the notebook files and
+`package.json` are untouched; the scratchpad tooling (`cdp.mjs`, captured
+bodies, raw screenshots) stayed outside the repo.
