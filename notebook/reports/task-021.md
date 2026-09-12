@@ -637,3 +637,56 @@ YouTube TV tab on a `/watch/` URL from the last YouTube TV tune and the
 Philo tab parked on `/player/guide`. `scripts/start-chrome.sh` now opens
 both tabs but has **not** been executed — it takes effect at the owner's
 next Chrome launch.
+
+### Correction to the hand-off state above
+
+The "working tree state at hand-off" paragraph was true when written and is
+now wrong. Minutes after the push, a `python main.py --listen 0.0.0.0
+--port 8188` process (ComfyUI's default port, the owner's own GPU work —
+marlinpc is a desktop in active use, D012) took **51.9 GB RSS** on this
+62 GB machine, and the builder harness shed memory by killing three of this
+session's background tasks. One of them was the shell that had `exec`'d the
+owner's Chrome.
+
+So at the real hand-off:
+
+```
+chrome pid 174888   NOT RUNNING
+127.0.0.1:9333      NOT LISTENING
+dev server / :8804  NOT RUNNING
+```
+
+Nothing was lost — all task-021 work was committed and pushed first — and
+**this was not a restart by this task**; the standing prohibition on
+touching the live Chrome was kept throughout.
+
+**The login is very likely intact.** Read-only integrity check of
+`data/chrome-profile/Default/Cookies` (row counts and scheme tags only; no
+cookie values were read or recorded):
+
+```
+rows 110   persistent 106   scheme tags: {v10: 110}
+youtube.com rows 27    philo.com rows 26    last written 18:06
+```
+
+All `v10`, which is D010's scheme — there is no v11/v10 mixing, the one
+thing that destroys a profile (KNOWN-FIXES). Both providers' cookies are on
+disk and Chrome had been up ~8.5 h, so commits were long since flushed. An
+unclean kill should cost at most a "Chrome didn't shut down correctly"
+prompt. Unverified until the owner relaunches.
+
+Chrome was **not** relaunched by this task: launching it is the owner's step
+(D009), and it needs the owner at the Jump Desktop session to confirm both
+tabs are signed in.
+
+```
+cd /Apps/marlin-cast && ./scripts/start-chrome.sh   # now opens both tabs (step 8)
+npm run login                                       # reports both providers
+npm run serve
+```
+
+**Worth changing:** that Chrome had been launched *under a builder
+background task*, which is why the harness could kill it under memory
+pressure. `scripts/start-chrome.sh` is meant to be run by the owner in a
+terminal on the marlinpc desktop; launched that way it is outside the
+builder's reach and survives this class of event.
