@@ -858,3 +858,30 @@ Committed on main, **not pushed** (ded91c6, 53651b2, ea788bb, 953b6cd,
 74e09c1 also unpushed). Nothing on 192.168.1.250 was contacted.
 
 See notebook/reports/task-019.md.
+
+---
+
+## Task 020 — deployment decision recorded; main pushed (2026-09-11 evening)
+
+**Two decisions recorded in DECISIONS.md.** D016: Marlin Cast is consumed
+by Marlin DVR via Marlin IPTV Editor (playlist + guide from the editor),
+confirmed playing on Apple TV; PrismCast stays the Channels DVR source;
+the Channels playback defect (one output segment then stall) is **parked,
+not fixed** — tasks 009–019 ruled out CORS, tune latency, container,
+PROGRAM-DATE-TIME format and presence, in-band SPS/PPS, and guide data;
+untested remaining differences are the 1 s segments / TARGETDURATION 1 and
+MEDIA-SEQUENCE restarting at 0 with no DISCONTINUITY. D015: station-ID
+guide matching via `tvc-guide-stationid`, name→ID pairs sourced from
+PrismCast's /playlist with a hand mapping as fallback — only the task-017
+ESPN test sliver is built.
+
+**main pushed to origin.** The six previously-unpushed task commits
+(012, 014, 016, 017, 018, 019) plus this task's commit — seven in all —
+are now on `origin/main`. Nothing left unpushed.
+
+**The dev server is left running on 0.0.0.0:8804** for Marlin DVR use,
+idle, with the capture tab parked on the live guide (task-018). The
+owner's Chrome (pid 76888) is untouched.
+
+See notebook/reports/ for the per-task reports; this task added no report
+(decision + push only).

@@ -169,3 +169,40 @@ measure the wrong GPU. Amends D007's premise that VAAPI is tested during
 development. No VAAPI driver is installed on marlinpc.
 
 **Dated 2026-09-11.**
+
+---
+
+## D015 — Station-ID guide matching
+
+Station-ID guide matching (owner, 2026-09-11 evening): channels carry a
+`tvc-guide-stationid` so Channels DVR can match guide data by station id
+rather than relying only on Gracenote name matching. The source of
+name→ID pairs is **PrismCast's own /playlist**, which already ships a
+`tvc-guide-stationid` per channel; a hand-built mapping is the fallback
+where PrismCast has no matching entry. This refines D006 (guide data
+comes from Channels' own Gracenote matching, no XMLTV from Marlin Cast):
+Marlin Cast still produces no XMLTV, but it may supply the station id
+that steers the match.
+
+**Only a test sliver is built:** task-017 hardcoded
+`tvc-guide-stationid="32645"` on the single ESPN entry the owner tunes
+(`MrXg0chrojg`), read live from PrismCast's ESPN line. No mapping table,
+file, or config exists yet; the full name→ID mapping for 144 channels
+(and resolving duplicate-name feeds) is unbuilt.
+
+**Dated 2026-09-11.**
+
+---
+
+## D016 — Deployment: Marlin DVR via Marlin IPTV Editor; Channels defect parked
+
+Marlin Cast is consumed by Marlin DVR via Marlin IPTV Editor (playlist +
+guide from the editor), confirmed playing on Apple TV. PrismCast stays as
+the Channels DVR source. The Channels DVR playback defect (Channels'
+remuxer emits one output segment and stalls; tasks 009–019 ruled out
+CORS, tune latency, container, PROGRAM-DATE-TIME format and presence,
+in-band SPS/PPS, guide data) is parked, not fixed. Untested remaining
+differences: 1 s segments / TARGETDURATION 1; MEDIA-SEQUENCE restarting
+at 0 with no DISCONTINUITY.
+
+**Dated 2026-09-11 (evening).**
