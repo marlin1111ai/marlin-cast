@@ -18,7 +18,9 @@ import { providerFor, type Channel, type Probe, type Provider, type TuneCtx } fr
 
 const EXT_DIR = join(ROOT, "extension");
 const EXT_NAME = "Marlin Cast Capture Spike";
-export const HLS_ROOT = join(ROOT, "data", "hls");
+/** HLS scratch. In the container MC_HLS_DIR keeps it inside the container,
+ *  off the profile volume (D024). */
+export const HLS_ROOT = process.env.MC_HLS_DIR ?? join(ROOT, "data", "hls");
 
 const CAPTURE_W = Number(process.env.MC_WIDTH ?? 1920);
 const CAPTURE_H = Number(process.env.MC_HEIGHT ?? 1080);

@@ -1,0 +1,9 @@
+# Never in the build context (task-024). The profile and its backups carry the
+# v10 cookie store (D010: readable by anyone with the files) and the image is
+# meant for a public registry.
+data/
+backups/
+notebook/reports/
+node_modules/
+.git/
+*.log

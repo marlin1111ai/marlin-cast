@@ -11,7 +11,9 @@ import { Cdp, findPageTarget } from "./cdp.js";
 import { PROVIDERS, type Channel, type ProviderId, type Skipped } from "./providers/index.js";
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-export const CACHE = join(ROOT, "data", "channels.json");
+/** Where the cache lives. In the container MC_DATA_DIR=/data puts it on the
+ *  profile volume (D024); on marlinpc it stays under the repo's data/. */
+export const CACHE = join(process.env.MC_DATA_DIR ?? join(ROOT, "data"), "channels.json");
 
 export type { Channel } from "./providers/index.js";
 

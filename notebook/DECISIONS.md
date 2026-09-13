@@ -329,3 +329,67 @@ They are not channels the consumer can hold, and no guide lists them.
 Supersedes D022.
 
 **Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D024 — The container: ports, base image, Chrome pin, viewer, user, first boot
+
+Owner-ruled 2026-09-13, answering notebook/reports/recon-docker.md's
+questions 1–4, 6, 8–10. Built in task-024 (`Dockerfile`, `docker/entrypoint.sh`,
+`.dockerignore`).
+
+1. **Ports.** The app listens on **8804 inside the container**; Unraid
+   publishes **host 8091 → 8804** (D008's "container port 8091" is the host
+   side). The three hardcoded 8804s (`src/server.ts`, the ingest URL in
+   `src/capture.ts`, `extension/manifest.json`) stay. `/playlist`,
+   `/playlist/*` and every stream URL are built from the request's `Host`
+   header, so consumers see the published host:port. Chrome's debug port 9333
+   stays loopback and unpublished (D009).
+2. **Image.** `ubuntu:24.04`; Node 22 from NodeSource; **ffmpeg from Ubuntu
+   apt, and the build fails unless it is 6.1.x** (every HLS fact was measured
+   on 6.1.1); **Google Chrome pinned to `153.0.8010.36-1`** from the
+   dl.google.com pool deb (the build every hard-won fact was measured on and
+   the copied profile's `Last Version`); Xvfb; `fontconfig` + `fonts-liberation`
+   + `fonts-dejavu-core` (clears Chrome's "Fontconfig error: Cannot load
+   default config file: File not found"). Image name
+   `ghcr.io/marlin1111ai/marlin-cast` (publishing is a later pass).
+3. **Viewer.** noVNC (x11vnc on loopback 5900 + websockify) on **container
+   port 6080, published as host 8092**. Password from env **`VNC_PASSWORD`**;
+   unset = the entrypoint exits with a loud error before starting anything.
+   VNC auth keeps the first 8 characters.
+4. **Process user.** `PUID`/`PGID` env, **default 99/100**. Everything after
+   the entrypoint's setup runs as that user, never root. The profile volume is
+   **`/data/chrome-profile`**; the channel cache is `/data/channels.json`
+   (`MC_DATA_DIR=/data`); HLS scratch stays **inside the container**
+   (`MC_HLS_DIR=/tmp/marlin-cast/hls`). The entrypoint re-owns `/data` to
+   PUID:PGID when the top level is owned by someone else.
+5. **First boot.** If `/data/channels.json` is missing the entrypoint runs
+   enumeration after Chrome and both tabs are up. **Signed-out = loud FATAL;
+   the container stays up** (Chrome + viewer) so the owner can log in through
+   noVNC, wait ~70 s for Chrome to commit cookies (KNOWN-FIXES), and restart
+   the container.
+6. **Required mechanics.** Chrome version pin; `SingletonLock` /
+   `SingletonCookie` / `SingletonSocket` removed at every start; clean
+   shutdown on SIGTERM — app, then Chrome (graceful, task-003), then the
+   viewer, then Xvfb, then a sweep so no Chrome/Xvfb/ffmpeg survives — under
+   `tini` as PID 1.
+7. **Xvfb is 1920×1080×24** because capture follows the display (brief,
+   KNOWN-FIXES); the display is `:99`. Chrome is launched through
+   `scripts/start-chrome.sh` with its flags unchanged (`MC_PROFILE` selects
+   the volume path).
+8. **Required run parameters: `--cap-add SYS_ADMIN` and `--shm-size=1g`.**
+   Owner-ruled 2026-09-13 after the task-024 smoke run. Under Docker's
+   default capability set Chrome's sandbox cannot create its namespaces
+   (`Failed to move to new namespace … errno = Operation not permitted`,
+   then `Zygote process exited prematurely`) and Chrome never starts;
+   `SYS_ADMIN` lets the sandbox come up with the `start-chrome.sh` flags
+   unchanged — `--no-sandbox` was rejected as a change to the ruled flag
+   set. `--shm-size=1g` replaces Docker's default 64 MB `/dev/shm`, a known
+   Chrome crash cause. On Unraid both go in the template's Extra Parameters.
+
+**Not in task-024:** the GitHub Actions/GHCR workflow and tag scheme
+(recon Q7), the Unraid deploy, the live-profile copy, the VAAPI/decode test
+(D014; no VAAPI packages are in the image yet — recon Q5's stock-Xvfb point
+stands), hardware encoding.
+
+**Dated 2026-09-13.**

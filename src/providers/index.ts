@@ -7,7 +7,25 @@ import type { Channel, Provider, ProviderId } from "./types.js";
 
 export * from "./types.js";
 
-export const PROVIDERS: Provider[] = [youtubeTv, philo];
+const ALL: Provider[] = [youtubeTv, philo];
+
+/** Test knob (task-024): MC_PROVIDERS="youtubetv" restricts every path —
+ *  login, enumeration, playlist, tuning — to the named providers, so a
+ *  container can be exercised with a profile that carries only one login.
+ *  Unset in production: both providers, D017. Loud when set. */
+function enabled(): Provider[] {
+  const raw = process.env.MC_PROVIDERS;
+  if (!raw) return ALL;
+  const want = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  const picked = ALL.filter((p) => want.includes(p.id));
+  const unknown = want.filter((w) => !ALL.some((p) => p.id === w));
+  if (unknown.length) throw new Error(`MC_PROVIDERS names unknown provider(s): ${unknown.join(", ")}`);
+  if (!picked.length) throw new Error("MC_PROVIDERS selects no provider");
+  console.warn(`[providers] MC_PROVIDERS=${raw} — restricted to ${picked.map((p) => p.id).join(", ")} (test knob; unset in production)`);
+  return picked;
+}
+
+export const PROVIDERS: Provider[] = enabled();
 
 const BY_ID = new Map<string, Provider>(PROVIDERS.map((p) => [p.id, p]));
 

@@ -1065,3 +1065,63 @@ Nothing is listening on 8804. The owner starts the server from a desktop
 terminal: `cd /Apps/marlin-cast && npm run serve`.
 
 See notebook/reports/task-023.md.
+
+---
+
+## Task 024 — the container: image, entrypoint, viewer; V1–V7 pass (2026-09-13)
+
+**D024 recorded** (ports 8804 in / host 8091, `ubuntu:24.04`, ffmpeg 6.1.x
+gate, Chrome pinned `153.0.8010.36-1`, noVNC on 6080 / host 8092 with
+`VNC_PASSWORD`, PUID/PGID default 99/100, `/data/chrome-profile` volume,
+first-boot enumeration, Xvfb 1920×1080 on :99) plus **item 8: the container
+must run with `--cap-add SYS_ADMIN` and `--shm-size=1g`** — without
+`SYS_ADMIN` Chrome's sandbox cannot create its namespaces and Chrome never
+starts (KNOWN-FIXES). `--no-sandbox` was not used; `start-chrome.sh`'s flags
+are unchanged.
+
+**Built:** `Dockerfile`, `docker/entrypoint.sh` (7 gated stages, ordered
+SIGTERM shutdown, sweep), `.dockerignore`; `MC_PROFILE` / `MC_DATA_DIR` /
+`MC_HLS_DIR` env overrides (all unset on marlinpc, so nothing changes there);
+`MC_PROVIDERS` test knob (loud; unset in production). Host-header URL
+building needed no change — `src/server.ts` already did it.
+
+**Verified for real, YouTube TV only, on a copy of the basic backup mounted
+at `/data` with the container running as 99:100:**
+- V1: ffmpeg `6.1.1-3ubuntu5`, Chrome `153.0.8010.36`, Node `v22.23.2`.
+- V2: every stage ready; **0 Fontconfig lines**; `navigator.webdriver:
+  false`; **signed in** — the uid-1000 profile copy works after the
+  entrypoint's `chown -R` (closes the task-004/005 uid gap for this path).
+- V3: noVNC renders Chrome on the 1920×1080 display (image in the report);
+  wrong password → `password check failed!`.
+- V4: first boot enumerated **141** YouTube TV channels from 147 guide rows
+  (task-023: 142 from 151 — Sunday-morning guide drift, no event rows today).
+- V5: ESPN row 17 via 8091, **190 s pull**: H.264 High 1920×1080 30 fps +
+  **AAC 48 kHz stereo, mean −27.3 dB, peak −7.9 dB — audio is present in the
+  container**, closing the recon's default-output-device gap. Picture varying
+  (luma 35–88). One 1.4 s silent run and two black runs (1.9 s, 0.7 s)
+  mid-stream with content either side, judged ad transitions. Cold tune
+  6.3 s first start, 4.0 s second. `/health` streaming throughout; idle stop
+  clean (0 ffmpeg, 0 HLS dirs, tab parked).
+- V6: `docker stop` **1.16 s / 1.19 s**, nothing left on the host either
+  time; Chrome's Singleton symlinks were left in the volume and **removed at
+  the next start**; second start took the cache-present branch, tuned in
+  4.0 s, stopped clean.
+- V7: all 141 stream URLs carry the requesting `Host` (`127.0.0.1:8091`;
+  `192.168.1.250:8091` when sent as such), none carry 8804.
+
+**Defect found by V6 and fixed:** the entrypoint's `sed` prefix pipe
+block-buffered the app log — no `[app]` line reached `docker logs` until
+exit. `sed -u` now; confirmed live on the second start.
+
+**Not done, by scope:** GHCR workflow and tags, the Unraid deploy, the
+two-provider profile copy (needs the live Chrome stopped — the owner's
+step), VAAPI/decode (D014), hardware encoding. Philo in the container is
+untested until deploy.
+
+**Hand-off:** the live Chrome is still quit (owner's action before V2) and
+the dev server is not running; nothing listens on 8804/9333/8091/8092. The
+staged test profile remains at `/tmp/mc-test/data` owned by 99:100 (this
+account cannot delete it). Image `marlin-cast:task024` is in the local
+Docker cache; no container exists. Backup verified untouched.
+
+See notebook/reports/task-024.md.

@@ -9,7 +9,9 @@
 set -euo pipefail
 
 PORT="${CDP_PORT:-9333}"
-PROFILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/data/chrome-profile"
+# MC_PROFILE overrides the profile path; the container's entrypoint sets it to
+# the /data/chrome-profile volume (task-024, D024). Unset on marlinpc.
+PROFILE="${MC_PROFILE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/data/chrome-profile}"
 export DISPLAY="${DISPLAY:-:10}"
 
 if ss -tln 2>/dev/null | grep -q "127.0.0.1:${PORT}[[:space:]]"; then

@@ -626,3 +626,28 @@ media playlist. Task-019 removes the tag (`-hls_flags` no longer carries
 reads. The task-014 serve-time UTC rewrite in src/server.ts stays as a
 no-op. Whether this changes Channels' behaviour is unverified — it cannot
 be reproduced locally (task-015), only the owner's log can confirm.
+
+## Chrome's sandbox does not start under Docker's default capabilities — `--cap-add SYS_ADMIN`
+
+Surfaced 2026-09-13 (task-024 smoke run). In the container Chrome 153 died
+at startup with `Failed to move to new namespace: PID namespaces supported,
+Network namespace supported, but failed: errno = Operation not permitted`
+then `FATAL:content/browser/zygote_host/zygote_host_impl_linux.cc:213]
+Zygote process exited prematurely`. Docker's default capability set and
+seccomp profile forbid the unprivileged namespace creation Chrome's sandbox
+needs. The remedy tested and ruled (D024 item 8) is **`--cap-add
+SYS_ADMIN`** at run time, which lets the sandbox come up with
+`scripts/start-chrome.sh`'s flags unchanged; **`--no-sandbox` was rejected**
+because it changes the flag set every fact was measured on. Pair it with
+**`--shm-size=1g`** — Docker's default 64 MB `/dev/shm` is a known Chrome
+crash cause. Both are Unraid "Extra Parameters"; a container started without
+them fails at stage 3 with the lines above in `/tmp/marlin-cast/chrome.log`.
+
+## A `| sed 's/^/[app] /'` prefix pipe hides the app log until exit — use `sed -u`
+
+Surfaced 2026-09-13 (task-024 V6). The entrypoint prefixes the app's output
+with `sed`. A container's stdout is a pipe, so `sed` block-buffers: during a
+190 s capture `docker logs` showed **no `[app]` line at all**, and all 18
+(`[tune]`, `[capture]`, `[stop]`) arrived together at `docker stop`. Fixed
+with `sed -u` (unbuffered) on every prefix pipe. If a container's app log
+looks empty while `/health` says `streaming`, this is why.
