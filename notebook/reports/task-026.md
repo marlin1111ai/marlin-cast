@@ -97,8 +97,24 @@ with `vnc.html` directly; the forward is a one-line meta refresh).
 
 ## V2 — GHCR image for this commit
 
-Filled in after the push (see below).
+Push `15b835a` left marlinpc at 12:33:12Z. Probed as in task-025 V2 (the
+daemon's stored GHCR login; `gh` not installed, repo private):
+
+| | |
+|---|---|
+| `sha-15b835a` tag | present at 12:34:47Z (first probe that found it) |
+| `latest` after pull | image `8a585a17…`, created **2026-09-13T12:34:39Z — 87 s after the push** (the GHA layer cache from task-025 was warm; task-025's first build took 1 min 56 s) |
+| `org.opencontainers.image.revision` | `15b835a385378d4b28f47cccd80dd10d24609461` — this commit |
+| content check | `/app/assets/icon.png` 239,699 bytes; `/entrypoint.sh` carries the web-root block |
+
+The package is still private (task-025 V2); making it public remains the
+owner's step.
 
 ## Pushed
 
-Filled in after the push.
+- `15b835a` — `assets/icon.png`, `src/server.ts`, `Dockerfile`,
+  `docker/entrypoint.sh`, `VERSION`, KNOWN-FIXES, SESSION-STATE, this
+  report. `git fetch`: HEAD = `origin/main` = `15b835a3…` (MATCH). This is
+  the push that produced `latest` and `sha-15b835a`.
+- A notebook-only follow-up adds the V2 evidence above; `paths-ignore`
+  publishes nothing for it (SHA in the hand-off).
