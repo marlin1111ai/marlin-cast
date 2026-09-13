@@ -123,8 +123,37 @@ instances of the same `url()` helper were added).
 
 ## V2 — GHCR image for this commit
 
-_Filled in by the follow-up commit below._
+Push `e28689d` left marlinpc at 14:18:33Z. The repo is public now (D027:
+`GET api.github.com/repos/marlin1111ai/marlin-cast` answers 200
+unauthenticated), so for the first time the Actions run itself was readable:
+
+| | |
+|---|---|
+| Actions run | `Publish image`, event `push`, **completed / success**, created 14:18:35Z, updated 14:19:27Z (52 s) — github.com/marlin1111ai/marlin-cast/actions/runs/34762285786 |
+| `sha-e28689d` tag | present at 14:19:33Z (`docker manifest inspect`, polled every 15 s) |
+| `latest` after pull | image `259873e4…`, created **2026-09-13T14:19:15Z — 42 s after the push** |
+| `org.opencontainers.image.revision` | `e28689d3ee53469a3a3e72b3bd54d7c5f7a05b0b` — this commit |
+| content check | `/app/src/server.ts:302` in the pulled image is the new `PROVIDERS.map(… /playlist/${p.slug} …)` line |
+
+**V2 passes.** Unraid's `latest` now carries the four-URL page; it reaches
+the running container when the owner updates it on Unraid (not done here —
+192.168.1.250 is out of scope).
 
 ## Pushed
 
-_Filled in by the follow-up commit below._
+- `e28689d` — `src/server.ts`, `VERSION`, `notebook/DECISIONS.md`,
+  `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, this report (V1).
+  `git fetch`: HEAD = `origin/main` = `e28689d3ee53…` (MATCH). This is the push
+  that produced `latest` and `sha-e28689d`.
+- A notebook-only follow-up adds the V2 evidence above; `paths-ignore`
+  publishes nothing for it (SHA in the hand-off).
+- **No `v0.1.2` git tag was pushed** — the task asked for the VERSION bump
+  only; per D025 the `0.1.2` image tag is published by `git tag v0.1.2 && git
+  push origin v0.1.2` when the owner wants it.
+
+## Left behind on marlinpc
+
+- Image `marlin-cast:task027` in the local Docker cache; `ghcr.io/…:latest`
+  re-pulled to `259873e4…`. No container.
+- `/tmp/mc-test` unchanged, still 99:100 — owner's `sudo rm -rf /tmp/mc-test`.
+- Live Chrome still quit; dev server not running.
