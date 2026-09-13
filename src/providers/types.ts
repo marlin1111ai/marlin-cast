@@ -23,9 +23,10 @@ export type Channel = {
   provider: ProviderId;
   /** YouTube TV: deep-link path+query exactly as the guide supplied it. */
   href?: string;
-  /** YouTube TV: the guide row's isDiscreteStation flag (D022). */
+  /** YouTube TV: the guide row's isDiscreteStation flag. Always false in the
+   *  lineup: D023 excludes discrete (event-feed) rows at enumeration. */
   discrete?: boolean;
-  /** YouTube TV: 0-based row index in the guide response (D022 ordering). */
+  /** YouTube TV: 0-based row index in the guide response. */
   position?: number;
   /** Philo: the guide row's opaque TileGroup id, used to resolve the
    *  currently-airing broadcast at tune time. Server-validated, so it cannot

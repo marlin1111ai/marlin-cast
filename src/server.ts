@@ -40,28 +40,6 @@ if (unkeyed.length) {
 const byKey = new Map<string, Channel>(cache.channels.map((c) => [c.key, c]));
 console.log(`channels: ${cache.count} (enumerated ${cache.enumeratedAt}) ${JSON.stringify(cache.byProvider ?? {})}`);
 
-/** D022: guide rows marked discrete whose name equals a non-discrete row's name
- *  are event feeds with no guide entry anywhere, and the editor matches by
- *  name — so they carry "<name> (event N)", N by guide position ascending. */
-function eventNames(channels: Channel[]): Map<string, string> {
-  const out = new Map<string, string>();
-  for (const provider of PROVIDERS) {
-    const mine = channels.filter((c) => c.provider === provider.id);
-    const regular = new Set(mine.filter((c) => !c.discrete).map((c) => c.name));
-    const events = mine
-      .filter((c) => c.discrete && regular.has(c.name))
-      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-    const seen = new Map<string, number>();
-    for (const c of events) {
-      const n = (seen.get(c.name) ?? 0) + 1;
-      seen.set(c.name, n);
-      out.set(c.key, `${c.name} (event ${n})`);
-    }
-  }
-  return out;
-}
-const eventName = eventNames(cache.channels);
-
 const pipeline = new Pipeline(CDP_PORT);
 const browser = await pipeline.connect();
 console.log(`attached to Chrome ${browser} on 127.0.0.1:${CDP_PORT}`);
@@ -136,7 +114,7 @@ function playlist(req: express.Request, providers: Provider[]): string {
   // channel in the order its provider enumerated it.
   for (const provider of providers) {
     for (const c of cache.channels.filter((x) => x.provider === provider.id)) {
-      const name = eventName.get(c.key) ?? c.name;
+      const name = c.name;
       const attrs = [
         `tvg-id="${c.key}"`,
         `tvg-name="${name.replace(/"/g, "")}"`,

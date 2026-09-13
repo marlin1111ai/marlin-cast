@@ -1023,3 +1023,41 @@ stale-but-playable watch id.
 The dev server was restarted on the V6 cache.
 
 See notebook/reports/task-022.md.
+
+---
+
+## Task 023 — YouTube TV event feeds excluded (2026-09-12)
+
+**Decisions recorded:**
+- **D023:** guide rows with `isDiscreteStation: true` (event feeds) are not
+  channels and are excluded from the lineup and the playlist. It amends D013
+  in the spirit of its no-stream note.
+- **D022** is marked superseded by D023.
+- **Note under D020:** stale-watch-id detection is PARKED, to reopen only when
+  a regular channel's watch id is observed to change. The task-022 single
+  re-read + retry stays as built.
+
+**Built:**
+- YouTube TV enumeration skips discrete rows with the reason
+  `isDiscreteStation (event feed)`, listed alongside the no-stream rows.
+- The D022 `(event N)` naming is removed from the playlist writer; names are
+  the guide's own again.
+- Nothing else changed.
+
+**Verified live:**
+- **V2:** 142 YouTube TV channels from 151 guide rows. 9 rows skipped: ESPN
+  23, 24, 25 (event feed); ESPN 26, NBCSN Extra 30–32, Cartoon Network 46,
+  WNBA on ION 133 (no stream). Philo 226; all 368 keys distinct.
+- **V3:** `/playlist/youtube-tv` lost exactly the three event rows' 6 lines,
+  and their keys return 404. No `(event` in any playlist. `/playlist/philo`
+  is byte-identical.
+  - 4 other YouTube TV lines (Disney Channel, Nicktoons, Portlandia, C-SPAN2)
+    differ **only in `tvg-logo`**. Each line matches its own enumeration's
+    cache: the cached logo is the current airing's thumbnail, and it changed
+    between the 01:12Z and 01:19Z reads. That is lineup drift, not code.
+- **V4:** ESPN row 17 by key, 60 s, hd720 (that channel's ceiling), 0 error
+  lines, clean idle stop.
+
+The dev server is running on the new cache (368 channels), idle.
+
+See notebook/reports/task-023.md.

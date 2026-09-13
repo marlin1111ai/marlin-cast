@@ -284,6 +284,12 @@ ESPN watch ids rotated 2026-09-11 → 12 and again within hours on 2026-09-12).
 
 **Dated 2026-09-12. Owner-ruled.**
 
+**Note (2026-09-12, owner-ruled):** stale-watch-id detection is PARKED. The
+only stale case observed (task-022 V5) was an event feed, and no regular
+channel's watch id has been seen to rotate. Reopen only when a regular
+channel's watch id is observed to change. The task-022 single re-read + retry
+on a poll-1 miss stays as built.
+
 ---
 
 ## D021 — Per-provider playlists
@@ -298,11 +304,28 @@ providers, full.
 
 ## D022 — Duplicate-name event feeds
 
+**SUPERSEDED by D023 (2026-09-12):** event feeds are excluded from the lineup,
+so event-feed naming no longer applies.
+
 Guide rows marked `isDiscreteStation: true` whose name equals a non-discrete
 row's name carry `tvg-name "<name> (event N)"`, N by guide position ascending.
 
 Reason: the editor matches by name, and these feeds have no guide entry
 anywhere. Observed on 2026-09-12 on ESPN rows 23–25
 (notebook/reports/recon-stable-ids.md, step 2).
+
+**Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D023 — YouTube TV event feeds are not channels
+
+YouTube TV guide rows marked `isDiscreteStation: true` (event feeds) are
+excluded from the lineup and the playlist. This amends D013 in the same spirit
+as its note on rows with no stream.
+
+Reason (task-022 V6): their keys and watch ids rotated within 20 minutes.
+They are not channels the consumer can hold, and no guide lists them.
+Supersedes D022.
 
 **Dated 2026-09-12. Owner-ruled.**

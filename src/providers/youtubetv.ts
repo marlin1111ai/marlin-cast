@@ -162,6 +162,9 @@ async function readGuide(cdp: Cdp, session: Session): Promise<Enumerated> {
     const why: string[] = [];
     if (!r.stationId) why.push("no stationId");
     if (!r.watchId) why.push("no watch link");
+    // D023: event feeds rotate their keys and watch ids within minutes
+    // (task-022 V6); they are not channels.
+    if (r.discrete) why.push("isDiscreteStation (event feed)");
     const tile = r.watchId ? byWatch.get(r.watchId) : undefined;
     if (r.watchId && !tile) why.push(`watch id ${r.watchId} has no rendered guide tile`);
     if (why.length || !tile || !r.stationId) {
