@@ -9,6 +9,10 @@ recon was running, before the step-2 tab was created. Steps 2 and 3 could not
 look at a live page. Steps 1 and 4 are complete. Step 3 is answered from recorded
 and on-disk evidence only. **Chrome was not relaunched** (D009: the owner's step).
 
+**Update:** step 2 was completed in a follow-up pass after the owner relaunched
+Chrome. See "Step 2 (completed 2026-09-12 20:22 EDT)" at the end. The sort,
+QUESTIONS and least-sure sections are updated where it changes them.
+
 ---
 
 ## The failure (snapshot)
@@ -117,6 +121,9 @@ to the `Fn14pu0…` URL above.
 ---
 
 ## Step 2 — YouTube TV identifiers: NOT PERFORMED
+
+*(Superseded: completed in a follow-up pass. See "Step 2 (completed 2026-09-12
+20:22 EDT)" at the end. This section is kept as the record of the first pass.)*
 
 Chrome was gone before the tab could be created (see failure). **No DOM
 attribute, aria label, tooltip or guide API response was observed in this
@@ -267,6 +274,9 @@ opaque option).
   and `B616E164D9BD487870AAD47CC19BD846` (www.philo.com).
 - No tab was ever attached to, navigated or closed by this recon.
 
+*(For the follow-up pass's tab and the owner's relaunched tabs, see "Step 2
+(completed …)", item 4.)*
+
 ---
 
 ## Step 6 — sort
@@ -274,21 +284,32 @@ opaque option).
 | item | sort | one reason |
 |---|---|---|
 | **A** — `/playlist/youtube-tv`, `/playlist/philo`, `/playlist` unchanged | **SWEEP** | the writer already loops `for (const provider of PROVIDERS)` and filters by `provider.id` (`server.ts:101-119`); a per-provider route runs that same loop over one provider |
-| **B** — stream URLs on a stable per-channel identity, provider id resolved at tune time | **STANDALONE** | for YouTube TV no stable per-channel identifier has been observed (step 2 not run): the name is not unique (four `ESPN`), the logo URL rotates (138 of 141) and is not unique; and the change runs through the router, cache shape, duplicate check, D015 sliver and YouTube TV tune resolution (step 4) |
+| **B** — stream URLs on a stable per-channel identity, provider id resolved at tune time | **STANDALONE** | *(updated by step 2)* a YouTube TV candidate now exists: `epgRowRenderer.stationId`, unique on 150 of 151 guide rows in one snapshot. But it lives only in the guide API response (and the row element's JS `data`), not in anything the current enumerator reads (`youtubetv.ts:50-84`); it is absent on one ESPN row; and whether it survives a watch-id rotation is unobserved. The change also still runs through the router, cache shape, duplicate check, D015 sliver and YouTube TV tune resolution (step 4) |
 
 ### QUESTIONS
 
 1. **D015** — "task-017 hardcoded `tvc-guide-stationid="32645"` on the single ESPN
    entry the owner tunes (`MrXg0chrojg`), read live from PrismCast's ESPN line."
    The sliver is keyed on a provider id, and ITEM B exists because such ids
-   rotate. Three of the four "ESPN" ids have already rotated once, and today
-   `MrXg0chrojg` shares a byte-identical logo with `I1jTpQKv5A0`. Which ESPN the
-   sliver means once ids are not the key is unanswered by anything observed.
+   rotate. *(Updated by step 2:)* the guide now identifies which row that is.
+   `MrXg0chrojg` is guide row 17, `stationId` `UCW7W_WAogi3qWDbO9PqOmZQ`,
+   `isDiscreteStation` `false`: the one ESPN row whose watch id did not rotate at
+   either observed point. The rows that did rotate (23–25) are the three
+   `isDiscreteStation: true` rows. No Gracenote-style numeric station id was
+   found in the guide response; the only `stationId` field carries `UC…`
+   values. Does the sliver follow a stable key once ids are not the key, and does
+   D015's PrismCast match apply to the discrete ESPN rows at all?
 2. **D013** — "the playlist carries the full YouTube TV lineup as enumerated from
    the guide, unfiltered." The three rotated tiles are indistinguishable in the
    cache apart from id and position. If ITEM B cannot tell such tiles apart, any
    merge or dedupe of them would filter the lineup D013 says is unfiltered. Is
    that allowed, and what is "a channel" for duplicate-name feeds?
+   *(Added by step 2:)* the guide today has **151 rows**, but 6 of them link to
+   `browse/UC…` instead of `watch/…`, and the enumerator skips any tile without
+   a `watch/` href (`youtubetv.ts:58-59`), so the playlist carries **145**.
+   The skipped rows: ESPN (26), NBCSN Extra (30, 31, 32), Cartoon Network (46),
+   WNBA on ION (133). Five of the six carry a `stationId`. Is omitting
+   guide rows with no watch endpoint consistent with "unfiltered"?
 3. **D006** — "an M3U playlist at `/playlist` listing channels, each pointing at an
    HLS stream served by Marlin Cast." ITEM A leaves `/playlist` unchanged and adds
    routes, so no conflict was found. ITEM B changes what "pointing at" is keyed
@@ -300,9 +321,14 @@ opaque option).
 
 ## What I am least sure of
 
-1. **Everything about YouTube TV identity beyond id/name/logo/href.** Step 2 did
-   not run. A durable channel key may well exist in the DOM or guide API. This
-   report neither shows nor rules that out.
+1. ~~Everything about YouTube TV identity beyond id/name/logo/href.~~ *(Updated
+   by step 2:)* **Whether `stationId` is durable.** It is observed in one
+   snapshot (2026-09-13 00:18–00:22Z): unique per row, stable between the two
+   guide pages loaded seconds apart, and used by the preview-stream API. No
+   stored `stationId` exists from 2026-09-11 or from the 17:39Z enumeration, so
+   nothing shows it surviving a watch-id rotation. What `isDiscreteStation`
+   means, and whether a discrete row keeps its `stationId` when its event
+   changes, is unknown.
 2. **Philo `channelId` durability beyond one day.** It is stable across
    programme boundaries within 2026-09-12. Across days, lineup changes and tier
    moves is not observed. The field-level quote is recon-philo's summary, not a
@@ -316,3 +342,178 @@ opaque option).
 5. **Guide position as evidence.** The rotated ESPN ids kept slots 23–25, but an
    insertion at 29 shows positions shift. That is an observation, not a proposed
    key.
+
+---
+
+## Step 2 (completed 2026-09-12 20:22 EDT)
+
+Follow-up pass, 20:17–20:22 EDT (2026-09-13 00:17–00:22Z). Read-only. No code.
+No login/accounts page opened. The owner's tabs were never attached to,
+navigated or closed.
+
+### Preconditions
+
+- `127.0.0.1:9333` answered at 20:17:17 EDT: `"Browser": "Chrome/153.0.8010.36"`,
+  browser pid 211475 (up 1:09, relaunched by the owner).
+- **`npm run login` was NOT run.** It selects each provider's tab by host
+  (`src/login.ts:37`), attaches to it (`:43`), and `checkSignedIn` navigates
+  that tab to the provider home URL (`:49`; `youtubetv.ts:29`, `philo.ts:265`).
+  That would attach to and navigate the owner's tabs, which this pass forbids.
+  The owner chose **option 3**: do the sign-in check inside the recon's own new
+  tab on `https://tv.youtube.com/live` and skip the Philo check.
+- Sign-in check result, same test as `youtubetv.ts:16` over the whole body text:
+
+  ```
+  {"href":"https://tv.youtube.com/live","title":"Live - YouTube TV","signInText":false}
+  ```
+
+  **Philo sign-in state: not checked** (owner's instruction).
+
+### What was run
+
+One tab via `Target.createTarget({url:"about:blank", newWindow:true})` →
+`9024E39C67A59C1FC902BD1DA0D12446`. One main-frame navigation
+(`tv.youtube.com /live`). The script waited until the
+`ytu-endpoint.tenx-thumb[aria-label]` count was stable (151), then read DOM
+attributes and one later in-page read of the row elements. Response bodies
+were read with `Network.getResponseBody` as they finished. Nothing was
+replayed, clicked or scrolled.
+
+| body | type | path | bytes | station fields |
+|---|---|---|---|---|
+| r000 | Document | `/live` | 89,535 | none |
+| r001 | Manifest | `/site/manifest/manifest.json` | 1,858 | none |
+| r002 | Fetch | `/youtubei/v1/att/get` | 44,004 | none |
+| r003 | XHR | `/youtubei/v1/browse` | 786 | none (tab list only) |
+| **r004** | XHR | `/youtubei/v1/browse` | 2,454,260 | **151 guide rows**, window `beginTimeMs 1789257600000` → `endTimeMs 1789272378000` |
+| r005 | XHR | `/youtubei/v1/browse` | 1,233,486 | continuation `1789272378000` → `1789280472000`; per-row `stationId` only |
+| r006 | XHR | `/youtubei/v1/tenx_player` | 3,524 | `tenxStreams[N].channelId` ×4 |
+| r007 | XHR | `/youtubei/v1/tenx_player` | 6,570 | `tenxStreams[N].channelId` ×8 |
+
+Bodies stayed in the scratchpad; tracking params and response contexts are
+not reproduced here.
+
+**DOM ↔ response alignment.** The guide DOM has 151 `ytu-epg-row` elements and
+r004 has 151 `…epgPaginationRenderer.contents[N].epgRowRenderer` entries. Tile
+`aria-label` minus `watch ` equals
+`contents[N].epgRowRenderer.station.epgStationRenderer.icon.accessibility.accessibilityData.label`
+**on 151 of 151 rows by index**. The row element's JS `data` property carries
+the same object (`Object.keys` =
+`airings,navigationEndpoint,station,stationId,trackingParams` on 145 rows,
+`airings,station,stationId,trackingParams` on 5, `airings,station,trackingParams`
+on 1).
+
+Below, `R` = `contents.epgRenderer.paginationRenderer.epgPaginationRenderer.contents[N].epgRowRenderer`
+in r004.
+
+### 2.1 — Every identifier per channel, with the ESPN (`MrXg0chrojg`, row 17) example
+
+| # | identifier | byte-exact for ESPN row 17 | origin | observed across rows | looks like |
+|---|---|---|---|---|---|
+| 1 | watch video id | `MrXg0chrojg` | DOM `ytu-endpoint.tenx-thumb > a[href]` = `watch/MrXg0chrojg?vp=0gEEEgIwAQ%3D%3D`; response `R.navigationEndpoint.watchEndpoint.videoId` and `R.airings[0].epgAiringRenderer.navigationEndpoint.watchEndpoint.videoId` | 145 rows have one, all distinct; 6 rows have none | **per-feed, rotating** (see 2.3) |
+| 2 | href `vp` | `0gEEEgIwAQ%3D%3D` | DOM `a[href]` query; response `R.airings[0].epgAiringRenderer.navigationEndpoint.watchEndpoint.params` = `0gEEEgIwAQ%3D%3D` | same value on every `watch/` tile (132 `vp` only + 13 `vpp&vp`) | not an identifier |
+| 3 | href `vpp` | *(absent on row 17)*; row 25: `0gcJCRUA3bTjb5HI`; row 22 (ESPNews): `0gcJCRUA3bTjb5HI` | DOM `a[href]` query | 13 tiles today. The 17:39Z cache had one `vpp` value on 12 rows; `LwYqqxn4jOM` (ESPNU) carried it then and does not now | not a channel key (same value on different channels, comes and goes) |
+| 4 | tile aria label | `watch ESPN` | DOM `ytu-endpoint.tenx-thumb[aria-label]` | 151 present; label `ESPN` on 5 rows, `NBCSN Extra` on 3, `MPT` on 2 | name, **not unique** |
+| 5 | station icon label | `ESPN` | DOM row `a[href^="browse/"] > ytu-img[aria-label="ESPN"] > img[alt="ESPN"]`; response `R.station.epgStationRenderer.icon.accessibility.accessibilityData.label` = `ESPN` and `…secondaryIcon.accessibility.accessibilityData.label` = `ESPN` | same as #4 | name, **not unique** |
+| 6 | tooltip | `Tennessee at Georgia Tech` | DOM row `ytu-epg-airing … div[title]`; tile itself has no `title` attribute | per programme (row 23: `Ohio State at Texas · Big Ten`) | **per-broadcast** |
+| 7 | tile thumbnail (what the cache calls `logo`) | `{"thumbnails":[{"url":"//yt3.ggpht.com/W5JVNAAqtM--yYEg2j8JO4DkqyPtVkY-dvYigZD_xBQF3MjSWqez4VUfOBH7cdXOUoCDqNr2C4Y=ns-nd","width":3840,"height":2160}]}` | DOM `ytu-thumbnail[src]`; equals response `R.airings[0].epgAiringRenderer.thumbnail.thumbnails[0].url` | **equal to the current airing's thumbnail on 151 of 151 rows** | **per-broadcast** |
+| 8 | station icon URL | `//yt3.ggpht.com/zQEsGs-Pl8rGEMxEAKrzuvnKYqIK_eG2Fw8As28gNgK7xOBlbtgFdwAHe9uGTimyCJd9_Q1nNfP35w=ns-nd` (400×400) | response `R.station.epgStationRenderer.icon.thumbnails[0].url` (DOM `img[src]` was still the 1×1 `data:` placeholder) | 151 present, 151 distinct | station artwork; durability unobserved |
+| 9 | station secondary icon URL | `//yt3.ggpht.com/Gg_6PwoIVY_ztCtxj__EqLxQyZG2uYKPwcvDbiDwQmnaCEGkvFs1X5_ToZFDstxRDn6-JzAbVxSd=ns-nd` (400×400) | response `R.station.epgStationRenderer.secondaryIcon.thumbnails[0].url` | 151 present, 151 distinct | station artwork; durability unobserved |
+| 10 | **stationId** | `UCW7W_WAogi3qWDbO9PqOmZQ` | response `R.stationId` and `R.station.epgStationRenderer.stationId` (equal on every row); r005 `continuationContents.epgPaginationRenderer.contents[N].epgRowRenderer.stationId`; DOM JS property `ytu-epg-row.data.stationId` (not an attribute) | **150 present, 150 distinct**; absent on row 26 only; r005 carries the identical 150 values in the identical order | **the only per-row, per-feed, non-programme identifier observed** |
+| 11 | tenxId | `UCW7W_WAogi3qWDbO9PqOmZQ` | response `R.station.epgStationRenderer.tenxId` | 140 present, 140 distinct, **equal to `stationId` on 140 of 140** | same key as #10 where present |
+| 12 | tenx_player `channelId` | *(ESPN not in these two responses)*; e.g. `UC6GmRNuKNw063eFfPKSjwrg` | response r006/r007 `tenxStreams[N].channelId` | all 12 values equal the `stationId`/`tenxId` of guide rows 0–7 (ABC 2, WBAL 11, WJZ 13, FOX 45, The CW Baltimore, MPT ×2, Telemundo) | the preview-stream API addresses rows by `stationId` |
+| 13 | station browseId | `UCakwQ1jKQnYJcUMghvnp-Yw` | response `R.station.epgStationRenderer.navigationEndpoint.browseEndpoint.browseId`; DOM row `a[href="browse/UCakwQ1jKQnYJcUMghvnp-Yw"]` | 151 present, **130 distinct**; `UCakwQ1jKQnYJcUMghvnp-Yw` on **10 rows** (every ESPN-family row) | network/brand page, **not per-feed** |
+| 14 | isDiscreteStation | `false` | response `R.station.epgStationRenderer.isDiscreteStation` | `true` on exactly 3 rows: 23, 24, 25 | a flag, not a key |
+| 15 | station name / callSign | *(absent on ESPN)*; row 0: `ABC 2` / `ABC 2` | response `R.station.epgStationRenderer.name.runs[0].text`, `…callSign.runs[0].text` | present on 6 rows only (0, 1, 2, 3, 5, 6: local stations) | name, local rows only |
+| 16 | airing videoId | `61rsb6SCBrs` | response `R.airings[0].epgAiringRenderer.videoId` | 150 present, 150 distinct in r004; r005 468 distinct | **per-broadcast** |
+| 17 | airing times | `1789254302000` / `1789264800000` | response `R.airings[0].epgAiringRenderer.beginTimeMs` / `endTimeMs` | — | per-broadcast |
+
+**Not present:** no `data-*` attribute anywhere. The census over all 151 tiles,
+their descendants and 8 ancestor levels found only `class`/`aria-label` on the
+tile, and structural attributes on the rest. No tile `title` tooltip. Under key
+names matching `station|channel|network|browseId`, r004 has only the paths
+above: no Gracenote-style numeric station id, no network id field.
+
+### 2.2 — The tiles named "ESPN"
+
+Five guide rows are labelled `ESPN` today (one more than the cache's four,
+because row 26 has no watch endpoint and the enumerator skips it). All five share
+tile aria label `watch ESPN`, station icon labels `ESPN`/`ESPN`, and browseId
+`UCakwQ1jKQnYJcUMghvnp-Yw` (also shared with ESPN2 row 18, ESPNU 21, ESPNews 22).
+What differs, byte-exact:
+
+| guide row | watch id (tile `a[href]`) | `R.stationId` | `tenxId` | `isDiscreteStation` | station icon URL (`…icon.thumbnails[0].url`) | tooltip (`div[title]`) | airing videoId |
+|---|---|---|---|---|---|---|---|
+| 17 | `watch/MrXg0chrojg?vp=0gEEEgIwAQ%3D%3D` | `UCW7W_WAogi3qWDbO9PqOmZQ` | `UCW7W_WAogi3qWDbO9PqOmZQ` | `false` | `//yt3.ggpht.com/zQEsGs-Pl8rGEMxEAKrzuvnKYqIK_eG2Fw8As28gNgK7xOBlbtgFdwAHe9uGTimyCJd9_Q1nNfP35w=ns-nd` | `Tennessee at Georgia Tech` | `61rsb6SCBrs` |
+| 23 | `watch/1oayVaJRVjQ?vp=0gEEEgIwAQ%3D%3D` | `UCeQPSwZWpyy-hv5ilkHLQDA` | `UCeQPSwZWpyy-hv5ilkHLQDA` | `true` | `//yt3.ggpht.com/DTVfz2ZNFL9Rrv52V2k223rxlsyL2gikAkYJrnDTS5zZZtfxjGkYv7Wz9r-18LRqJOMLs8Wt7zYXGg=ns-nd` | `Ohio State at Texas · Big Ten` | `_rfNHpN2ai4` |
+| 24 | `watch/zYW9jZ58KJg?vp=0gEEEgIwAQ%3D%3D` | `UCuVFZEpGlcrfG3BiZ6XJo8g` | `UCuVFZEpGlcrfG3BiZ6XJo8g` | `true` | `//yt3.ggpht.com/k3iTShQsnlMQYJ-yg3xSUfvz_nxohhO1ipsXJ_PRIbFeS-AoSjLkvyJIwo6IR8l_v0xfcwIccJc9=ns-nd` | `(1) Sun vs. (5) Pushkareva (Girls' Final) · U.S. Open (Tennis)` | `hQh2r4Y3uTU` |
+| 25 | `watch/FMOpHKcYYos?vpp=0gcJCRUA3bTjb5HI&vp=0gEEEgIwAQ%3D%3D` | `UCaGNTzawhkMIUtu5_OKM-ng` | `UCaGNTzawhkMIUtu5_OKM-ng` | `true` | `//yt3.ggpht.com/oIvO4UReRRYup3INobjJtOQX77XsC5Zj9Z2sm3e0oUI_LAWz1ycWUJQNkeEcC6olw0_SrBobgMNB=ns-nd` | `(1) Vink vs. (2) Schroder (WC Quad Final) · ATP World Tour` | `Ha92ADJP70Q` |
+| 26 | **none**: `browse/UCakwQ1jKQnYJcUMghvnp-Yw` | **absent** | **absent** | `false` | `//yt3.ggpht.com/IObmHDe9dIQNubotknXlDp-QteXRuMVJCOGy2sgx9TvlVv_A5I9FUE99egq6hkLPwjqMj2zUAu3y=ns-nd` | `Watch live sports, studio shows and originals on ESPN` | absent |
+
+Secondary icon URLs (`…secondaryIcon.thumbnails[0].url`), also all distinct:
+row 17 `//yt3.ggpht.com/Gg_6PwoIVY_ztCtxj__EqLxQyZG2uYKPwcvDbiDwQmnaCEGkvFs1X5_ToZFDstxRDn6-JzAbVxSd=ns-nd`,
+23 `//yt3.ggpht.com/GyrBLyZnYxv3Btj3N0nd6goB3tsPMJPFY8EAhpwj0fnMzQn356Nj7CXyQuocv_D9lNw8vV3Rgdlg=ns-nd`,
+24 `//yt3.ggpht.com/yCksgT9ySpXWb77ru5KJJAjJeAt00xtDhGwJFRq2LvIgkY9VURyai3o0LoSd9f_ZoHNYr0-SQDplSA=ns-nd`,
+25 `//yt3.ggpht.com/1qbCl9Mp4I_edBuqA7ZxeErJs3XjVx5QJR6cvJGMdbhsgXlOeUMXg4x0uErV6ofRt79rCaM2RJKQYQ=ns-nd`,
+26 `//yt3.ggpht.com/2i2FryIuZdcxdxGR-AUlJPmEmhJa-A7Ea2JY5tGKP72CINzvCJoVDkWrCQHwMCwZFyw18TaLru5i=ns-nd`.
+
+**Distinguishes the ESPN rows:** watch id, `stationId`/`tenxId`, both station
+icon URLs, `isDiscreteStation` (17 vs 23–25), guide position, and the
+per-programme tooltip and airing id. **Does not:** tile aria label, station icon
+label, browseId, `vp`.
+
+### 2.3 — Candidates against the rotation evidence
+
+**Watch ids rotated a second time within hours.** Guide rows 23–25 carried
+`gaT2Q_KZxns`/`arlkwb9_uTw`/`n33BiPboLfo` on 2026-09-11 (step 1),
+`I1jTpQKv5A0`/`X0hj-8OlGFM`/`D-Trg1a_m8k` at the 17:39:07Z enumeration, and
+`1oayVaJRVjQ`/`zYW9jZ58KJg`/`FMOpHKcYYos` at 00:18Z. `MrXg0chrojg` (row 17) was
+unchanged at all three points. Other changes since 17:39Z:
+- **removed:** `YaSBNQ7a4Xk` NBCSN Extra (rows 30–32 are now browse-only, each with a `stationId` and no watch endpoint), `YI2hv-GLxLM` Cartoon Network (row 46 is now browse-only, `stationId` `UCCYrcqAHdnJzkes2xe_X4Yw`)
+- **added:** `gIrMz5aZxrA` BTN Overflow 1 (row 35, `stationId` `UCaPEm-6YWqZTubSGqZaL8lg`), `AJzVH1-soM0` Adult Swim (row 47, `stationId` `UC1dcLpSDzqDZwj2zldGBO1A`)
+
+| candidate | could it have stayed constant across the 2026-09-11→12 ESPN rotation? |
+|---|---|
+| watch video id | **No**: it is the thing that rotated, twice |
+| tile thumbnail / cached `logo` | **No**: it equals the current airing's thumbnail (151/151), so it changes with the programme. This matches step 1's 138-of-141 logo changes and the shared logos between two ESPN feeds showing the same event (inference) |
+| tooltip, airing videoId, airing times | **No**: per programme by construction |
+| aria label / station icon label | **Yes, it stayed `ESPN`**, but five rows share it, so it cannot tell the rotated rows apart |
+| browseId | Possibly constant, but shared by 10 rows, so it cannot tell them apart either |
+| `vp` / `vpp` | `vp` is identical on every row; `vpp` is not per-channel |
+| **`stationId` / `tenxId`** | **Cannot be determined.** Neither `/tmp/playlist-before.m3u` nor `data/channels.json` stored it, so there is no earlier value to compare |
+| station icon URLs | **Cannot be determined**, for the same reason (the cached `logo` was the airing thumbnail, not these) |
+
+**What one snapshot does show:** `stationId` is present on 150 of 151 rows, is
+distinct per row (including the five ESPN rows), is a separate field from both
+the watch id and the airing id, repeats identically in the continuation page
+(r005), and is the id the page's own preview-stream API uses
+(`tenxStreams[N].channelId`). The three rows whose watch ids rotated at both
+observed points are exactly the three `isDiscreteStation: true` rows.
+
+**What it cannot show:**
+- whether a given `stationId` stays with the same feed across days or across a watch-id rotation (no second observation exists)
+- whether a discrete row gets a new `stationId` when its event changes
+- what `isDiscreteStation` means
+- whether the browse-only rows (26, 30–32, 46, 133) are ever tunable
+- whether the station icon URLs are durable
+
+A second guide read that spans a watch-id rotation is what would settle
+durability. It was not taken; this pass was one snapshot.
+
+### 4 — Close; owner tab ids
+
+`Target.closeTarget(9024E39C67A59C1FC902BD1DA0D12446)` → `{"success":true}` at
+~20:22 EDT. Target list with `filter:[{}]`:
+
+| target id | type | host | before the recon tab | after close |
+|---|---|---|---|---|
+| `2ECEBF96E5AFE582C2D58E386A6D3DBA` | page | tv.youtube.com | present | **present** |
+| `76E9F816D85770921EF954D0ED6767D3` | page | www.philo.com | present | **present** |
+| `F5028ABB25EB0F50911BBA98361F0BF3` | tab | tv.youtube.com | present | **present** |
+| `3EA51E9C5BDA6E0CF3139A041DBF3BE1` | tab | www.philo.com | present | **present** |
+| `FE349EBEBC17022D8B2D4D02A4B0563F` | service_worker | tv.youtube.com | present | **present** |
+| `8638BE4E9C1CAD11EFAFE34F4C6D2499`, `4B608EF4F6D91894628BCF5235B4DADC` | browser_ui | omnibox popup | present | **present** |
+| `9024E39C67A59C1FC902BD1DA0D12446` / `BE37A7133CF34A66F61E05503C625603` | page / tab | tv.youtube.com (recon) | — | gone |
+| `9EAB7F254BE160AC9ED45632B2491D71`, `A265E085062D454A8D75DCE2D67992F1` | browser_ui | omnibox popup (recon window) | — | gone |
+
+**The owner's tab target ids are unchanged.**
