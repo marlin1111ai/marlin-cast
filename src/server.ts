@@ -2,11 +2,15 @@
 //
 //   GET  /                            one plain status page
 //   GET  /health                      plain status
-//   GET  /playlist                    M3U of the full lineup (D013)
-//   GET  /stream/:id/index.m3u8       HLS playlist for a channel (tunes on demand)
-//   GET  /stream/:id/init.mp4         fMP4 init segment (#EXT-X-MAP)
-//   GET  /stream/:id/:segment.m4s     fMP4 media segments
-//   POST /ingest/:id/:token           the capture extension's WebM timeslices
+//   GET  /playlist                    M3U of the full lineup (D013), both providers
+//   GET  /playlist/:slug              the same M3U for one provider (D021)
+//   GET  /stream/:key/index.m3u8      HLS playlist for a channel (tunes on demand)
+//   GET  /stream/:key/init.mp4        fMP4 init segment (#EXT-X-MAP)
+//   GET  /stream/:key/:segment.m4s    fMP4 media segments
+//   POST /ingest/:key/:token          the capture extension's WebM timeslices
+//
+// :key is the channel's stable key (D020): YouTube TV's guide stationId or
+// Philo's channelId. A provider's watch/broadcast id never appears in a URL.
 //
 // Binds 0.0.0.0:8804 and nothing else (D008).
 
@@ -15,7 +19,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadChannels } from "./channels.js";
 import { Pipeline, IDLE_MS } from "./capture.js";
-import { PROVIDERS, type Channel } from "./providers/index.js";
+import { PROVIDERS, type Channel, type Provider } from "./providers/index.js";
 
 const PORT = 8804;
 const HOST = "0.0.0.0";
@@ -28,8 +32,35 @@ if (!cache) {
   console.error("No channel cache. Run:  npm run channels");
   process.exit(1);
 }
-const byId = new Map<string, Channel>(cache.channels.map((c) => [c.id, c]));
+const unkeyed = cache.channels.filter((c) => !c.key);
+if (unkeyed.length) {
+  console.error(`The channel cache has ${unkeyed.length} channels with no key (it predates D020). Run:  npm run channels`);
+  process.exit(1);
+}
+const byKey = new Map<string, Channel>(cache.channels.map((c) => [c.key, c]));
 console.log(`channels: ${cache.count} (enumerated ${cache.enumeratedAt}) ${JSON.stringify(cache.byProvider ?? {})}`);
+
+/** D022: guide rows marked discrete whose name equals a non-discrete row's name
+ *  are event feeds with no guide entry anywhere, and the editor matches by
+ *  name — so they carry "<name> (event N)", N by guide position ascending. */
+function eventNames(channels: Channel[]): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const provider of PROVIDERS) {
+    const mine = channels.filter((c) => c.provider === provider.id);
+    const regular = new Set(mine.filter((c) => !c.discrete).map((c) => c.name));
+    const events = mine
+      .filter((c) => c.discrete && regular.has(c.name))
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    const seen = new Map<string, number>();
+    for (const c of events) {
+      const n = (seen.get(c.name) ?? 0) + 1;
+      seen.set(c.name, n);
+      out.set(c.key, `${c.name} (event ${n})`);
+    }
+  }
+  return out;
+}
+const eventName = eventNames(cache.channels);
 
 const pipeline = new Pipeline(CDP_PORT);
 const browser = await pipeline.connect();
@@ -59,8 +90,8 @@ app.use((req, res, next) => {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // --- ingest: raw body straight from the extension ---------------------------
-app.post("/ingest/:id/:token", express.raw({ type: "*/*", limit: "64mb" }), (req, res) => {
-  const ok = pipeline.ingest(req.params.id, req.params.token, req.body as Buffer);
+app.post("/ingest/:key/:token", express.raw({ type: "*/*", limit: "64mb" }), (req, res) => {
+  const ok = pipeline.ingest(req.params.key, req.params.token, req.body as Buffer);
   res.status(ok ? 204 : 409).end();
 });
 
@@ -75,7 +106,7 @@ app.get("/health", (_req, res) => {
       `state: ${s.state}`,
       `quality: ${s.quality ?? "-"}`,
       `provider: ${s.provider ?? "-"}`,
-      `channel: ${s.channelName ?? "-"} (${s.channelId ?? "-"})`,
+      `channel: ${s.channelName ?? "-"} (${s.channelKey ?? "-"})`,
       `since: ${s.since ?? "-"}`,
       `chunks_in: ${s.chunksIn}`,
       `bytes_in: ${s.bytesIn}`,
@@ -92,32 +123,43 @@ function baseUrl(req: express.Request): string {
   return `http://${req.headers.host ?? `127.0.0.1:${PORT}`}`;
 }
 
-app.get("/playlist", (req, res) => {
+/** Test sliver toward D015 (task-017), re-keyed by D020: an explicit Gracenote
+ *  station id for ONE channel only — ESPN guide row 17, the regular ESPN feed
+ *  the owner tunes. 32645 is PrismCast's own tvc-guide-stationid for ESPN.
+ *  Hardcoded on this one key; no mapping table, file, or config. */
+const ESPN_SLIVER_KEY = "UCW7W_WAogi3qWDbO9PqOmZQ";
+
+function playlist(req: express.Request, providers: Provider[]): string {
   const base = baseUrl(req);
   const lines = ["#EXTM3U"];
   // Providers in registry order (D017: YouTube TV first, then Philo), each
-  // channel in the order its provider enumerated it. The YouTube TV section is
-  // byte-for-byte what task-019 emitted.
-  for (const provider of PROVIDERS) {
+  // channel in the order its provider enumerated it.
+  for (const provider of providers) {
     for (const c of cache.channels.filter((x) => x.provider === provider.id)) {
+      const name = eventName.get(c.key) ?? c.name;
       const attrs = [
-        `tvg-id="${c.id}"`,
-        `tvg-name="${c.name.replace(/"/g, "")}"`,
+        `tvg-id="${c.key}"`,
+        `tvg-name="${name.replace(/"/g, "")}"`,
         c.logo ? `tvg-logo="${c.logo}"` : null,
         `group-title="${provider.label}"`,
-        // Test sliver toward D015 (task-017): give Channels DVR an explicit
-        // Gracenote station id for ONE channel only — ESPN, the channel the
-        // owner tunes in every test — to see whether it changes Channels'
-        // behaviour. 32645 is PrismCast's own tvc-guide-stationid for ESPN.
-        // Hardcoded on this one channel id; no mapping table, file, or config.
-        // We carry four channels named "ESPN"; MrXg0chrojg is the tuned one.
-        c.id === "MrXg0chrojg" ? `tvc-guide-stationid="32645"` : null,
+        c.key === ESPN_SLIVER_KEY ? `tvc-guide-stationid="32645"` : null,
       ].filter(Boolean).join(" ");
-      lines.push(`#EXTINF:-1 ${attrs},${c.name}`);
-      lines.push(`${base}/stream/${c.id}/index.m3u8`);
+      lines.push(`#EXTINF:-1 ${attrs},${name}`);
+      lines.push(`${base}/stream/${c.key}/index.m3u8`);
     }
   }
-  res.type("application/x-mpegurl").send(lines.join("\n") + "\n");
+  return lines.join("\n") + "\n";
+}
+
+app.get("/playlist", (req, res) => {
+  res.type("application/x-mpegurl").send(playlist(req, PROVIDERS));
+});
+
+// D021: the same format, filtered to one provider.
+app.get("/playlist/:slug", (req, res) => {
+  const provider = PROVIDERS.find((p) => p.slug === req.params.slug);
+  if (!provider) return res.status(404).type("text/plain").send("unknown playlist\n");
+  res.type("application/x-mpegurl").send(playlist(req, [provider]));
 });
 
 // --- HLS --------------------------------------------------------------------
@@ -167,8 +209,8 @@ export function rewritePlaylist(text: string): string {
   return out.join("\n");
 }
 
-app.get("/stream/:id/index.m3u8", async (req, res) => {
-  const channel = byId.get(req.params.id);
+app.get("/stream/:key/index.m3u8", async (req, res) => {
+  const channel = byKey.get(req.params.key);
   if (!channel) return res.status(404).type("text/plain").send("unknown channel\n");
 
   try {
@@ -178,16 +220,16 @@ app.get("/stream/:id/index.m3u8", async (req, res) => {
     return res.status(503).type("text/plain").send(`tune failed: ${String(e)}\n`);
   }
 
-  const file = join(pipeline.dirFor(channel.id), "index.m3u8");
+  const file = join(pipeline.dirFor(channel.key), "index.m3u8");
   const deadline = Date.now() + FIRST_SEGMENT_TIMEOUT_MS;
   while (Date.now() < deadline) {
     if (existsSync(file)) {
-      pipeline.touch(channel.id);
+      pipeline.touch(channel.key);
       res.type("application/vnd.apple.mpegurl");
       res.setHeader("cache-control", "no-cache");
       return res.send(rewritePlaylist(readFileSync(file, "utf8")));
     }
-    if (pipeline.currentChannelId() !== channel.id) {
+    if (pipeline.currentChannelKey() !== channel.key) {
       return res.status(409).type("text/plain").send("tune switched away\n");
     }
     await sleep(400);
@@ -195,13 +237,13 @@ app.get("/stream/:id/index.m3u8", async (req, res) => {
   res.status(504).type("text/plain").send("timed out waiting for the first segment\n");
 });
 
-app.get("/stream/:id/:file", (req, res) => {
-  const { id, file } = req.params;
+app.get("/stream/:key/:file", (req, res) => {
+  const { key, file } = req.params;
   if (!/^[A-Za-z0-9_.-]+\.(ts|m4s|mp4)$/.test(file)) return res.status(400).end();
-  if (!byId.has(id)) return res.status(404).end();
-  const path = join(pipeline.dirFor(id), file);
+  if (!byKey.has(key)) return res.status(404).end();
+  const path = join(pipeline.dirFor(key), file);
   if (!existsSync(path)) return res.status(404).end();
-  pipeline.touch(id);
+  pipeline.touch(key);
   // sendFile honours Range and sets Accept-Ranges/Content-Range; the previous
   // createReadStream().pipe() answered `Range: bytes=0-99` with a 200 and the
   // whole file.
@@ -232,7 +274,7 @@ app.get("/", (req, res) => {
   const base = baseUrl(req);
   const s = pipeline.status();
   const tuned = s.channelName
-    ? `${esc(s.provider ?? "?")} — ${esc(s.channelName)}`
+    ? `${esc(s.provider ?? "?")} — ${esc(s.channelName)} <code>${esc(s.channelKey ?? "?")}</code>`
     : "idle — nothing tuned";
   const rows: [string, string][] = [
     ["server", `listening on ${HOST}:${PORT}`],

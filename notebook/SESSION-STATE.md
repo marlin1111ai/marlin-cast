@@ -965,3 +965,61 @@ Perfect Storm), but a capture still running when its broadcast ends may
 stop. Test that on a long recording before trusting Philo for a DVR job.
 
 See notebook/reports/task-021.md.
+
+---
+
+## Task 022 — stable stream URLs keyed on stationId / channelId (2026-09-12) — STOPPED at V5
+
+**Decisions recorded:** D020 (stream URL key = YouTube TV guide `stationId` or
+Philo `channelId`; the watch/broadcast id is resolved at tune time), D021
+(`/playlist/youtube-tv`, `/playlist/philo`), D022 (discrete duplicate-name feeds
+named `<name> (event N)`), plus notes under D013 (browse-only guide rows are not
+channels) and D015 (ESPN sliver re-keyed to `UCW7W_WAogi3qWDbO9PqOmZQ`).
+
+**Built (uncommitted at stop):**
+- YouTube TV enumeration reads the guide page's own `/youtubei/v1/browse`
+  response (`contents.epgRenderer…contents[N].epgRowRenderer`) and joins it to
+  the rendered tiles on the watch id.
+- `data/channels.json` carries `key` (plus `discrete` and `position` for YouTube TV).
+- The router, HLS directory, ingest, `byKey` and the cross-provider duplicate
+  check are keyed on `key`.
+- The playlist writer emits `tvg-id` = key, `/stream/<key>/index.m3u8`, D022
+  names, the D021 routes and the re-keyed D015 line.
+- The status page shows the tuned key.
+- A poll-1 miss on YouTube TV re-reads the guide once and retries once.
+
+**Verified live:**
+- **V1:** baselines saved.
+- **V2:** 144 YouTube TV channels from 151 guide rows. 7 rows skipped: Univision 8
+  had no watch link in this read, and ESPN 26, NBCSN Extra 30–32, Cartoon Network 46
+  and WNBA on ION 133 are browse-only. Philo 226; all 370 keys distinct.
+- **V3:** 289 + 453 = 741 lines. No watch or broadcast id in any URL.
+  `ESPN (event 1…3)` present, and row 17 carries `32645`.
+- **V4:**
+  - real ESPN by key: 125 s, hd720 (ESPN has no hd1080, task-011)
+  - ESPN event 1: 125 s
+  - Philo AMC: 125 s
+  - TNT: hd1080 reached
+  - every idle stop was clean
+- **V7:** screenshot taken.
+
+**STOP — V5 failed.** A rotated event watch id (`I1jTpQKv5A0`, gone from the
+guide since 17:39Z) planted in the cache for ESPN event 1 **still plays**:
+YouTube TV serves an ESPN logo slate at hd720. Poll 1 (URL contains the id,
+`#movie_player` present) passes, so the step-4 re-read never fires and the
+cache keeps the stale id. The trigger as specified cannot detect a
+stale-but-playable watch id.
+
+**After the stop (owner's instruction):** committed and pushed as-is, and
+`npm run channels` re-run (V6, 01:12Z), which replaced the drilled row.
+- **YouTube TV:** 145. Univision has a watch link again, and the 6 browse-only
+  rows are skipped.
+- **Philo:** 226.
+- **Stable:** the 142 YouTube TV keys present in both runs are unchanged, with
+  0 watch-id changes.
+- **Rotated:** ESPN event rows 24 and 25 came back with **new stationIds**
+  (and new watch ids). The D020 key is not durable for discrete event feeds.
+
+The dev server was restarted on the V6 cache.
+
+See notebook/reports/task-022.md.

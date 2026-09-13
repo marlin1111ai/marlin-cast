@@ -11,7 +11,7 @@
 // capture exactly as ESPN is today.
 
 import { evalIn, navigateAndSettle, sleep, type Cdp, type Session } from "../cdp.js";
-import type { Channel, Provider, QualityResult, TuneCtx } from "./types.js";
+import type { Channel, Enumerated, Provider, QualityResult, TuneCtx } from "./types.js";
 
 const HOST = "www.philo.com";
 const HOME_URL = "https://www.philo.com/";
@@ -254,6 +254,7 @@ async function dismissControls(ctx: TuneCtx, channel: Channel): Promise<void> {
 export const philo: Provider = {
   id: "philo",
   label: "Philo",
+  slug: "philo",
   host: HOST,
   homeUrl: HOME_URL,
   parkUrl: GUIDE_URL,
@@ -272,7 +273,7 @@ export const philo: Provider = {
    *  request the guide makes for itself, paged on groups.pageInfo until
    *  hasNextPage is false. Count is checked against groups.summary.totalCount
    *  and never hardcoded. */
-  async enumerate(cdp: Cdp, session: Session): Promise<Channel[]> {
+  async enumerate(cdp: Cdp, session: Session): Promise<Enumerated> {
     await navigateAndSettle(cdp, session, GUIDE_URL);
     const signed = await waitForPlayerPath(cdp, session);
     if (!signed.signedIn) throw new Error(`fatal: "SIGNED OUT" — ${signed.detail}`);
@@ -293,6 +294,8 @@ export const philo: Provider = {
         seen.add(row.channelId);
         tiers[row.tier ?? "?"] = (tiers[row.tier ?? "?"] ?? 0) + 1;
         channels.push({
+          // D020: channelId is both the stable key and the id Philo resolves from.
+          key: row.channelId,
           id: row.channelId,
           name: row.displayName,
           // ${width} is Philo's own placeholder in every channel-logo URL.
@@ -310,7 +313,7 @@ export const philo: Provider = {
     if (total !== null && channels.length !== total) {
       throw new Error(`philo: enumerated ${channels.length} channels but groups.summary.totalCount is ${total}`);
     }
-    return channels;
+    return { channels, skipped: [] };
   },
 
   /** Tune step 1: resolve the live broadcast, then navigate straight to its

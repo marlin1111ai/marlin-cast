@@ -12,7 +12,7 @@ export class Cdp {
   private ws: WebSocket;
   private id = 0;
   private pending = new Map<number, { res: (v: any) => void; rej: (e: Error) => void }>();
-  private listeners = new Map<string, ((p: any) => void)[]>();
+  private listeners = new Map<string, ((p: any, sessionId?: string) => void)[]>();
   readonly browser: string;
 
   private constructor(ws: WebSocket, browser: string) {
@@ -21,7 +21,8 @@ export class Cdp {
     ws.addEventListener("message", (ev: MessageEvent) => {
       const m = JSON.parse(String(ev.data));
       if (m.method) {
-        for (const fn of this.listeners.get(m.method) ?? []) fn(m.params);
+        // A copy, so a listener may remove itself (off) while being called.
+        for (const fn of [...(this.listeners.get(m.method) ?? [])]) fn(m.params, m.sessionId);
         return;
       }
       const p = this.pending.get(m.id);
@@ -50,9 +51,16 @@ export class Cdp {
     return new Promise((res, rej) => this.pending.set(id, { res, rej }));
   }
 
-  on(method: string, fn: (p: any) => void): void {
+  /** Listen for an event. Events from a flattened session carry its id. */
+  on(method: string, fn: (p: any, sessionId?: string) => void): void {
     if (!this.listeners.has(method)) this.listeners.set(method, []);
     this.listeners.get(method)!.push(fn);
+  }
+
+  off(method: string, fn: (p: any, sessionId?: string) => void): void {
+    const fns = this.listeners.get(method);
+    const i = fns ? fns.indexOf(fn) : -1;
+    if (fns && i !== -1) fns.splice(i, 1);
   }
 
   close(): void {

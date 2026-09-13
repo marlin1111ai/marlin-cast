@@ -10,6 +10,12 @@ import type { Cdp, Session } from "../cdp.js";
 export type ProviderId = "youtubetv" | "philo";
 
 export type Channel = {
+  /** D020: the channel's stable key — YouTube TV's guide stationId, Philo's
+   *  channelId. The stream URL, the router, the HLS directory and ingest all
+   *  use this, and it is what the playlist's tvg-id carries. */
+  key: string;
+  /** The provider's own id for what to play. YouTube TV: the current watch id,
+   *  which rotates and is refreshed at tune time. Philo: the channelId. */
   id: string;
   name: string;
   logo: string | null;
@@ -17,11 +23,22 @@ export type Channel = {
   provider: ProviderId;
   /** YouTube TV: deep-link path+query exactly as the guide supplied it. */
   href?: string;
+  /** YouTube TV: the guide row's isDiscreteStation flag (D022). */
+  discrete?: boolean;
+  /** YouTube TV: 0-based row index in the guide response (D022 ordering). */
+  position?: number;
   /** Philo: the guide row's opaque TileGroup id, used to resolve the
    *  currently-airing broadcast at tune time. Server-validated, so it cannot
    *  be derived from the channel id — it has to be carried from enumeration. */
   tileGroupId?: string;
 };
+
+/** A guide row that is not a channel, and why. */
+export type Skipped = { position: number; name: string | null; reason: string };
+
+/** What a provider's enumeration returns: the channels, and the guide rows it
+ *  left out (counted, never silently dropped). */
+export type Enumerated = { channels: Channel[]; skipped: Skipped[] };
 
 /** Result of a page-side poll probe: `ok` ends the poll, `fatal` aborts it. */
 export type Probe = { ok: boolean; fatal?: string; [k: string]: unknown };
@@ -37,6 +54,9 @@ export type TuneCtx = {
   /** One real pointer move. Some players arm their control auto-hide timer
    *  from a mousemove handler and never from a click. */
   move(x: number, y: number): Promise<void>;
+  /** Persist a channel whose provider id changed at tune time to
+   *  data/channels.json, matched on provider + key. */
+  saveChannel(channel: Channel): void;
   captureW: number;
   captureH: number;
 };
@@ -53,6 +73,8 @@ export interface Provider {
   readonly id: ProviderId;
   /** M3U group-title. */
   readonly label: string;
+  /** D021: the per-provider playlist is /playlist/<slug>. */
+  readonly slug: string;
   /** D018: the tab is the page target with THIS url host. No fallback. */
   readonly host: string;
   /** Where `npm run login` sends the tab to read session state. */
@@ -65,7 +87,7 @@ export interface Provider {
 
   /** The full unfiltered lineup (D013/D019). Count is whatever the provider
    *  reports — never hardcoded. */
-  enumerate(cdp: Cdp, session: Session): Promise<Channel[]>;
+  enumerate(cdp: Cdp, session: Session): Promise<Enumerated>;
 
   /** Tune step 1: navigate to the channel and wait for its document.
    *  Aborts with a fatal "SIGNED OUT" probe if the session is gone. */

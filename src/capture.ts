@@ -13,7 +13,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Cdp, evalIn, findPageTarget, sleep, tabTargetId, type Session } from "./cdp.js";
-import { ROOT } from "./channels.js";
+import { ROOT, saveChannel } from "./channels.js";
 import { providerFor, type Channel, type Probe, type Provider, type TuneCtx } from "./providers/index.js";
 
 const EXT_DIR = join(ROOT, "extension");
@@ -31,6 +31,9 @@ export const IDLE_MS = Number(process.env.MC_IDLE_MS ?? 20000);
 export type Status = {
   state: "idle" | "starting" | "streaming" | "stopping";
   provider: string | null;
+  /** D020: the stable key the stream URL carries. */
+  channelKey: string | null;
+  /** The provider's own id currently used to play it (YouTube TV: the watch id). */
   channelId: string | null;
   channelName: string | null;
   since: string | null;
@@ -161,6 +164,7 @@ export class Pipeline {
     return {
       state: l ? (l.stopping ? "stopping" : "streaming") : (this.starting ? "starting" : "idle"),
       provider: l?.provider.label ?? null,
+      channelKey: l?.channel.key ?? null,
       channelId: l?.channel.id ?? null,
       channelName: l?.channel.name ?? null,
       since: l ? new Date(l.startedAt).toISOString() : null,
@@ -173,14 +177,16 @@ export class Pipeline {
     };
   }
 
-  currentChannelId(): string | null { return this.live?.channel.id ?? null; }
+  /** D020: everything a stream touches — its URL, HLS directory, ingest and
+   *  idle tracking — is keyed on the channel's stable key, never the provider id. */
+  currentChannelKey(): string | null { return this.live?.channel.key ?? null; }
   token(): string | null { return this.live?.token ?? null; }
 
-  touch(channelId: string): void {
-    if (this.live && this.live.channel.id === channelId) this.live.lastAccess = Date.now();
+  touch(key: string): void {
+    if (this.live && this.live.channel.key === key) this.live.lastAccess = Date.now();
   }
 
-  dirFor(channelId: string): string { return join(HLS_ROOT, channelId); }
+  dirFor(key: string): string { return join(HLS_ROOT, key); }
 
   private checkIdle(): void {
     const l = this.live;
@@ -193,12 +199,12 @@ export class Pipeline {
   /** D005: one channel at a time. A request for a different channel SWITCHES
    *  the tune — the previous stream is torn down first. */
   async ensure(channel: Channel): Promise<void> {
-    if (this.live && this.live.channel.id === channel.id && !this.live.stopping) {
+    if (this.live && this.live.channel.key === channel.key && !this.live.stopping) {
       this.live.lastAccess = Date.now();
       return;
     }
     if (this.starting) await this.starting.catch(() => {});
-    if (this.live && this.live.channel.id === channel.id && !this.live.stopping) return;
+    if (this.live && this.live.channel.key === channel.key && !this.live.stopping) return;
     this.starting = this.start(channel).finally(() => { this.starting = null; });
     await this.starting;
   }
@@ -209,7 +215,7 @@ export class Pipeline {
 
     const provider = providerFor(channel);
     const token = Math.random().toString(36).slice(2, 10);
-    const dir = this.dirFor(channel.id);
+    const dir = this.dirFor(channel.key);
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
 
@@ -217,7 +223,7 @@ export class Pipeline {
     const tab = await this.selectTab(provider);
     const session = tab.session;
     await this.cdp.send("Target.activateTarget", { targetId: tab.id });
-    console.log(`[tune] ${channel.name}: provider ${provider.id}, tab ${tab.id} (${tab.url.slice(0, 60)})`);
+    console.log(`[tune] ${channel.name} (${channel.key}): provider ${provider.id}, tab ${tab.id} (${tab.url.slice(0, 60)})`);
 
     // --- tune -------------------------------------------------------------
     // Provider-defined stages around one shared layout override. Task-010
@@ -234,6 +240,10 @@ export class Pipeline {
       },
       move: async (x, y) => {
         await this.cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y }, session);
+      },
+      saveChannel: (c) => {
+        try { saveChannel(c); }
+        catch (e) { console.error(`[tune] ${c.name} (${c.key}): could not update the channel cache: ${String(e)}`); }
       },
       captureW: CAPTURE_W,
       captureH: CAPTURE_H,
@@ -344,7 +354,7 @@ export class Pipeline {
     await this.cdp.send("Target.activateTarget", { targetId: tab.id });
     const opts = JSON.stringify({
       video: { maxWidth: CAPTURE_W, maxHeight: CAPTURE_H, maxFrameRate: CAPTURE_FPS },
-      ingest: `http://127.0.0.1:8804/ingest/${channel.id}/${token}`,
+      ingest: `http://127.0.0.1:8804/ingest/${channel.key}/${token}`,
       timeslice: TIMESLICE_MS,
     });
 
@@ -360,9 +370,9 @@ export class Pipeline {
     console.log(`[capture] ${channel.name} recording ${JSON.stringify(started.note?.tracks?.video?.settings ?? {})}`);
   }
 
-  ingest(channelId: string, token: string, buf: Buffer): boolean {
+  ingest(key: string, token: string, buf: Buffer): boolean {
     const l = this.live;
-    if (!l || l.channel.id !== channelId || l.token !== token || l.stopping) return false;
+    if (!l || l.channel.key !== key || l.token !== token || l.stopping) return false;
     l.chunksIn++;
     l.bytesIn += buf.length;
     if (l.ffmpeg.stdin.writable) l.ffmpeg.stdin.write(buf);

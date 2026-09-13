@@ -158,6 +158,11 @@ channel list in Marlin Cast.
 
 **Dated 2026-09-11.**
 
+**Note (2026-09-12, owner-ruled):** guide rows that link to a browse page and
+carry no stream are not channels and stay out of the playlist. Six were
+observed on 2026-09-12: ESPN row 26, NBCSN Extra rows 30–32, Cartoon Network
+46, WNBA on ION 133 (notebook/reports/recon-stable-ids.md, step 2).
+
 ---
 
 ## D014 — Hardware decode testing
@@ -191,6 +196,10 @@ file, or config exists yet; the full name→ID mapping for 144 channels
 (and resolving duplicate-name feeds) is unbuilt.
 
 **Dated 2026-09-11.**
+
+**Note (2026-09-12, owner-ruled):** the ESPN sliver is re-keyed from the
+rotating watch id `MrXg0chrojg` to guide row 17's stationId
+`UCW7W_WAogi3qWDbO9PqOmZQ` (D020).
 
 ---
 
@@ -257,5 +266,43 @@ Philo entries carry `group-title="Philo"`.
 
 Curation stays in Marlin IPTV Editor. No whitelist, tier filter, or
 config-file channel list in Marlin Cast.
+
+**Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D020 — Stream URL identity
+
+Stream URLs are `/stream/<key>/index.m3u8`, where **key** is YouTube TV's
+guide `stationId` (`epgRowRenderer.stationId`) or Philo's `channelId`. The
+provider's watch/broadcast id is resolved at tune time and never appears in a
+URL.
+
+Reason: the consumer (Marlin IPTV Editor) identifies a channel by stream URL,
+and YouTube TV watch ids rotate (notebook/reports/recon-stable-ids.md: three
+ESPN watch ids rotated 2026-09-11 → 12 and again within hours on 2026-09-12).
+
+**Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D021 — Per-provider playlists
+
+`/playlist/youtube-tv` and `/playlist/philo`, each the same format as
+`/playlist` filtered to one provider. `/playlist` is unchanged: both
+providers, full.
+
+**Dated 2026-09-12. Owner-ruled.**
+
+---
+
+## D022 — Duplicate-name event feeds
+
+Guide rows marked `isDiscreteStation: true` whose name equals a non-discrete
+row's name carry `tvg-name "<name> (event N)"`, N by guide position ascending.
+
+Reason: the editor matches by name, and these feeds have no guide entry
+anywhere. Observed on 2026-09-12 on ESPN rows 23–25
+(notebook/reports/recon-stable-ids.md, step 2).
 
 **Dated 2026-09-12. Owner-ruled.**
