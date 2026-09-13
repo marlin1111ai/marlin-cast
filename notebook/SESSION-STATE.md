@@ -1,12 +1,40 @@
 # SESSION-STATE.md
 
-Updated 2026-09-11. This is a cold-start brief for the Marlin Cast
+Updated 2026-09-13. This is a cold-start brief for the Marlin Cast
 project. See DECISIONS.md for the standing rules that govern every
 session.
 
 ---
 
-## Where things stand
+## Where things stand (2026-09-13, task-027)
+
+**Deployed (D026).** Marlin Cast runs as the Unraid container `marlin-cast`
+from `ghcr.io/marlin1111ai/marlin-cast:latest` (0.1.1 at deploy), app on host
+8091, viewer on host 8092, `/mnt/user/appdata/marlin-cast/data` → `/data`,
+`--cap-add SYS_ADMIN --shm-size=1g`, first-boot profile from
+`backups/chrome-profile-2providers-20260913-0746.tgz`. Owner-confirmed playing
+on Apple TV through Marlin IPTV Editor, sources `/playlist/youtube-tv` and
+`/playlist/philo`. D012 is fulfilled; **marlinpc is dev-only from here.** The
+repo is public (D027); the container icon comes from the raw GitHub URL
+(KNOWN-FIXES). `VERSION` is 0.1.2 (task-027: the status page lists all four
+URLs).
+
+**Open / parked:**
+- **GPU decode test on Unraid — open** (D014 note). The container runs on CPU
+  decode/encode today.
+- **Fios — parked** (recon-fios; notebook/reports/fios-splash.md).
+- **Stale-watch-id detection — parked** (D020 note).
+- **Channels DVR playback defect — parked** (D016).
+
+**Owner's cleanup on marlinpc:** `/tmp/mc-test/data` (the task-024 profile
+copy, a logged-in v10 profile) is owned by 99:100, so this account cannot
+delete it. When it is no longer wanted: `sudo rm -rf /tmp/mc-test`.
+
+The task records below are the history, oldest first.
+
+---
+
+## Task 001 — the starting point (2026-09-11)
 
 Nothing existed before 2026-09-11. Task 001 created the repo and the
 scaffold; no application code beyond a single manual-login launcher
@@ -1191,3 +1219,32 @@ this commit).
 local cache.
 
 See notebook/reports/task-026.md.
+
+---
+
+## Task 027 — deployed: D026, D027; status page lists four URLs (2026-09-13)
+
+**Recorded:** D026 (deployed on Unraid as `marlin-cast`, full template in the
+decision; D012 fulfilled, marlinpc dev-only), D027 (repo public; the
+no-credentials rule unchanged), a D014 note (GPU decode test on Unraid still
+open; CPU decode/encode today), a KNOWN-FIXES entry (Unraid fetches the icon
+at Apply time, so serve it from the public repo). "Where things stand" at the
+top of this file is rewritten to the deployed state.
+
+**Built:** the status page's URLs section lists `/playlist`,
+`/playlist/youtube-tv`, `/playlist/philo`, `/health` — each from the request
+Host, each with its copy button; the per-provider lines come from the
+provider registry (D021 slugs). No other page change. `VERSION` 0.1.1 →
+0.1.2.
+
+**Verified (V1):** the dev server does not start without Chrome (exits at
+CDP attach, `ECONNREFUSED 127.0.0.1:9333`), so V1 ran on a locally built image
+with an empty throwaway profile: `GET /` → 200 with the four URLs for
+`127.0.0.1:8091` and, sent as `Host: 192.168.1.250:8091`, for that host; all
+four answer 200. V2 (GHCR image for the commit) is in the report.
+
+**Hand-off:** live Chrome quit, dev server not running, no container
+running. `/tmp/mc-test` still present — owner's `sudo rm -rf /tmp/mc-test`.
+Image `marlin-cast:task027` added to the local cache.
+
+See notebook/reports/task-027.md.

@@ -175,6 +175,10 @@ development. No VAAPI driver is installed on marlinpc.
 
 **Dated 2026-09-11.**
 
+**Note (2026-09-13, owner-ruled):** the GPU decode test on Unraid is still
+open. The deployed container (D026) passes `/dev/dri` but runs on CPU
+decode/encode today.
+
 ---
 
 ## D015 — Station-ID guide matching
@@ -423,3 +427,40 @@ Owner-ruled 2026-09-13 (task-025), following marlin-iptv-editor's
    carries no version string of its own — the tag is the version.
 
 **Dated 2026-09-13.**
+
+---
+
+## D026 — Deployed
+
+Marlin Cast runs as the Unraid container **`marlin-cast`** from
+**`ghcr.io/marlin1111ai/marlin-cast:latest`** (0.1.1):
+
+- **Ports:** host **8091 → 8804** (app), host **8092 → 6080** (viewer) — D024
+  item 1 and 3.
+- **Volume:** `/mnt/user/appdata/marlin-cast/data` → `/data`.
+- **Device:** `/dev/dri`.
+- **Env:** `VNC_PASSWORD`, `PUID=99`, `PGID=100`.
+- **Extra Parameters:** `--cap-add SYS_ADMIN --shm-size=1g` (D024 item 8).
+- **WebUI:** `http://[IP]:[PORT:8804]/`.
+- **Icon:** `https://raw.githubusercontent.com/marlin1111ai/marlin-cast/main/assets/icon.png`
+  (D027; KNOWN-FIXES on why not the container's own `/icon.png`).
+
+The first-boot profile was copied from
+`backups/chrome-profile-2providers-20260913-0746.tgz`. Owner-confirmed
+playing on Apple TV through Marlin IPTV Editor, with sources
+`/playlist/youtube-tv` and `/playlist/philo` (D021).
+
+**D012 is fulfilled; marlinpc is dev-only from here.**
+
+**Dated 2026-09-13. Owner-ruled.**
+
+---
+
+## D027 — The repo is public
+
+Repo `marlin1111ai/marlin-cast` is public (owner, 2026-09-13), so raw
+GitHub URLs serve the icon to Unraid without a token. The no-credentials rule
+is unchanged: no credential, cookie, token, session id or account identifier
+goes into the repo, the image, or the notebook.
+
+**Dated 2026-09-13. Owner-ruled.**

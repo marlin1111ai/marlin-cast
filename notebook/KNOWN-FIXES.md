@@ -666,3 +666,15 @@ build `/tmp/marlin-cast/novnc-web` at start as symlinks to every entry of
 `?autoconnect=true&password=…` still works), then `--web=` that directory.
 `GET /` is a 200 with that page; `vnc.html`, `app/ui.js` etc. resolve through
 the symlinks unchanged.
+
+## Unraid fetches the container icon at Apply time — serve it from the public repo, not from the container
+
+Surfaced 2026-09-13 (the Unraid deploy, D026). Unraid downloads a template's
+Icon URL when the owner presses **Apply**, which is exactly when the
+container is being recreated and restarted. An icon served by the container
+itself (`http://[IP]:8091/icon.png`, task-026) is unreachable at that moment,
+so the download fails and Unraid shows no icon. Point the template's Icon URL
+at the public repo instead:
+`https://raw.githubusercontent.com/marlin1111ai/marlin-cast/main/assets/icon.png`
+(works because the repo is public, D027). The app's `/icon.png` route stays for
+any other consumer.

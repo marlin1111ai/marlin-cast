@@ -250,8 +250,9 @@ app.get("/icon.png", (_req, res) => {
 });
 
 // --- status page ------------------------------------------------------------
-// One plain page: the two URLs a client needs (built from the request's Host
-// header so they are copyable from whatever address the browser reached us on),
+// One plain page: the URLs a client needs — /playlist, one /playlist/<slug> per
+// provider (D021), /health — built from the request's Host header so they are
+// copyable from whatever address the browser reached us on;
 // the server's status, what is tuned, and the last reported quality. No
 // framework, no dependency, nothing editable — read-only, like /health.
 function esc(v: unknown): string {
@@ -298,6 +299,7 @@ app.get("/", (req, res) => {
 <p class="sub">Tunes one channel at a time in a logged-in Chrome and serves it as HLS.</p>
 <h2>URLs</h2>
 ${url(`${base}/playlist`)}
+${PROVIDERS.map((p) => url(`${base}/playlist/${p.slug}`)).join("\n")}
 ${url(`${base}/health`)}
 <h2>Status</h2>
 <table>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}</table>
