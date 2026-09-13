@@ -6,10 +6,12 @@ Chrome (still quit), `Dockerfile` and `docker/entrypoint.sh` were not touched.
 `/Apps/marlin-iptv-editor` was read only. No host installs. No credentials or
 tokens anywhere: the workflow authenticates with the run's own `GITHUB_TOKEN`.
 
-**Result: steps 1–3 done; V1 passes; V2 and V3 are the owner's step** (`gh`
-is not installed on marlinpc and the repository is private, so neither the
-Actions run nor a GHCR pull can be observed from here — see V2/V3 below for
-the probe that was run).
+**Result: steps 1–3 done; V1, V2 and V3 pass.** The run could not be watched
+(`gh` not installed, repo private) but its product was: the image appeared in
+GHCR two minutes after the push, labelled with this commit's SHA, under both
+`latest` and `sha-97d5d0d`, and was pulled and run here through the Docker
+daemon's existing GHCR login. **The package is private**; making it public
+so Unraid can pull without a token is the owner's step (V2).
 
 ---
 
@@ -135,41 +137,64 @@ execution is the push below.
 
 - `gh` is not installed on marlinpc (`which gh` empty). No host installs.
 - The repository is private: `GET api.github.com/repos/marlin1111ai/marlin-cast`
-  answers `404` unauthenticated, so the Actions API cannot be polled either.
-  The only credential here is the SSH deploy key used for `git push`, which
-  does not reach the API.
+  answers `404` unauthenticated, so the Actions API could not be polled.
 
-**The run result is the owner's step:** after this push, open
-github.com/marlin1111ai/marlin-cast/actions → "Publish image". Note that this
-push changes `.github/workflows/docker.yml` and `VERSION` alongside notebook
-files, so the `paths-ignore` rule does **not** skip it — the workflow runs on
-this very commit. Expected on success: `ghcr.io/marlin1111ai/marlin-cast:latest`
-and `:sha-<7-char SHA of this commit>`. The build fetches the pinned Chrome
-deb from dl.google.com on the runner (recon item A/H); if Google has pruned
-that URL the run fails at the Chrome layer with the Dockerfile's own message.
+**Observed indirectly through the registry instead.** Push `97d5d0d` left
+marlinpc at 11:33:08Z. At 11:41:20Z `docker manifest inspect
+ghcr.io/marlin1111ai/marlin-cast:latest` succeeded (this machine's Docker
+daemon holds a stored GHCR login from the marlin-dvr pulls — an `auths`
+entry for `ghcr.io` in `~/.docker/config.json`; that credential was not
+created, read or copied by this task). The published image:
 
-## V3 — pull
+| | |
+|---|---|
+| created | `2026-09-13T11:35:04Z` — 1 min 56 s after the push |
+| `org.opencontainers.image.revision` label | `97d5d0d8f4842539b13e303fc5f5c5b96d5d592f` — this commit |
+| `org.opencontainers.image.version` label | `latest` |
+| tags present | `latest`, **`sha-97d5d0d`** (both, as D025 says for a `main` push) |
+| index | OCI image index: `linux/amd64` + one `unknown/unknown` entry (buildx's provenance attestation, the build-push-action@v6 default) |
+| size | 587,984,655 bytes (the local task-024 build was 592,373,005) |
 
-Not possible from marlinpc until the package is public: a new GHCR package
-inherits the repository's private visibility, and there is no registry token
-here. The probe run after the push (see "Pushed") records what the registry
-answered. **Owner's steps, in order:** confirm the run succeeded; in GitHub →
-Packages → `marlin-cast` → Package settings → Change visibility → Public
-(the reference did the same for iptv-editor, its D022 addendum); then on any
-Docker host:
+So the workflow ran on this push (the `paths-ignore` rule did not skip it —
+`docker.yml` and `VERSION` changed), built on the runner including the
+dl.google.com Chrome deb fetch, and pushed both tags. The run's own log page
+is still the owner's to look at: github.com/marlin1111ai/marlin-cast/actions.
+
+**Package visibility is private.** `GET https://ghcr.io/token?scope=repository:marlin1111ai/marlin-cast:pull`
+without credentials answers `{"errors":[{"code":"UNAUTHORIZED","message":"authentication required"}]}`
+and an anonymous `GET /v2/marlin1111ai/marlin-cast/manifests/latest` is `403`.
+A public package issues an anonymous pull token. **Owner's step before Unraid
+can pull without a token:** GitHub → Packages → `marlin-cast` → Package
+settings → Change visibility → Public (the reference's D022 addendum did the
+same for iptv-editor). Not attempted here.
+
+## V3 — pull and run
+
+Pull was possible here through the daemon's stored login (see V2):
 
 ```
-docker pull ghcr.io/marlin1111ai/marlin-cast:latest
-docker run --rm --entrypoint google-chrome ghcr.io/marlin1111ai/marlin-cast:latest --version
+$ docker pull ghcr.io/marlin1111ai/marlin-cast:latest
+Digest: sha256:3debb5b09de73f09e3d977bb44fe5f47c739574aaf3723f0697a513ad7c85c94
+Status: Downloaded newer image for ghcr.io/marlin1111ai/marlin-cast:latest     (18 s)
+
+$ docker run --rm --entrypoint google-chrome ghcr.io/marlin1111ai/marlin-cast:latest --version
+Google Chrome 153.0.8010.36
 ```
 
 (`--entrypoint` is needed: the image's entrypoint is tini + the container
-entrypoint, which refuses to start without `VNC_PASSWORD`.) Expected:
-`Google Chrome 153.0.8010.36`.
+entrypoint, which refuses to start without `VNC_PASSWORD`.) Same image:
+`ffmpeg version 6.1.1-3ubuntu5`, `node v22.23.2`, and `/entrypoint.sh`
+carries the task-024 `sed -u` fix (4 occurrences). No profile, no ports, no
+volume were used. The pulled image is left in the local cache alongside
+`marlin-cast:task024`.
 
 ## Pushed
 
-See the section appended below after the push.
+- `97d5d0d` — `.github/workflows/docker.yml`, `VERSION`, D025, SESSION-STATE,
+  this report. `git fetch`: HEAD = `origin/main` = `97d5d0d8f484…` (MATCH).
+  This is the push that produced `latest` and `sha-97d5d0d` in GHCR.
+- A second, notebook-only commit adds the V2/V3 evidence above; by the
+  `paths-ignore` rule it publishes nothing (SHA in SESSION-STATE).
 
 ## Least sure of
 
@@ -179,6 +204,11 @@ See the section appended below after the push.
 2. **The `type=gha` cache** on a private repo's first run has nothing to
    restore; the first build is a full one (~5–10 min for the apt + Chrome
    layers).
-3. **`docker manifest inspect` on a not-yet-existing package** returns a
+3. **`docker manifest inspect` on a not-yet-existing version tag** returns a
    not-found variant the case statement matches; copied from the reference,
-   which has run it, but our package name is new.
+   which has run it, but no `v*` tag has been pushed here yet, so that path
+   is unexecuted.
+4. **The `unknown/unknown` entry in the image index** is read as buildx's
+   provenance attestation (the build-push-action@v6 default). Harmless for
+   `docker pull` on amd64 — the pull above proves that — but it is a second
+   manifest Unraid's UI may list.

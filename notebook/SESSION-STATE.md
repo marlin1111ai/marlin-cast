@@ -1142,13 +1142,22 @@ buildx cache, no build-args) and `VERSION` = `0.1.0`. Dockerfile and
 entrypoint untouched.
 
 **Verified:** V1 — both workflows parse; same trigger/permissions/login/
-VERSION/immutability-check/metadata/build-push structure; the full diff is
-in the report. V2/V3 — `gh` is not installed and the repo is private to
-unauthenticated API calls, so **the Actions run and the pull are the
-owner's step**: github.com/marlin1111ai/marlin-cast/actions after this
-push; then make the package public in GitHub's package settings; then
-`docker pull ghcr.io/marlin1111ai/marlin-cast:latest`. A `docker manifest
-inspect` probe from marlinpc after the push is recorded in the report.
+VERSION/immutability-check/metadata/build-push structure; full diff in the
+report. V2 — the run could not be watched (`gh` not installed, repo
+private), but **the image appeared in GHCR at 11:35:04Z, 1 min 56 s after
+the push**, labelled with the commit SHA, under both `latest` and
+`sha-97d5d0d`. V3 — pulled here through the Docker daemon's existing GHCR
+login (18 s) and `google-chrome --version` in it reads `153.0.8010.36`;
+ffmpeg `6.1.1-3ubuntu5`, node `v22.23.2`.
+
+**Owner's step:** the package is **private** (anonymous pull token refused).
+GitHub → Packages → `marlin-cast` → settings → visibility Public, so Unraid
+pulls without a token. Also check the run's log page once at
+github.com/marlin1111ai/marlin-cast/actions.
+
+**Pushed:** `97d5d0d` (workflow, VERSION, D025, report) — the commit that
+published the image — then a notebook-only follow-up with the V2/V3 evidence,
+which `paths-ignore` correctly does not build.
 
 **Hand-off:** unchanged from task-024 — live Chrome quit, dev server not
 running, `/tmp/mc-test/data` still present (owned by 99:100), image
