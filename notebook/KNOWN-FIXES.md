@@ -651,3 +651,18 @@ with `sed`. A container's stdout is a pipe, so `sed` block-buffers: during a
 (`[tune]`, `[capture]`, `[stop]`) arrived together at `docker stop`. Fixed
 with `sed -u` (unbuffered) on every prefix pipe. If a container's app log
 looks empty while `/health` says `streaming`, this is why.
+
+## websockify's `--web` root lists the directory at `/` — give it an index.html that forwards to vnc.html
+
+Surfaced 2026-09-13 (task-026). The Ubuntu `novnc` package ships
+`/usr/share/novnc/vnc.html` but no `index.html`, and websockify's web
+server is Python's `SimpleHTTPRequestHandler`, so `http://host:8092/`
+showed a bare directory listing and the owner had to know to type
+`/vnc.html`. websockify has no redirect or index option, and the package
+directory is root-owned and should stay unmodified. Fix in the entrypoint:
+build `/tmp/marlin-cast/novnc-web` at start as symlinks to every entry of
+`/usr/share/novnc` plus a 295-byte `index.html` that forwards to `vnc.html`
+(meta refresh, and JS that carries the query string and hash so
+`?autoconnect=true&password=…` still works), then `--web=` that directory.
+`GET /` is a 200 with that page; `vnc.html`, `app/ui.js` etc. resolve through
+the symlinks unchanged.

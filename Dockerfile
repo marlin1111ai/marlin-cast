@@ -67,6 +67,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY src ./src
 COPY extension ./extension
+COPY assets ./assets
 COPY scripts/start-chrome.sh ./scripts/start-chrome.sh
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod 0755 /entrypoint.sh ./scripts/start-chrome.sh

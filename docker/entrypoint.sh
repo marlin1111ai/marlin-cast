@@ -196,7 +196,22 @@ run_as x11vnc -storepasswd "$VNC_PASSWORD" "$SCRATCH/vncpasswd" > /dev/null 2>&1
 run_as_bg x11vnc -display "$DISPLAY" -rfbauth "$SCRATCH/vncpasswd" -rfbport "$VNC_PORT" -localhost \
   -forever -shared -xkb -noxrecord -noxfixes -quiet > "$SCRATCH/x11vnc.log" 2>&1 &
 X11VNC_PID=$!
-run_as_bg websockify --web=/usr/share/novnc "$NOVNC_PORT" "127.0.0.1:${VNC_PORT}" > "$SCRATCH/novnc.log" 2>&1 &
+# The web root is a scratch directory of symlinks into /usr/share/novnc plus an
+# index.html that forwards to vnc.html (query string kept), so GET / on the
+# published port opens the viewer instead of websockify's directory listing
+# (task-026). Nothing in the package is modified.
+NOVNC_WEB="$SCRATCH/novnc-web"
+rm -rf "$NOVNC_WEB" && mkdir -p "$NOVNC_WEB"
+for f in /usr/share/novnc/*; do ln -s "$f" "$NOVNC_WEB/$(basename "$f")"; done
+cat > "$NOVNC_WEB/index.html" <<'HTML'
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Marlin Cast viewer</title>
+<meta http-equiv="refresh" content="0; url=vnc.html">
+<script>location.replace("vnc.html" + location.search + location.hash);</script>
+</head><body><a href="vnc.html">Open the viewer</a></body></html>
+HTML
+chown -R "$PUID:$PGID" "$NOVNC_WEB"
+run_as_bg websockify --web="$NOVNC_WEB" "$NOVNC_PORT" "127.0.0.1:${VNC_PORT}" > "$SCRATCH/novnc.log" 2>&1 &
 NOVNC_PID=$!
 wait_for 15 "novnc" curl -sf -o /dev/null "http://127.0.0.1:${NOVNC_PORT}/vnc.html" \
   || { tail -n 20 "$SCRATCH/novnc.log" "$SCRATCH/x11vnc.log" >&2; shutdown 1; }

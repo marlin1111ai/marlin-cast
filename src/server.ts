@@ -17,7 +17,7 @@
 import express from "express";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadChannels } from "./channels.js";
+import { loadChannels, ROOT } from "./channels.js";
 import { Pipeline, IDLE_MS } from "./capture.js";
 import { PROVIDERS, type Channel, type Provider } from "./providers/index.js";
 
@@ -237,6 +237,16 @@ app.get("/stream/:key/:file", (req, res) => {
   res.type(file.endsWith(".ts") ? "video/mp2t" : "video/mp4");
   res.setHeader("cache-control", "no-cache");
   res.sendFile(path, (err) => { if (err && !res.headersSent) res.status(404).end(); });
+});
+
+// --- icon -------------------------------------------------------------------
+// The owner-supplied 512x512 app icon (task-026), for Unraid's template and any
+// consumer that wants one. Static and versioned with the image, so a day of
+// caching is safe; sendFile sets Content-Type from the extension.
+const ICON = join(ROOT, "assets", "icon.png");
+app.get("/icon.png", (_req, res) => {
+  res.setHeader("cache-control", "public, max-age=86400");
+  res.sendFile(ICON, (err) => { if (err && !res.headersSent) res.status(404).end(); });
 });
 
 // --- status page ------------------------------------------------------------

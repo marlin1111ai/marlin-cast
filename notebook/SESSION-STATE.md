@@ -1164,3 +1164,30 @@ running, `/tmp/mc-test/data` still present (owned by 99:100), image
 `marlin-cast:task024` in the local cache, no container.
 
 See notebook/reports/task-025.md.
+
+---
+
+## Task 026 — app icon at /icon.png; viewer opens at / (2026-09-13)
+
+**Built:** the owner's 512×512 icon at `assets/icon.png` (sha256
+`3387b83f…`), copied into the image and served by the app at `GET
+/icon.png` (`image/png`, `cache-control: public, max-age=86400`); the
+noVNC web root is now a scratch directory of symlinks plus an `index.html`
+that forwards to `vnc.html`, so `http://host:8092/` opens the viewer
+(KNOWN-FIXES). `VERSION` 0.1.0 → 0.1.1. No other viewer change; extension,
+data, backups untouched.
+
+**Verified (V1):** image built; run on an empty throwaway profile with a
+zero-channel cache (so the app starts without a login — both providers
+reported SIGNED OUT, as expected, and nothing was tuned): `/icon.png` →
+200 `image/png`, 239,699 bytes, byte-identical to the source; `8092/` →
+200, the forwarding page, `vnc.html` and `app/ui.js` still 200;
+`docker stop` 1.36 s, nothing left. V2 is in the report (GHCR image for
+this commit).
+
+**Hand-off:** unchanged — live Chrome quit, dev server not running,
+`/tmp/mc-test/data` still present, no container running. Images
+`marlin-cast:task024`, `:task026` and the pulled `ghcr.io/…:latest` in the
+local cache.
+
+See notebook/reports/task-026.md.
