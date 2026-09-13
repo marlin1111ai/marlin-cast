@@ -454,6 +454,11 @@ playing on Apple TV through Marlin IPTV Editor, with sources
 
 **Dated 2026-09-13. Owner-ruled.**
 
+**Note (2026-09-13, owner-ruled):** Later the same day the owner replaced the
+two editor sources with the single /playlist source; the editor separates
+providers by group-title. /playlist/youtube-tv and /playlist/philo remain
+available (D021).
+
 ---
 
 ## D027 — The repo is public

@@ -22,7 +22,7 @@ URLs).
 **Open / parked:**
 - **GPU decode test on Unraid — open** (D014 note). The container runs on CPU
   decode/encode today.
-- **Fios — parked** (recon-fios; notebook/reports/fios-splash.md).
+- **Fios — parked** (no recon report; notebook/reports/fios-splash.md).
 - **Stale-watch-id detection — parked** (D020 note).
 - **Channels DVR playback defect — parked** (D016).
 
