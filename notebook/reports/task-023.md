@@ -175,9 +175,26 @@ summary. The commit holds:
 Outside the repo: the V1 baselines under `/tmp/*-pre-task023.*`, and the
 scratchpad pull helper and logs.
 
-**State at hand-off:** the dev server is running on 0.0.0.0:8804 (background
-task) on the new cache (368 channels), idle. Both owner tabs are parked on
-their guides.
+**State at hand-off (corrected after the push):** the paragraph first
+committed here said the dev server was running. It was true when written, but
+at ~23:13 EDT the harness stopped the server's background task "because the
+system is running low on memory". Snapshot at 23:13:28 EDT:
+
+```
+127.0.0.1:9333   listening; Chrome pid 211475 alive (up 2:57), owner tabs parked on
+                 https://tv.youtube.com/live and https://www.philo.com/player/guide
+0.0.0.0:8804     NOT listening; no src/server.ts process; ffmpeg processes 0
+memory           55,266 MB available after the kill
+```
+
+No tune was running, so nothing was lost. The cache on disk is the V2 cache
+(368 channels). The server was not relaunched from the builder session: a
+server started there is exactly what the memory guard kills (task-021 saw the
+same). The owner starts it from a terminal on the marlinpc desktop:
+
+```
+cd /Apps/marlin-cast && npm run serve
+```
 
 ## What I am least sure of
 

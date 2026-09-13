@@ -1058,6 +1058,10 @@ See notebook/reports/task-022.md.
 - **V4:** ESPN row 17 by key, 60 s, hd720 (that channel's ceiling), 0 error
   lines, clean idle stop.
 
-The dev server is running on the new cache (368 channels), idle.
+**Hand-off correction:** the dev server was started from a builder background
+task, and the harness stopped it after the push because the system was low on
+memory (~23:13 EDT). Chrome (pid 211475) and both owner tabs are unaffected.
+Nothing is listening on 8804. The owner starts the server from a desktop
+terminal: `cd /Apps/marlin-cast && npm run serve`.
 
 See notebook/reports/task-023.md.
