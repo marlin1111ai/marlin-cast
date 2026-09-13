@@ -1,0 +1,103 @@
+name: Publish image
+
+# Task 025 / D025. Follows /Apps/marlin-iptv-editor's publish-image.yml
+# convention (GHCR, GITHUB_TOKEN, VERSION file, immutable version tag),
+# plus a v* tag trigger and a buildx cache. The Dockerfile takes no
+# build-args (D024); nothing is passed.
+#
+#   push to main  -> ghcr.io/marlin1111ai/marlin-cast:latest, :sha-<short>
+#   push tag v*   -> ghcr.io/marlin1111ai/marlin-cast:<version>  (e.g. v0.1.0 -> 0.1.0)
+#                    the tag must equal VERSION, and must not already exist in GHCR
+on:
+  push:
+    branches: [main]
+    # Notebook- and markdown-only pushes do not publish an image (reference
+    # convention). A push is skipped only if EVERY changed file matches.
+    paths-ignore:
+      - "notebook/**"
+      - "**/*.md"
+      - "*.md"
+      - ".gitignore"
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/marlin1111ai/marlin-cast
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read app version
+        id: appver
+        run: echo "value=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+
+      # A v* tag publishes the version tag. The git tag and VERSION must
+      # agree, and the version tag is immutable: this runs BEFORE the single
+      # build-and-push step, so when it fails nothing has been pushed.
+      #   inspect succeeds        -> tag exists      -> FAIL the run
+      #   inspect says not found  -> tag absent      -> proceed
+      #   inspect fails otherwise -> can't tell      -> FAIL the run
+      - name: Check the version tag (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GIT_TAG: ${{ github.ref_name }}
+          APP_VERSION: ${{ steps.appver.outputs.value }}
+        run: |
+          if [ "${GIT_TAG#v}" != "$APP_VERSION" ]; then
+            echo "::error title=Tag does not match VERSION::git tag $GIT_TAG but VERSION is $APP_VERSION. Bump VERSION first, then tag. Nothing was pushed."
+            exit 1
+          fi
+          IMAGE_TAG="$IMAGE:$APP_VERSION"
+          if out=$(docker manifest inspect "$IMAGE_TAG" 2>&1); then
+            echo "::error title=Version tag already published::$IMAGE_TAG already exists in GHCR. Version tags are immutable (D025). Bump VERSION and tag again. Nothing was pushed."
+            exit 1
+          fi
+          case "$out" in
+            *"no such manifest"*|*"manifest unknown"*|*"MANIFEST_UNKNOWN"*|*"not found"*)
+              echo "$IMAGE_TAG is not in GHCR yet - proceeding to build and push."
+              ;;
+            *)
+              echo "::error title=Could not check version tag::docker manifest inspect $IMAGE_TAG failed for a reason other than not-found; refusing to push blind. Output: $out"
+              exit 1
+              ;;
+          esac
+
+      - name: Compute image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-,format=short,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=${{ steps.appver.outputs.value }},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

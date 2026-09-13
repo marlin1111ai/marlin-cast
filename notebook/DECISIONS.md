@@ -393,3 +393,33 @@ questions 1–4, 6, 8–10. Built in task-024 (`Dockerfile`, `docker/entrypoint.
 stands), hardware encoding.
 
 **Dated 2026-09-13.**
+
+---
+
+## D025 — Image publishing: GHCR, tag scheme, build trigger
+
+Owner-ruled 2026-09-13 (task-025), following marlin-iptv-editor's
+`publish-image.yml` convention (recon-docker item H).
+
+1. **Image name:** `ghcr.io/marlin1111ai/marlin-cast`, `linux/amd64` only.
+2. **Trigger:** `.github/workflows/docker.yml` runs on a push to `main`
+   (skipped when every changed file is under `notebook/**`, is `*.md`, or is
+   `.gitignore`), on a push of a git tag `v*`, and on `workflow_dispatch`.
+   Authentication is the run's own `GITHUB_TOKEN` with `packages: write`;
+   no PAT, no secret in the repo. buildx with a GitHub Actions layer cache.
+3. **Tags:** a push to `main` publishes **`latest`** and **`sha-<short>`**.
+   A tag `vX.Y.Z` publishes **`X.Y.Z`** only, and only if `X.Y.Z` equals the
+   repo-root **`VERSION`** file (starts at `0.1.0`) and does not already exist
+   in GHCR — version tags are immutable; a mismatch or an existing tag fails
+   the run before anything is pushed. The reference's `v<run_number>` tag is
+   not used, so `v*` means one thing here.
+4. **Release procedure:** bump `VERSION`, commit, push `main` (publishes
+   `latest`), then `git tag vX.Y.Z && git push origin vX.Y.Z` (publishes
+   `X.Y.Z`). Unraid runs `latest` or a pinned `X.Y.Z`.
+5. **Package visibility** is a GitHub-side setting the owner makes once
+   (reference D022 addendum: package PUBLIC, repo private) so Unraid pulls
+   without a token. Until then the package is private and pulls need a login.
+6. The Dockerfile takes no build-args (D024); nothing is passed. The image
+   carries no version string of its own — the tag is the version.
+
+**Dated 2026-09-13.**

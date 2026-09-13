@@ -1125,3 +1125,33 @@ account cannot delete it). Image `marlin-cast:task024` is in the local
 Docker cache; no container exists. Backup verified untouched.
 
 See notebook/reports/task-024.md.
+
+---
+
+## Task 025 — GHCR publishing workflow and D025 (2026-09-13)
+
+**D025 recorded:** image `ghcr.io/marlin1111ai/marlin-cast`; a push to
+`main` publishes `latest` + `sha-<short>`; a git tag `vX.Y.Z` publishes
+`X.Y.Z` (must equal `VERSION`, must not already exist — immutable);
+`GITHUB_TOKEN`, buildx GHA cache, `linux/amd64`; package visibility is the
+owner's one-time GitHub setting.
+
+**Built:** `.github/workflows/docker.yml` (the iptv-editor
+`publish-image.yml` skeleton plus a `v*` tag trigger, tag-gated tag list,
+buildx cache, no build-args) and `VERSION` = `0.1.0`. Dockerfile and
+entrypoint untouched.
+
+**Verified:** V1 — both workflows parse; same trigger/permissions/login/
+VERSION/immutability-check/metadata/build-push structure; the full diff is
+in the report. V2/V3 — `gh` is not installed and the repo is private to
+unauthenticated API calls, so **the Actions run and the pull are the
+owner's step**: github.com/marlin1111ai/marlin-cast/actions after this
+push; then make the package public in GitHub's package settings; then
+`docker pull ghcr.io/marlin1111ai/marlin-cast:latest`. A `docker manifest
+inspect` probe from marlinpc after the push is recorded in the report.
+
+**Hand-off:** unchanged from task-024 — live Chrome quit, dev server not
+running, `/tmp/mc-test/data` still present (owned by 99:100), image
+`marlin-cast:task024` in the local cache, no container.
+
+See notebook/reports/task-025.md.
