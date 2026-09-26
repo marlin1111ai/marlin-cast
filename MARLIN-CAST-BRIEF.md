@@ -32,11 +32,12 @@ D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) 
 **D025** Image `ghcr.io/marlin1111ai/marlin-cast`, built by GitHub Actions on push to main (`latest`, `sha-<short>`) and on tag `vX.Y.Z` (must equal VERSION).
 **D026** Deployed — the Unraid container fields, the profile source, and the acceptance result are recorded there.
 **D027** The repo is public; the no-credentials rule is unchanged.
+**D028** Per-container capture size via the existing env knobs; YouTube TV's quality target follows `MC_HEIGHT` (1080 → hd1080, 720 → hd720). Unset = unchanged; the Unraid container sets none. Amends D024 item 7 and the hd1080 pin.
 
 ## HARD-WON FACTS (all measured)
 
 YouTube TV:
-- Plays under CDP attach at 1920×1080, Widevine L3. `setPlaybackQualityRange("hd1080","hd1080")` is required; window size is not a knob; some channels (ESPN) top out at hd720.
+- Plays under CDP attach at 1920×1080, Widevine L3. `setPlaybackQualityRange("hd1080","hd1080")` is required (hd720 when `MC_HEIGHT=720`, D028); window size is not a knob; some channels (ESPN) top out at hd720.
 - YouTube TV only: use `#movie_player video.html5-main-video` — the page has ~40 video elements. Parking on the guide leaves a paused 0×0 `#movie_player`.
 - The guide is one `/youtubei/v1/browse` response (151 rows on 2026-09-12); per row `epgRowRenderer.stationId` (a `UC…` id) is the durable channel key, distinct on every streaming row. The tile image is the current programme's thumbnail, not a logo. Names repeat (several "ESPN"). Six rows link to a brand/browse page and carry no stream.
 - Watch ids: 142 regular channels held their key and watch id across a 20-minute re-enumeration and overnight; only event feeds rotated. Nothing has been observed rotating on a regular channel.
@@ -57,6 +58,7 @@ Container / Docker:
 - sed block-buffers when stdout is a pipe, which hid app lines until stop; the entrypoint uses `sed -u`.
 - Unraid downloads the container icon at Apply time; an icon served by the container itself fails while it restarts — the icon is served from the public repo.
 - `docker stop` completes in ~1.2 s with nothing left behind.
+- Size/rate env knobs and defaults: `MC_WIDTH` 1920, `MC_HEIGHT` 1080, `MC_FPS` 30 (`src/capture.ts`), `MC_XVFB_SCREEN` `1920x1080x24` (`docker/entrypoint.sh`).
 
 Carried from earlier sessions:
 - `--load-extension` is inert on Chrome 153; the extension loads over CDP via `Extensions.loadUnpacked`.
@@ -70,6 +72,7 @@ Carried from earlier sessions:
 ## ENVIRONMENT
 
 - **Production:** Unraid 192.168.1.250, container `marlin-cast` (fields in D026). Status page `http://192.168.1.250:8091/` lists all four URLs. Viewer `http://192.168.1.250:8092/` (password). Profile volume `/mnt/user/appdata/marlin-cast/data`. Re-login path: the viewer.
+- **Second install — the owner's father's QNAP TVS-EC1080** (Xeon E3-1245 v3, 4C/8T, 32 GB, QTS 5.2.10), at 192.168.1.30 on *that house's* network (on this network that address is a different device — never connect). Container Station compose application: `ghcr.io/marlin1111ai/marlin-cast:latest`; ports 8091→8804, 8092→6080; volume `/share/Container/marlin-cast/data` → `/data`; env `VNC_PASSWORD`, `PUID` 99, `PGID` 100; `cap_add: SYS_ADMIN`; `shm_size: 1gb`; no `/dev/dri`. The owner signed in to both providers through the viewer. First enumeration 2026-09-26 19:04 UTC: 377 channels (YouTube TV 143, Philo 234). Channels DVR there played a Marlin Cast stream on Apple TV in slow motion at 97% CPU (1080p YouTube TV, WBAL 11: chrome 76.1% combined, largest single 58.67%; ffmpeg 17.72%; channels-dvr 0.7%) — D028.
 - **Dev:** marlinpc (Pop!_OS 24.04), repo `/Apps/marlin-cast`, remote `git@github.com:marlin1111ai/marlin-cast.git` over SSH (never HTTPS). main fully pushed (verify with git fetch). Docker 29.1.3 present; the owner's user is in the docker group.
 - Dev Chrome: owner-launched via `scripts/start-chrome.sh` (opens both provider tabs), loopback debug port 9333. Dev server `npm run serve` on 0.0.0.0:8804; it exits with ECONNREFUSED if Chrome is not up. `npm run channels` re-enumerates both providers.
 - Read-only reference tree: `/Apps/marlin-iptv-editor`.
@@ -100,3 +103,4 @@ Hardware (VAAPI) encoding · D014 GPU decode test on Unraid · concurrency beyon
 - Whether the Philo overlay sweep holds up over many tunes (1–3 sweeps in testing).
 - A/V drift on long captures: measured between −139.7 ms and +13.7 ms; nothing has run longer than 5.7 minutes under measurement.
 - Before/after playlist checks must ignore `tvg-logo` (programme thumbnails drift between enumerations).
+- Whether Container Station on the QNAP honours `shm_size` (`df -h /dev/shm` in the container) is not yet checked.

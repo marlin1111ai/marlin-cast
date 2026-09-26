@@ -288,13 +288,20 @@ export const youtubeTv: Provider = {
     //     offers at or below hd1080. The level reached is reported, never
     //     silently accepted: a tune below hd1080 warns in the log and shows in
     //     /health.
+    // The top of the ladder follows the capture height (D028): 1080 (the
+    // default) → hd1080 exactly as before; 720 → hd720, so a 720p capture
+    // does not decode 1080p only to scale it down. is1080 and the warning
+    // compare against that top level.
+    const levels: [string, number][] = [["hd1080", 1080], ["hd720", 720], ["large", 480], ["medium", 360], ["small", 240], ["tiny", 144]];
+    const fit = levels.findIndex(([, h]) => h <= ctx.captureH);
+    const ladder = levels.slice(fit < 0 ? levels.length - 1 : fit).map(([q]) => q);
     const pinned = await ctx.poll("quality pin", `(() => {
       const p = document.querySelector("#movie_player");
       const v = document.querySelector("#movie_player video.html5-main-video");
       if (!p || !v) return { ok: false, why: "player went away" };
       const avail = (p.getAvailableQualityLevels ? p.getAvailableQualityLevels() : []) || [];
       if (!avail.length) return { ok: false, why: "no quality levels advertised yet" };
-      const ladder = ["hd1080", "hd720", "large", "medium", "small", "tiny"];
+      const ladder = ${JSON.stringify(ladder)};
       const target = ladder.find(function (q) { return avail.indexOf(q) !== -1; });
       if (!target) return { ok: false, why: "no usable quality level", available: avail };
       try { p.setPlaybackQualityRange(target, target); } catch (e) {}
@@ -305,7 +312,7 @@ export const youtubeTv: Provider = {
         ok: q === target && v.videoWidth > 0 && v.videoHeight >= minH,
         target: target,
         quality: q,
-        is1080: target === "hd1080",
+        is1080: target === ${JSON.stringify(ladder[0])},
         video: v.videoWidth + "x" + v.videoHeight,
         box: Math.round(r.width) + "x" + Math.round(r.height),
         viewport: innerWidth + "x" + innerHeight,
@@ -313,7 +320,7 @@ export const youtubeTv: Provider = {
       };
     })()`, 20000);
     if (!pinned.is1080) {
-      console.warn(`[tune] ${channel.name} WARNING: channel offers no hd1080 — settled at ${pinned.quality} (available: ${JSON.stringify(pinned.available)})`);
+      console.warn(`[tune] ${channel.name} WARNING: channel offers no ${ladder[0]} — settled at ${pinned.quality} (available: ${JSON.stringify(pinned.available)})`);
     }
     return { quality: String(pinned.quality ?? "unknown"), is1080: !!pinned.is1080, detail: pinned };
   },

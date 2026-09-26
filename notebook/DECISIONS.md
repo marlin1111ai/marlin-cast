@@ -469,3 +469,67 @@ is unchanged: no credential, cookie, token, session id or account identifier
 goes into the repo, the image, or the notebook.
 
 **Dated 2026-09-13. Owner-ruled.**
+
+---
+
+## D028 — Per-container capture size
+
+Per-container capture size. Owner-ruled (option a): use the existing env
+knobs, add only the YouTube TV quality follow. `MC_WIDTH`/`MC_HEIGHT`
+(`src/capture.ts`, task 008) set capture and output size, default 1920×1080;
+`MC_XVFB_SCREEN` (`docker/entrypoint.sh`, task 024) sets the display, default
+`1920x1080x24`; YouTube TV's quality target now follows the capture height
+(1080 → hd1080, 720 → hd720). A container that sets none of them is
+unchanged; the Unraid container sets none. Amends D024 item 7 and the hd1080
+pin.
+
+Reason: on the owner's father's QNAP TVS-EC1080 (Intel Xeon E3-1245 v3, 4
+cores/8 threads, 32 GB, QTS 5.2.10) CPU read 97% during 1080p playback and
+the picture played in slow motion on Apple TV through Channels DVR. QNAP
+Resource Monitor during 1080p YouTube TV playback (WBAL 11): chrome processes
+76.1% combined (largest single 58.67%), Marlin Cast's ffmpeg 17.72%,
+channels-dvr 0.7%, total 97.4% (owner-observed 2026-09-26).
+
+**Mechanics as built.** `src/providers/youtubetv.ts` poll 4: the ladder
+`hd1080, hd720, large, medium, small, tiny` now starts at the highest level
+whose height is ≤ `MC_HEIGHT` (1080 or more → hd1080, the ladder unchanged;
+720–1079 → hd720; below 144 → tiny). The target is still the best level the
+channel advertises from that start, so ESPN-style channels still settle
+lower and warn. `is1080` and the warning compare against the start of the
+ladder: the warning reads `channel offers no <start>`, word-for-word the old
+text at 1080. `MC_WIDTH`, `MC_HEIGHT`, `MC_FPS`, `MC_XVFB_SCREEN`, the 6000k
+bitrate, Philo and the entrypoint are unchanged.
+
+**Verified 2026-09-26 on marlinpc** (image built locally from this change; the
+2026-09-13 two-provider backup as `/data`, both providers signed in; first
+boot enumerated 375 = YouTube TV 141 + Philo 234). One tune at a time, 60 s
+of playback each. CPU is % of one core on marlinpc's i9-14900KF (32 threads),
+so it measures the ratio between runs, not the QNAP's load. "HLS/wall" is
+media added to the playlist over the 60 s window divided by wall clock.
+
+| run | channel | output | quality | warning | container CPU (docker stats) | chrome | ffmpeg | HLS/wall |
+|---|---|---|---|---|---|---|---|---|
+| A (no env) | WBAL 11 | 1920×1080 | hd1080 | none | 373% | 235% | 136% | 0.992 |
+| B `MC_WIDTH=1280 MC_HEIGHT=720` | WBAL 11 | 1280×720 | hd720 | none | 280% | 190% | 78% | 1.005 |
+| B2 = B + `MC_XVFB_SCREEN=1280x720x24` | WBAL 11 | 1280×720 | hd720 | none | 270% | 183% | 76% | 1.006 |
+| A | Philo AMC | 1920×1080 | 720p | D017 upscale | 253% | 132% | 116% | 1.010 |
+| B | Philo AMC | 1280×720 | 720p | D017 upscale¹ | 189% | 122% | 65% | 0.991 |
+| B2 | Philo AMC (2nd tune)² | 1280×720 | 720p | D017 upscale¹ | 185% | 123% | 65% | 1.007 |
+
+WBAL 11 advertised hd1080 in every run; in B and B2 the tune targeted hd720
+anyway (`target: hd720`, `is1080: true`, `box == viewport == 1280x720`).
+Status page "last quality" matched `/health` in every run. YouTube TV at 720p:
+container −25%, chrome −19%, ffmpeg −43% against A. B2 over B: ~4% less
+container CPU on WBAL, within the run-to-run spread; B2 saves little.
+
+¹ Philo's warning text is unchanged (Philo out of scope) and in 720p mode
+reads "capturing 1280x720 upscaled into the 1280x720 frame" — nothing is
+upscaled. ² Both B2 Philo tunes landed in an ad break; each logged "the
+control overlay did NOT clear after 3 pointer sweeps" and took 14–15 s to
+stream (A and B: 4–6 s). The frames show Philo's "Advertisements · LIVE /
+Fast Forward Restricted" label for the ad's length and a clean picture once
+the programme resumed. The first B2 tune's window was entirely ad (178%
+container CPU); the table uses the second, mostly-programme window. The
+smaller display is not ruled out as a factor.
+
+**Dated 2026-09-26. Owner-ruled.**
