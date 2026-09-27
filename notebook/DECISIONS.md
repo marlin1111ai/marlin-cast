@@ -637,3 +637,39 @@ recorded in a second place):
   recon-stable-ids.md:52, MARLIN-CAST-BRIEF.md (HARD-WON FACTS, "died twice").
 
 **Dated 2026-09-26. Owner-ruled.**
+
+---
+
+## D031 — Remaining report items closed
+
+Remaining report items closed. Not pursued; reopen if seen.
+
+Items closed (reports are in `notebook/reports/`):
+- task-005-basic-scheme.md:11 — the report points at a "step 10" section it
+  does not contain.
+- task-005-basic-scheme.md:58 — the `scripts/start-chrome.sh` comment rewrite,
+  flagged for the owner's acknowledgement.
+- recon-stable-ids.md:210 — the 18-digit correction to Philo's `channelId`,
+  not applied to task-021 or recon-philo.
+- task-001-kickoff.md:388 — `typescript` pinned to `^5.9.3`, a judgment call
+  for the owner.
+- task-001-kickoff.md:395 — `.gitignore` anchored as `/data/`, a deliberate
+  deviation for the owner.
+- task-001b-profile-persistence.md:251 — BRIEF-v1, DECISIONS and KNOWN-FIXES
+  added outside 001b's scope, awaiting the owner's OK.
+- task-021.md:607 — enumeration uses `numSparseGroups: 0`; not checked that
+  it always agrees with the guide's own query.
+- recon-philo.md:279 — whether other Philo channels carry 1080p.
+- recon-philo.md:282 — the quality menu's mapping to rungs.
+- recon-philo.md:295 — the requested Widevine robustness string.
+- recon-philo.md:303 — `chrome://media-internals` not read for Philo.
+- recon-philo.md:321 — occlusion by another window not staged on Philo.
+- recon-philo.md:337 — teardown via the in-player SPA route not exercised.
+- recon-philo.md:359 — guide hover previews not tested.
+- recon-philo.md:446 — the robustness level, evidence by absence.
+- recon-philo.md:453 — the autoplay finding's generality beyond a created tab.
+- recon-philo.md:457 — occlusion (least sure of).
+- task-025.md:56 — `workflow_dispatch` from a ref other than `main` enables
+  no tag and fails at the build step.
+
+**Dated 2026-09-26. Owner-ruled.**

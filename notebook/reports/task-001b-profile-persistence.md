@@ -284,3 +284,7 @@ dependency, no `@types/node`. Nothing bound a port.
    this flag will need revisiting for that environment. It is correct
    for marlinpc today; it is not automatically correct for the
    container.
+
+---
+
+**Note (2026-09-26):** closed by D031 — line 251 (notebook files added outside 001b's scope).

@@ -6,9 +6,9 @@ session.
 
 ---
 
-## Where things stand (2026-09-26, handoff after D030)
+## Where things stand (2026-09-26, handoff after D031)
 
-**Pushed.** main is pushed through the commit that records D030 (2026-09-26,
+**Pushed.** main is pushed through the commit that records D031 (2026-09-26,
 verified with `git fetch` + SHA comparison). The last code commit is c876a3a
 (task-028); it is the image `sha-c876a3a`, which GHCR `latest` also points to
 (same digest). Notebook- and brief-only commits build no image (D025).
@@ -40,7 +40,10 @@ detection (D020 note); the Channels DVR playback defect (D016).
 
 **Closed by D030 (2026-09-26), not pursued:** every item that task-029 left
 for the owner's call (listed with file:line in D030); `notebook/OPEN-ITEMS.md`
-is settled. **No open items are left.**
+is settled.
+
+**Closed by D031 (2026-09-26), not pursued:** the remaining report items
+(listed with file:line in D031). **No open items are left.**
 
 **marlinpc:** `/tmp/mc-test` is gone (confirmed 2026-09-26). Local images
 `marlin-cast:task024`, `:task026`, `:task027` and a 2026-09-13 pull of

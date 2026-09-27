@@ -216,3 +216,5 @@ volume were used. The pulled image is left in the local cache alongside
 ---
 
 **Note (2026-09-26):** closed by D030 — lines 201, 207 (the `v*` release path), 211 (GHCR attestation entry in Unraid's UI).
+
+**Note (2026-09-26):** closed by D031 — line 56 (`workflow_dispatch` from a ref other than `main`).

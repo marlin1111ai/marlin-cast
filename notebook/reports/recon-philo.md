@@ -490,3 +490,5 @@ bodies, raw screenshots) stayed outside the repo.
 **Note (2026-09-26):** closed by D029 — line 450 (re-resolving a broadcast at a programme boundary).
 
 **Note (2026-09-26):** closed by D030 — line 166 (CSS-module class names).
+
+**Note (2026-09-26):** closed by D031 — lines 279, 282, 295, 303, 321, 337, 359, 446, 453, 457 (Philo details not observed).

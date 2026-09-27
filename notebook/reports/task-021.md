@@ -696,3 +696,5 @@ builder's reach and survives this class of event.
 **Note (2026-09-26):** closed by D029 — lines 22, 236, 241, 550, 579 (the Philo overlay sweep over many tunes); lines 361, 542 (a running Philo capture at a programme boundary).
 
 **Note (2026-09-26):** closed by D030 — lines 64, 565 (unused Playwright dependency), 551 (persisted-query hash), 557 (`tileGroupId` staleness), 562 (logos in clients), 568 (no-live-broadcast path), 592 (live-edge seek).
+
+**Note (2026-09-26):** closed by D031 — line 607 (`numSparseGroups: 0`).

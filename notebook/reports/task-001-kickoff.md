@@ -500,3 +500,5 @@ push-success claim is made.
 ---
 
 **Note (2026-09-26):** closed by D030 — lines 276 (MediaRecorder output after 20–30 min), 379 (no type-check gate).
+
+**Note (2026-09-26):** closed by D031 — lines 388 (`typescript` pin), 395 (`/data/` anchoring in `.gitignore`).

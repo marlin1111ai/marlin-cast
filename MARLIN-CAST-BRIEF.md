@@ -35,6 +35,7 @@ D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) 
 **D028** Per-container capture size via the existing env knobs; YouTube TV's quality target follows `MC_HEIGHT` (1080 → hd1080, 720 → hd720). Unset = unchanged; the Unraid container sets none. Amends D024 item 7 and the hd1080 pin.
 **D029** Open items closed, not pursued, reopen if seen: the 20 s idle timeout number, `isDiscreteStation:true` on a regular channel, a stationId across a regular channel's rotation, a Philo capture at a programme boundary, the Philo overlay sweep over many tunes, A/V drift on long captures, the D014 GPU decode test. Philo's 720p warning text is left as is.
 **D030** Every item left for the owner's call in task-029 (the brief's KNOWN OPEN QUESTIONS at e929699) is closed, not pursued, reopen if seen, each listed with file:line in D030; `notebook/OPEN-ITEMS.md` is settled. Recorded answers: Unraid's build is not known; Philo History played at normal speed on the QNAP at 720p.
+**D031** The remaining report items (the D030 pass's "doesn't reach" list) are closed, not pursued, reopen if seen, each listed with file:line in D031.
 
 ## HARD-WON FACTS (all measured)
 
@@ -101,4 +102,4 @@ Hardware (VAAPI) encoding (closed by D030, not pursued) · D014 GPU decode test 
 
 ## KNOWN OPEN QUESTIONS
 
-None. Closed 2026-09-26 by D029 and D030 (not pursued; reopen if seen) — each item with its file:line is listed there.
+None. Closed 2026-09-26 by D029, D030 and D031 (not pursued; reopen if seen) — each item with its file:line is listed there.
