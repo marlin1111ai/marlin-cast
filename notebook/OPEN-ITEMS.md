@@ -1,5 +1,7 @@
 # OPEN-ITEMS.md
 
+**2026-09-26:** All items settled; see D030.
+
 Fresh as of 2026-09-11, at project creation. Contains only genuinely
 live items for this project. See DECISIONS.md for standing rules.
 

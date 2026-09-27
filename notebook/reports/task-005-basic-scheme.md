@@ -297,3 +297,5 @@ written to, or launched against in this task.
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 240 and 282, the `/dev/dri` part (the D014 GPU decode test).
+
+**Note (2026-09-26):** closed by D030 — lines 244, 275 (session durability).

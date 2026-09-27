@@ -175,3 +175,7 @@ Server left running on `0.0.0.0:8804`.
    playlist. If so, this makes things worse, and the fix is to restore the
    tag but with unequal values — which would require more than one segment
    in the cold window, a different change.
+
+---
+
+**Note (2026-09-26):** closed by D030 — line 45 (dead PDT rewrite).

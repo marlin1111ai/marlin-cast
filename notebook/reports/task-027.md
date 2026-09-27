@@ -161,3 +161,5 @@ the running container when the owner updates it on Unraid (not done here —
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 21, 23, the GPU decode part (the D014 GPU decode test).
+
+**Note (2026-09-26):** closed by D030 — lines 120 (copy buttons in a real browser), 138 (Unraid's running image — not known), 150 (release tag).

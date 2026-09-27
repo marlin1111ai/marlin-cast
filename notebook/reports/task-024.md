@@ -353,3 +353,5 @@ Committed: `Dockerfile`,
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 55, 307 (the D014 GPU decode test).
+
+**Note (2026-09-26):** closed by D030 — lines 248 (`last_error` on a normal stop), 336 (V5 silent/black runs).

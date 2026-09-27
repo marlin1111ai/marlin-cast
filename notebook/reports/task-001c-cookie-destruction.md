@@ -303,3 +303,7 @@ was killed.
    and may hold dead rows that muddy any further test on it. Any next
    attempt should start from a freshly deleted profile — as should have
    been true after 001b.
+
+---
+
+**Note (2026-09-26):** closed by D030 — line 226 (nothing restarts Chrome if it dies).

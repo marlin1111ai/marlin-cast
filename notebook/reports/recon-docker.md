@@ -775,3 +775,5 @@ behaviour, the 8091 host port, GHCR pull, `appdata` ownership.
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 20, 436, 440, 447, 449, 453, 462, 476, 506, 627, 657, 701 (the D014 GPU decode test); line 507 (long runs / A/V drift); line 588 (the 20 s idle default).
+
+**Note (2026-09-26):** closed by D030 — lines 62, 112 (unused Playwright dependency), 101 (no type-check gate), 131 (Chrome 153 deb pin).

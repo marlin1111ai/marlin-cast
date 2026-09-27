@@ -238,3 +238,7 @@ no window-sizing changes. Nothing binds 8804.
    from 001c (a scheme mismatch wipes persistent rows) — but the
    container itself was never touched, per the do-not-touch list, and
    the chain could break somewhere I cannot see from here.
+
+---
+
+**Note (2026-09-26):** closed by D030 — line 229 (session durability).

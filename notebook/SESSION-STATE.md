@@ -6,9 +6,9 @@ session.
 
 ---
 
-## Where things stand (2026-09-26, handoff after D029)
+## Where things stand (2026-09-26, handoff after D030)
 
-**Pushed.** main is pushed through the commit that records D029 (2026-09-26,
+**Pushed.** main is pushed through the commit that records D030 (2026-09-26,
 verified with `git fetch` + SHA comparison). The last code commit is c876a3a
 (task-028); it is the image `sha-c876a3a`, which GHCR `latest` also points to
 (same digest). Notebook- and brief-only commits build no image (D025).
@@ -17,16 +17,17 @@ Rollback tag `sha-e28689d` is still in GHCR.
 
 **Deployed where:**
 - **Unraid** (D026): container `marlin-cast` on `ghcr.io/marlin1111ai/marlin-cast:latest`
-  with no size env, so 1080p (D028). Deployed 2026-09-13 at `VERSION` 0.1.1;
-  the notebook records no Unraid pull since, and no change was made there on
-  2026-09-26. App on host 8091, viewer on host 8092,
+  with no size env, so 1080p (D028). Deployed 2026-09-13 at `VERSION` 0.1.1.
+  Unraid shows tag `latest` and no version, so which build it runs is not
+  known (D030). No change was made there on 2026-09-26. App on host 8091, viewer on host 8092,
   `/mnt/user/appdata/marlin-cast/data` → `/data`, `--cap-add SYS_ADMIN
   --shm-size=1g`. Consumed by Marlin IPTV Editor from the single `/playlist`
   source (D026 note). marlinpc is dev-only (D012 fulfilled).
 - **QNAP** (the owner's father's, second install): Container Station
   application on `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` at 720p
   (`MC_WIDTH=1280` `MC_HEIGHT=720`, no `MC_XVFB_SCREEN`). Total CPU ~33%
-  against 97.4% at 1080p (D028 note). `/dev/shm` reads 1.0G there.
+  against 97.4% at 1080p (D028 note); WBAL 11 and Philo History both play at
+  normal speed (owner). `/dev/shm` reads 1.0G there.
 
 **Closed by D029 (2026-09-26), not pursued:** the 20 s idle-timeout number,
 `isDiscreteStation:true` on a regular channel, stationId across a regular
@@ -37,23 +38,14 @@ Unraid. Philo's 720p warning text is left as is.
 **Parked, unchanged:** Fios (notebook/reports/fios-splash.md); stale-watch-id
 detection (D020 note); the Channels DVR playback defect (D016).
 
-**Left for the owner's call** (each with file:line under KNOWN OPEN QUESTIONS
-in MARLIN-CAST-BRIEF.md):
-- whether Unraid has pulled past 0.1.1; whether to push a `v*` release tag;
-- `notebook/OPEN-ITEMS.md` is stale (its four 2026-09-11 items are settled);
-- the YouTube TV quality pin across ad breaks; sub-1080p proceed-vs-fail and
-  60 fps, never ruled;
-- long-run behaviour other than drift; session durability over days;
-- Philo tune-path fragility; Philo playback speed at 720p on the QNAP;
-- hardware (VAAPI) encoding; the Chrome deb pin, Chrome auto-restart,
-  `triggerAction` fallback;
-- code hygiene (Playwright, type-check gate, dead PDT rewrite, `last_error`,
-  ffmpeg exit 255, `is1080` name) and smaller never-ruled or unverified items.
+**Closed by D030 (2026-09-26), not pursued:** every item that task-029 left
+for the owner's call (listed with file:line in D030); `notebook/OPEN-ITEMS.md`
+is settled. **No open items are left.**
 
 **marlinpc:** `/tmp/mc-test` is gone (confirmed 2026-09-26). Local images
 `marlin-cast:task024`, `:task026`, `:task027` and a 2026-09-13 pull of
-`ghcr.io/…/marlin-cast:latest` (the `sha-e28689d` digest) remain; the
-task-028 image is deleted.
+`ghcr.io/…/marlin-cast:latest` were deleted on 2026-09-26 (D030 pass), with
+the task-028 image before them; no Marlin Cast image is left locally.
 
 The task records below are the history, oldest first.
 
@@ -476,6 +468,8 @@ firewall not queryable without sudo); anything longer than ~2 minutes;
 Channels DVR actually consuming it. Tune latency is **19–22 s**, which is
 the most likely thing to make it feel broken in real use.
 
+**Note (2026-09-26):** closed by D030.
+
 **Live session untouched:** Chrome pid 76888, never restarted, still
 signed in and playing 1080p.
 
@@ -653,6 +647,8 @@ reached with matching dimensions, and warns loudly when below 1080p:
 `/health` gained a `quality:` line so this is visible without logs.
 **Flagged: this is a deliberate proceed-anyway for sub-1080p channels;
 one line to make it hard-fail if the owner prefers.**
+
+**Note (2026-09-26):** closed by D030.
 
 **1080p held on 5 of 6** (TNT, AMC, CNN, HGTV, Food Network all
 hd1080/1920x1080); ESPN at hd720/1280x720 by the channel's own ceiling.
@@ -1180,6 +1176,8 @@ step), VAAPI/decode (D014), hardware encoding. Philo in the container is
 untested until deploy.
 
 **Note (2026-09-26):** VAAPI/decode (D014) closed by D029.
+
+**Note (2026-09-26):** hardware encoding closed by D030.
 
 **Hand-off:** the live Chrome is still quit (owner's action before V2) and
 the dev server is not running; nothing listens on 8804/9333/8091/8092. The

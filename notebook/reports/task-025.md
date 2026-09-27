@@ -212,3 +212,7 @@ volume were used. The pulled image is left in the local cache alongside
    provenance attestation (the build-push-action@v6 default). Harmless for
    `docker pull` on amd64 — the pull above proves that — but it is a second
    manifest Unraid's UI may list.
+
+---
+
+**Note (2026-09-26):** closed by D030 — lines 201, 207 (the `v*` release path), 211 (GHCR attestation entry in Unraid's UI).

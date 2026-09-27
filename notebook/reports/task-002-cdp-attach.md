@@ -411,3 +411,5 @@ by the owner's Chrome, on loopback.
 ---
 
 **Note (2026-09-26):** closed by D029 — line 364 (VP9 decode / a VAAPI chain on Unraid — the D014 GPU decode test).
+
+**Note (2026-09-26):** closed by D030 — lines 351 (session durability), 375, 405 (quality pin across ad breaks and long runs).

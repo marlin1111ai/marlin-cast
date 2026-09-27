@@ -414,3 +414,5 @@ running on 0.0.0.0:8804, idle. Both owner tabs are parked on their guides.
 ---
 
 **Note (2026-09-26):** closed by D029 — line 406 (stationId surviving a rotation of a regular channel).
+
+**Note (2026-09-26):** closed by D030 — lines 58 (no type-check gate), 211 (ffmpeg exit 255 at idle stop), 384 (`/health` shows the key), 410 (a larger guide body).

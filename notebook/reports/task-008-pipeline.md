@@ -430,3 +430,5 @@ Nothing touched Unraid or `/Apps/marlin-iptv-editor`. No installer ran.
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 200, 380, 400 (A/V drift on long captures); lines 254, 423 (the 20 s idle timeout).
+
+**Note (2026-09-26):** closed by D030 — lines 277, 396 (`last_error` on a normal stop), 309 (no type-check gate), 385 (duplicate names in the consumer), 402 (quality pin across ad breaks), 417 (switch-storm race).

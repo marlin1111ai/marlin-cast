@@ -79,3 +79,5 @@ Left on marlinpc: the image marlin-cast:task028 in the local Docker cache.
 ---
 
 **Note (2026-09-26):** closed by D029 — line 66 (the Philo overlay sweep); line 67 (Philo's 720p warning — left as is, known and not fixed).
+
+**Note (2026-09-26):** closed by D030 — lines 68 (QNAP at 720p — Philo History played at normal speed, owner), 74 (CPU figures are single windows), 75 (the `is1080` name).

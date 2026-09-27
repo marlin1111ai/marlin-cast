@@ -153,3 +153,7 @@ Server left running on `0.0.0.0:8804`, idle, tab parked on the guide.
    did not construct an adversarial interleave test. The navigation is
    idempotent (a new tune just navigates again), so a race would at worst
    cost one extra navigation.
+
+---
+
+**Note (2026-09-26):** closed by D030 — lines 135, 144 (the parked guide keeps `#movie_player` mounted; longer-dwell check), 150 (park/tune race).

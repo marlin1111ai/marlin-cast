@@ -521,3 +521,5 @@ durability. It was not taken; this pass was one snapshot.
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 287, 324, 483, 494, 500 (stationId surviving a rotation); lines 324, 496 (isDiscreteStation on a regular channel).
+
+**Note (2026-09-26):** closed by D030 — lines 52, 336 (Chrome exits on marlinpc), 206, 332 (Philo `channelId` across days and tiers).

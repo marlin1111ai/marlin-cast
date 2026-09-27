@@ -256,3 +256,7 @@ re-fetched.
    is a deliberate departure from step 4a's "no proceed-anyway", taken
    because the alternative took ESPN off the air entirely. It is loud —
    log warning plus a `/health` field — but it is still a proceed.
+
+---
+
+**Note (2026-09-26):** closed by D030 — lines 85, 235, 255 (sub-1080p proceeds with a warning), 248 (a progressively filled quality list latching hd720).

@@ -398,6 +398,9 @@ questions 1–4, 6, 8–10. Built in task-024 (`Dockerfile`, `docker/entrypoint.
 (D014; no VAAPI packages are in the image yet — recon Q5's stock-Xvfb point
 stands), hardware encoding.
 
+**Note (2026-09-26):** the VAAPI/decode test is closed by D029; hardware
+encoding is closed by D030.
+
 **Dated 2026-09-13.**
 
 ---
@@ -546,6 +549,8 @@ Monitor at 720p:
 
 Against 97.4% at 1080p (D028 reason).
 
+**Note (2026-09-26):** Owner: Philo History played at normal speed at 720p (2026-09-26).
+
 ---
 
 ## D029 — Open items closed
@@ -561,5 +566,74 @@ Open items closed. Not pursued; reopen if seen:
 
 Left as is, known and not fixed: Philo's tune warning in 720p mode reads
 'upscaled into the 1280x720 frame' though nothing is upscaled.
+
+**Dated 2026-09-26. Owner-ruled.**
+
+---
+
+## D030 — Remaining open items closed
+
+Remaining open items closed. Every item left for the owner's call in
+task-029, as listed under the brief's KNOWN OPEN QUESTIONS at e929699, is not
+pursued; reopen if seen. notebook/OPEN-ITEMS.md is settled. Recorded answers:
+the Unraid container shows tag latest and no version, so which build it runs
+is not known; Philo History played at normal speed on the QNAP at 720p (owner,
+2026-09-26).
+
+Items closed (reports are in `notebook/reports/`; "also" marks the same item
+recorded in a second place):
+- Unraid's running image — task-027.md:138 (answered above: not known).
+- Release tags: the `v*` path never run, no `X.Y.Z` tag in GHCR —
+  task-025.md:201, 207; task-027.md:150.
+- notebook/OPEN-ITEMS.md's four 2026-09-11 items — OPEN-ITEMS.md:10–21.
+- YouTube TV quality pin across ad breaks and long runs; a progressively
+  filled quality list latching hd720 — task-002-cdp-attach.md:375, 405;
+  task-006-capture-spike.md:367; task-008-pipeline.md:402;
+  task-011-tune-latency.md:248.
+- Sub-1080p channels proceed with a warning rather than fail —
+  task-011-tune-latency.md:85, 235, 255; also SESSION-STATE.md:654.
+- 60 fps not pursued (`MC_FPS` 30) — task-006-capture-spike.md:156, 450.
+- MediaRecorder output after 20–30 min — task-001-kickoff.md:276.
+- Switch-storm and park/tune races — task-008-pipeline.md:417; task-018.md:150.
+- Lip-sync against the broadcast — task-006-capture-spike.md:302.
+- Long runs in general — also SESSION-STATE.md:474.
+- Session durability across days, reboots and Chrome updates —
+  task-002-cdp-attach.md:351; task-003-relaunch-survival.md:229;
+  task-005-basic-scheme.md:244, 275.
+- Philo tune path: live-edge seek off AMC or in ads — task-021.md:592;
+  persisted-query hash — task-021.md:551; `tileGroupId` staleness —
+  task-021.md:557; the no-live-broadcast path — task-021.md:568; `channelId`
+  across days and tiers — recon-stable-ids.md:206, 332; CSS-module class
+  names — recon-philo.md:166; logos in clients — task-021.md:562.
+- Philo playback speed at 720p on the QNAP — DECISIONS.md:545 (D028 note);
+  also task-028.md:68 (answered above: normal speed).
+- Hardware (VAAPI) encoding and its CPU saving — task-006-capture-spike.md:385;
+  task-007-gpu-drm-capture.md:289, 345; also MARLIN-CAST-BRIEF.md NOT YET BUILT,
+  DECISIONS.md:396 (D024, "Not in task-024"), SESSION-STATE.md:1179.
+- Chrome 153 deb pin may vanish from Google's pool — recon-docker.md:131.
+- Nothing restarts Chrome if it dies — task-001c-cookie-destruction.md:226.
+- `triggerAction` has no fallback — task-006-capture-spike.md:380, 483.
+- Unused Playwright dependency — task-021.md:565; also task-021.md:64,
+  recon-docker.md:62, 112.
+- No type-check gate — task-008-pipeline.md:309; task-022.md:58; also
+  task-001-kickoff.md:379, recon-docker.md:101.
+- Dead PDT rewrite — task-019.md:45.
+- `last_error` on a normal stop — task-008-pipeline.md:396; also
+  task-008-pipeline.md:277, task-024.md:248.
+- ffmpeg exit 255 at idle stop — task-022.md:211.
+- The `is1080` name — task-028.md:75.
+- `/health` shows the key — task-022.md:384.
+- `access-control-allow-origin: *` with no auth — task-009-hls-compliance.md:391.
+- The parked guide keeps `#movie_player` mounted; a longer-dwell check —
+  task-018.md:135, 144.
+- Duplicate names in the consumer — task-008-pipeline.md:385.
+- noVNC `/` forward and copy buttons in a real browser — task-026.md:95;
+  task-027.md:120.
+- GHCR attestation entry in Unraid's UI — task-025.md:211.
+- A larger guide body — task-022.md:410.
+- task-024 V5 silent/black runs — task-024.md:336.
+- CPU figures are single windows — task-028.md:74.
+- Chrome exits on marlinpc — recon-stable-ids.md:336; also
+  recon-stable-ids.md:52, MARLIN-CAST-BRIEF.md (HARD-WON FACTS, "died twice").
 
 **Dated 2026-09-26. Owner-ruled.**

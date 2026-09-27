@@ -418,3 +418,5 @@ was never queried, including its logs.** `backups/` and
 ---
 
 **Note (2026-09-26):** closed by D029 — line 315 (A/V drift on long captures).
+
+**Note (2026-09-26):** closed by D030 — line 391 (`access-control-allow-origin: *` with no auth).

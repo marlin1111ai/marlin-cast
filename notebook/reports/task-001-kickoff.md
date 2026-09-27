@@ -496,3 +496,7 @@ transport is the owner's call. Verification per step 9 —
 `git fetch` then comparing `git rev-parse HEAD` to
 `git rev-parse origin/main` — is therefore **not yet possible**, and no
 push-success claim is made.
+
+---
+
+**Note (2026-09-26):** closed by D030 — lines 276 (MediaRecorder output after 20–30 min), 379 (no type-check gate).

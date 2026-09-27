@@ -118,3 +118,7 @@ owner's step.
   the push that produced `latest` and `sha-15b835a`.
 - A notebook-only follow-up adds the V2 evidence above; `paths-ignore`
   publishes nothing for it (SHA in the hand-off).
+
+---
+
+**Note (2026-09-26):** closed by D030 — line 95 (noVNC `/` forward in a real browser).

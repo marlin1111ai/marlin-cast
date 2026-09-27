@@ -8,7 +8,7 @@ Read in full: the FOREMAN INSTRUCTIONS (v6.2) the owner pastes at the top of the
 
 ## WHERE THE PROJECT STANDS
 
-**Deployed and in use (D026).** Marlin Cast runs as Unraid container `marlin-cast` from `ghcr.io/marlin1111ai/marlin-cast:latest` with no size env (1080p, D028); deployed 2026-09-13 at `VERSION` 0.1.1, and the notebook records no Unraid pull since. GHCR now: `latest` = `sha-c876a3a` (same digest; `VERSION` 0.1.2); rollback `sha-e28689d`; no `X.Y.Z` tag exists (no git tag has been pushed, D025). It serves two providers — YouTube TV (141 channels at last enumeration) and Philo (226) — as one M3U at `http://192.168.1.250:8091/playlist`, tunes one channel at a time in a Chrome that runs inside the container, tab-captures it, and serves fMP4 HLS. Owner-confirmed playing on Apple TV through Marlin DVR via Marlin IPTV Editor. marlinpc is dev-only from here (D012 fulfilled).
+**Deployed and in use (D026).** Marlin Cast runs as Unraid container `marlin-cast` from `ghcr.io/marlin1111ai/marlin-cast:latest` with no size env (1080p, D028); deployed 2026-09-13 at `VERSION` 0.1.1. Unraid shows tag `latest` and no version, so which build it runs is not known (D030). GHCR now: `latest` = `sha-c876a3a` (same digest; `VERSION` 0.1.2); rollback `sha-e28689d`; no `X.Y.Z` tag exists (no git tag has been pushed, D025). It serves two providers — YouTube TV (141 channels at last enumeration) and Philo (226) — as one M3U at `http://192.168.1.250:8091/playlist`, tunes one channel at a time in a Chrome that runs inside the container, tab-captures it, and serves fMP4 HLS. Owner-confirmed playing on Apple TV through Marlin DVR via Marlin IPTV Editor. marlinpc is dev-only from here (D012 fulfilled).
 
 **Consumer:** Marlin IPTV Editor, one source at `/playlist` (the owner chose one URL; the editor separates by `group-title`). `/playlist/youtube-tv` and `/playlist/philo` exist (D021) but are not in use. Guide data: the editor's Schedules Direct source, matched by name. PrismCast stays as the Channels DVR source; the Channels DVR playback defect remains parked (D016).
 
@@ -34,6 +34,7 @@ D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) 
 **D027** The repo is public; the no-credentials rule is unchanged.
 **D028** Per-container capture size via the existing env knobs; YouTube TV's quality target follows `MC_HEIGHT` (1080 → hd1080, 720 → hd720). Unset = unchanged; the Unraid container sets none. Amends D024 item 7 and the hd1080 pin.
 **D029** Open items closed, not pursued, reopen if seen: the 20 s idle timeout number, `isDiscreteStation:true` on a regular channel, a stationId across a regular channel's rotation, a Philo capture at a programme boundary, the Philo overlay sweep over many tunes, A/V drift on long captures, the D014 GPU decode test. Philo's 720p warning text is left as is.
+**D030** Every item left for the owner's call in task-029 (the brief's KNOWN OPEN QUESTIONS at e929699) is closed, not pursued, reopen if seen, each listed with file:line in D030; `notebook/OPEN-ITEMS.md` is settled. Recorded answers: Unraid's build is not known; Philo History played at normal speed on the QNAP at 720p.
 
 ## HARD-WON FACTS (all measured)
 
@@ -70,13 +71,13 @@ Carried from earlier sessions:
 - On marlinpc the xrdp display exists only while Jump Desktop is connected; closing the Terminus window that launched Chrome kills Chrome.
 - Marlin Cast's own HLS output (fMP4, 1 s segments, `repeat-headers=1`, no PROGRAM-DATE-TIME) and the PrismCast comparison facts from tasks 012–019 are unchanged; PrismCast itself serves variable-length fMP4, Constrained Baseline L4.2, with PROGRAM-DATE-TIME.
 - Restarting the dev server from the builder: use the tool's background mode, never `&`; `pkill -f 'src/server.ts'` can match an unrelated shell.
-- Chrome on marlinpc died twice on 2026-09-12 while a ~51 GB Python process was running; cause not proven.
+- Chrome on marlinpc died twice on 2026-09-12 while a ~51 GB Python process was running; cause not proven — closed by D030 (2026-09-26), not pursued.
 
 ## ENVIRONMENT
 
 - **Production:** Unraid 192.168.1.250, container `marlin-cast` (fields in D026). Status page `http://192.168.1.250:8091/` lists all four URLs. Viewer `http://192.168.1.250:8092/` (password). Profile volume `/mnt/user/appdata/marlin-cast/data`. Re-login path: the viewer.
 - **Second install — the owner's father's QNAP TVS-EC1080** (Xeon E3-1245 v3, 4C/8T, 32 GB, QTS 5.2.10), at 192.168.1.30 on *that house's* network (on this network that address is a different device — never connect). Container Station compose application: `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` (pinned); ports 8091→8804, 8092→6080; volume `/share/Container/marlin-cast/data` → `/data`; env `VNC_PASSWORD`, `PUID` 99, `PGID` 100, `MC_WIDTH` 1280, `MC_HEIGHT` 720 (no `MC_XVFB_SCREEN`); `cap_add: SYS_ADMIN`; `shm_size: 1gb` — honoured, `/dev/shm` in the container reads 1.0G (owner-run `df -h`, 2026-09-26); no `/dev/dri`. Container Station would not let the owner edit the application's YAML, so the owner deleted the application and created it again with the new text; `/share/Container/marlin-cast/data` survived — channel list and sign-ins carried over, no re-login. The owner signed in to both providers through the viewer. First enumeration 2026-09-26 19:04 UTC: 377 channels (YouTube TV 143, Philo 234). At 1080p Channels DVR there played a Marlin Cast stream on Apple TV in slow motion at 97% CPU (1080p YouTube TV, WBAL 11: chrome 76.1% combined, largest single 58.67%; ffmpeg 17.72%; channels-dvr 0.7%) — D028.
-  - 720p (D028 note, 2026-09-26): total CPU 33.04% on WBAL 11 (owner: normal speed), 32.08% on Philo History (speed not stated), against 97.4% at 1080p.
+  - 720p (D028 note, 2026-09-26): total CPU 33.04% on WBAL 11 (owner: normal speed), 32.08% on Philo History (owner: normal speed), against 97.4% at 1080p.
 - **Dev:** marlinpc (Pop!_OS 24.04), repo `/Apps/marlin-cast`, remote `git@github.com:marlin1111ai/marlin-cast.git` over SSH (never HTTPS). main fully pushed (verify with git fetch). Docker 29.1.3 present; the owner's user is in the docker group.
 - Dev Chrome: owner-launched via `scripts/start-chrome.sh` (opens both provider tabs), loopback debug port 9333. Dev server `npm run serve` on 0.0.0.0:8804; it exits with ECONNREFUSED if Chrome is not up. `npm run channels` re-enumerates both providers.
 - Read-only reference tree: `/Apps/marlin-iptv-editor`.
@@ -96,22 +97,8 @@ Carried from earlier sessions:
 
 ## NOT YET BUILT
 
-Hardware (VAAPI) encoding · D014 GPU decode test on Unraid (closed by D029, not pursued) · concurrency beyond one stream · Fios (parked) · any UI beyond the status page, `/playlist*`, the stream endpoint, `/health` and `/icon.png`. The owner wants no settings pages.
+Hardware (VAAPI) encoding (closed by D030, not pursued) · D014 GPU decode test on Unraid (closed by D029, not pursued) · concurrency beyond one stream · Fios (parked) · any UI beyond the status page, `/playlist*`, the stream endpoint, `/health` and `/icon.png`. The owner wants no settings pages.
 
 ## KNOWN OPEN QUESTIONS
 
-Closed 2026-09-26 by D029, not pursued: the idle-timeout number, `isDiscreteStation` on a regular channel, stationId across a rotation, a Philo capture at a programme boundary, the overlay sweep over many tunes, A/V drift on long captures. Left for the owner's call (2026-09-26 inventory; file:line in the notebook):
-- Unraid's running image: no pull after 0.1.1 is recorded (task-027:138), so whether it runs `sha-c876a3a` is unknown.
-- Release tags: the `v*` path has never run; GHCR holds no `X.Y.Z` tag (task-025:201, 207; task-027:150).
-- `notebook/OPEN-ITEMS.md` still lists four 2026-09-11 items, all since settled (OPEN-ITEMS:10–21).
-- YouTube TV quality pin across ad breaks and long runs; a progressively filled quality list could latch hd720 (task-002:375, 405; task-006:367; task-008:402; task-011:248).
-- Sub-1080p channels proceed with a warning rather than fail; never ruled (task-011:85, 235, 255). 60 fps never pursued, `MC_FPS` 30 (task-006:156, 450).
-- Long-run behaviour other than drift: MediaRecorder output after 20–30 min (task-001-kickoff:276), switch-storm and park/tune races (task-008:417; task-018:150), lip-sync never checked against the broadcast (task-006:302).
-- Session durability across days, reboots and Chrome updates is unmeasured (task-002:351; task-003:229; task-005:244, 275).
-- Philo tune-path fragility: live-edge seek off AMC or in ads (task-021:592), persisted-query hash (task-021:551), `tileGroupId` staleness (task-021:557), the no-live-broadcast path (task-021:568), `channelId` across days and tiers (recon-stable-ids:206, 332), CSS-module class names (recon-philo:166), logos in clients (task-021:562).
-- Philo playback speed at 720p on the QNAP is not stated (D028 note).
-- Hardware (VAAPI) encoding and its CPU saving (task-006:385; task-007:289, 345).
-- Container: Chrome 153 deb pin may vanish from Google's pool (recon-docker:131); nothing restarts Chrome if it dies (task-001c:226); `triggerAction` has no fallback (task-006:380, 483).
-- Code hygiene: unused Playwright dependency (task-021:565); no type-check gate (task-008:309; task-022:58); dead PDT rewrite (task-019:45); `last_error` on a normal stop (task-008:396); ffmpeg exit 255 at idle stop (task-022:211); `is1080` name (task-028:75).
-- Never ruled: `/health` shows the key (task-022:384); `access-control-allow-origin: *` with no auth (task-009:391); the parked guide keeps `#movie_player` mounted (task-018:135, 144); duplicate names in the consumer (task-008:385).
-- Unverified minor: noVNC `/` forward and copy buttons in a real browser (task-026:95; task-027:120); GHCR attestation entry in Unraid's UI (task-025:211); a larger guide body (task-022:410); task-024 V5 silent/black runs (task-024:336); CPU figures are single windows (task-028:74); Chrome exits on marlinpc (recon-stable-ids:336).
+None. Closed 2026-09-26 by D029 and D030 (not pursued; reopen if seen) — each item with its file:line is listed there.

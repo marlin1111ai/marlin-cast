@@ -492,3 +492,5 @@ occlusion test. All were killed; only pid 76888 remains.
 ---
 
 **Note (2026-09-26):** closed by D029 — lines 335, 341, 468 (capture under hardware decode / L1 — the D014 GPU decode test); line 460 (A/V drift on long captures).
+
+**Note (2026-09-26):** closed by D030 — lines 156, 450 (60 fps), 302 (lip-sync against the broadcast), 367 (quality pin), 380, 483 (`triggerAction` fallback), 385 (hardware encoding).
