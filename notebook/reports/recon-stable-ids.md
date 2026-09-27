@@ -517,3 +517,7 @@ durability. It was not taken; this pass was one snapshot.
 | `9EAB7F254BE160AC9ED45632B2491D71`, `A265E085062D454A8D75DCE2D67992F1` | browser_ui | omnibox popup (recon window) | — | gone |
 
 **The owner's tab target ids are unchanged.**
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 287, 324, 483, 494, 500 (stationId surviving a rotation); lines 324, 496 (isDiscreteStation on a regular channel).

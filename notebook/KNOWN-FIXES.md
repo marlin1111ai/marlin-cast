@@ -257,6 +257,8 @@ uses `iHD_drv_video.so`, which *is* present in a normal image — so
 hardware decode, and possibly Widevine L1 with it, is a live
 first-run risk there rather than a closed question.
 
+**Note (2026-09-26):** closed by D029.
+
 ## ffmpeg guesses 50 fps from MediaRecorder WebM — pin the output rate
 
 Surfaced 2026-09-11 (Task 008). MediaRecorder's WebM is variable-rate.
@@ -278,6 +280,8 @@ Related caution: this raised A/V drift to −139.7 ms over 70 s (task-006's
 comparable figure on the same capture path was −46 ms over 62 s). The CFR
 conversion holds video at exactly 30 fps while audio follows its own
 clock. Not yet characterised over long runs.
+
+**Note (2026-09-26):** closed by D029.
 
 ## Never pass -use_wallclock_as_timestamps to MediaRecorder WebM
 
@@ -323,6 +327,8 @@ client stopped, state went idle with 0 ffmpeg processes and 0 HLS
 directories. The 20 s figure is a default with no evidence behind it —
 too short loses a paused client's tune, too long holds the browser
 captured with nobody watching.
+
+**Note (2026-09-26):** closed by D029.
 
 ## An HLS server needs CORS headers or no browser player can read it
 

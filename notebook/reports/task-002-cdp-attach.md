@@ -407,3 +407,7 @@ by the owner's Chrome, on loopback.
    confirmed 1080p was still current. Whether it survives an ad break,
    a bandwidth dip, or an hour of running is unmeasured — and 720p is
    what the player reverts to by default.
+
+---
+
+**Note (2026-09-26):** closed by D029 — line 364 (VP9 decode / a VAAPI chain on Unraid — the D014 GPU decode test).

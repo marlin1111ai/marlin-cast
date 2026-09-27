@@ -484,3 +484,7 @@ verified the same way (SHA recorded in the closing summary given to the
 owner). `src/`, `scripts/`, `extension/`, the notebook files and
 `package.json` are untouched; the scratchpad tooling (`cdp.mjs`, captured
 bodies, raw screenshots) stayed outside the repo.
+
+---
+
+**Note (2026-09-26):** closed by D029 — line 450 (re-resolving a broadcast at a programme boundary).

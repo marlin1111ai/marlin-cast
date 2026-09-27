@@ -179,6 +179,8 @@ development. No VAAPI driver is installed on marlinpc.
 open. The deployed container (D026) passes `/dev/dri` but runs on CPU
 decode/encode today.
 
+**Note (2026-09-26):** closed by D029.
+
 ---
 
 ## D015 — Station-ID guide matching
@@ -543,3 +545,21 @@ Monitor at 720p:
   9.47%; channels-dvr 0.52%. Playback speed not stated by the owner.
 
 Against 97.4% at 1080p (D028 reason).
+
+---
+
+## D029 — Open items closed
+
+Open items closed. Not pursued; reopen if seen:
+- whether the 20 s idle timeout is the right number
+- whether isDiscreteStation:true ever appears on a regular channel
+- whether a YouTube TV stationId survives a rotation of a regular channel
+- what happens to a running Philo capture at a programme boundary
+- whether the Philo overlay sweep holds up over many tunes
+- A/V drift on long captures
+- the D014 GPU decode test on Unraid
+
+Left as is, known and not fixed: Philo's tune warning in 720p mode reads
+'upscaled into the 1280x720 frame' though nothing is upscaled.
+
+**Dated 2026-09-26. Owner-ruled.**

@@ -1,14 +1,14 @@
-# MARLIN CAST — COLD-START BRIEF (v4, 2026-09-13)
+# MARLIN CAST — COLD-START BRIEF (v5, 2026-09-26)
 
-Supersedes v3 (2026-09-11 late evening). This file lives at the repo root as `MARLIN-CAST-BRIEF.md`.
+Supersedes v4 (2026-09-13). This file lives at the repo root as `MARLIN-CAST-BRIEF.md`.
 
 ## FOREMAN: READ BEFORE WRITING ANY PROMPT
 
-Read in full: the FOREMAN INSTRUCTIONS (v5) the owner pastes at the top of the chat, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-024 through task-027, recon-docker, recon-stable-ids, recon-philo at minimum). First reply in every chat is a CONTEXT CHECK. Nothing settled below gets re-asked or re-derived.
+Read in full: the FOREMAN INSTRUCTIONS (v6.2) the owner pastes at the top of the chat, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-024 through task-028, recon-docker, recon-stable-ids, recon-philo at minimum). First reply in every chat is a CONTEXT CHECK. Nothing settled below gets re-asked or re-derived.
 
 ## WHERE THE PROJECT STANDS
 
-**Deployed and in use (D026).** Marlin Cast runs as Unraid container `marlin-cast` from `ghcr.io/marlin1111ai/marlin-cast:latest` (0.1.1 at deploy; latest image is 0.1.2). It serves two providers — YouTube TV (141 channels at last enumeration) and Philo (226) — as one M3U at `http://192.168.1.250:8091/playlist`, tunes one channel at a time in a Chrome that runs inside the container, tab-captures it, and serves fMP4 HLS. Owner-confirmed playing on Apple TV through Marlin DVR via Marlin IPTV Editor. marlinpc is dev-only from here (D012 fulfilled).
+**Deployed and in use (D026).** Marlin Cast runs as Unraid container `marlin-cast` from `ghcr.io/marlin1111ai/marlin-cast:latest` with no size env (1080p, D028); deployed 2026-09-13 at `VERSION` 0.1.1, and the notebook records no Unraid pull since. GHCR now: `latest` = `sha-c876a3a` (same digest; `VERSION` 0.1.2); rollback `sha-e28689d`; no `X.Y.Z` tag exists (no git tag has been pushed, D025). It serves two providers — YouTube TV (141 channels at last enumeration) and Philo (226) — as one M3U at `http://192.168.1.250:8091/playlist`, tunes one channel at a time in a Chrome that runs inside the container, tab-captures it, and serves fMP4 HLS. Owner-confirmed playing on Apple TV through Marlin DVR via Marlin IPTV Editor. marlinpc is dev-only from here (D012 fulfilled).
 
 **Consumer:** Marlin IPTV Editor, one source at `/playlist` (the owner chose one URL; the editor separates by `group-title`). `/playlist/youtube-tv` and `/playlist/philo` exist (D021) but are not in use. Guide data: the editor's Schedules Direct source, matched by name. PrismCast stays as the Channels DVR source; the Channels DVR playback defect remains parked (D016).
 
@@ -19,7 +19,7 @@ Read in full: the FOREMAN INSTRUCTIONS (v5) the owner pastes at the top of the c
 
 ## DECISIONS (full wording in notebook/DECISIONS.md — quote from there, never from memory)
 
-D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) · D003 Node 22 + TypeScript + Playwright + ffmpeg · D005 one tune at a time (two logins in one profile is the normal state, per D017) · D006 M3U + HLS out, no XMLTV from Marlin Cast · D007 dev on marlinpc · D008 dev server 0.0.0.0:8804, Unraid host port 8091 · D009 attach to a launched Chrome over CDP, never own the profile (in the container the entrypoint launches it) · D010 `--password-store=basic` everywhere · D011 capture via purpose-built extension + `chrome.tabCapture` · D012 deployment target Docker on Unraid — fulfilled · D013 full unfiltered lineup, with notes: no-stream guide rows (browse links) and event feeds are not channels · D014 GPU decode test deferred to Unraid — still open, container runs CPU decode/encode · D015 station-id sliver — moot for the editor (it never reads `tvc-guide-stationid`); one line remains, keyed to ESPN row 17's stationId · D016 Marlin DVR via the editor is the consumer; Channels defect parked.
+D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) · D003 Node 22 + TypeScript + Playwright + ffmpeg · D005 one tune at a time (two logins in one profile is the normal state, per D017) · D006 M3U + HLS out, no XMLTV from Marlin Cast · D007 dev on marlinpc · D008 dev server 0.0.0.0:8804, Unraid host port 8091 · D009 attach to a launched Chrome over CDP, never own the profile (in the container the entrypoint launches it) · D010 `--password-store=basic` everywhere · D011 capture via purpose-built extension + `chrome.tabCapture` · D012 deployment target Docker on Unraid — fulfilled · D013 full unfiltered lineup, with notes: no-stream guide rows (browse links) and event feeds are not channels · D014 GPU decode test deferred to Unraid — closed by D029 (not pursued); the container runs CPU decode/encode · D015 station-id sliver — moot for the editor (it never reads `tvc-guide-stationid`); one line remains, keyed to ESPN row 17's stationId · D016 Marlin DVR via the editor is the consumer; Channels defect parked.
 
 **D017** Philo is the second provider; 1280×720 @ 30 fps under Widevine L3 accepted, upscaled into the 1920×1080 capture.
 **D018** One tab per provider, selected by URL host; no fallback; missing tab = loud fatal.
@@ -33,6 +33,7 @@ D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) 
 **D026** Deployed — the Unraid container fields, the profile source, and the acceptance result are recorded there.
 **D027** The repo is public; the no-credentials rule is unchanged.
 **D028** Per-container capture size via the existing env knobs; YouTube TV's quality target follows `MC_HEIGHT` (1080 → hd1080, 720 → hd720). Unset = unchanged; the Unraid container sets none. Amends D024 item 7 and the hd1080 pin.
+**D029** Open items closed, not pursued, reopen if seen: the 20 s idle timeout number, `isDiscreteStation:true` on a regular channel, a stationId across a regular channel's rotation, a Philo capture at a programme boundary, the Philo overlay sweep over many tunes, A/V drift on long captures, the D014 GPU decode test. Philo's 720p warning text is left as is.
 
 ## HARD-WON FACTS (all measured)
 
@@ -42,6 +43,7 @@ YouTube TV:
 - The guide is one `/youtubei/v1/browse` response (151 rows on 2026-09-12); per row `epgRowRenderer.stationId` (a `UC…` id) is the durable channel key, distinct on every streaming row. The tile image is the current programme's thumbnail, not a logo. Names repeat (several "ESPN"). Six rows link to a brand/browse page and carry no stream.
 - Watch ids: 142 regular channels held their key and watch id across a 20-minute re-enumeration and overnight; only event feeds rotated. Nothing has been observed rotating on a regular channel.
 - An expired watch id still plays (a static logo card), so tune poll 1 cannot detect it.
+- Before/after playlist checks must ignore `tvg-logo` (programme thumbnails drift between enumerations).
 
 Philo:
 - Signed-in landing is any `/player/` path; guide is a virtualized tile grid fed by a paginated GraphQL `page` query (`groups.summary.totalCount` = 226). `channelId` (base64 `Channel:<18 digits>`) is a durable channel key; broadcasts carry their own id.
@@ -49,8 +51,8 @@ Philo:
 - Direct navigation to `/player/player/broadcast/<id>` starts at the beginning of the DVR window (~2 h behind); the app seeks past the end to reach live.
 - Unmuted play in a CDP-created tab is blocked until one real `Input.dispatchMouseEvent`; that click shows a control overlay that only hides on mousemove, so the app sweeps the pointer until it clears (1–3 sweeps observed; fails loud, not silent).
 - Idle guide: no autoplay after 60 s. Occluded keeps playing; minimized stops presenting after ~10 s.
-- A capture still running when a programme ends is untested.
-- Known, not fixed: in 720p mode (D028) Philo's tune warning reads "upscaled into the 1280x720 frame" though nothing is upscaled.
+- A capture still running when a programme ends is untested — closed by D029 (2026-09-26), not pursued.
+- Known, not fixed (D029): in 720p mode (D028) Philo's tune warning reads "upscaled into the 1280x720 frame" though nothing is upscaled.
 
 Container / Docker:
 - Chrome's sandbox needs `--cap-add SYS_ADMIN`; default 64 MB `/dev/shm` is a known crash cause, so `--shm-size=1g`.
@@ -78,7 +80,7 @@ Carried from earlier sessions:
 - **Dev:** marlinpc (Pop!_OS 24.04), repo `/Apps/marlin-cast`, remote `git@github.com:marlin1111ai/marlin-cast.git` over SSH (never HTTPS). main fully pushed (verify with git fetch). Docker 29.1.3 present; the owner's user is in the docker group.
 - Dev Chrome: owner-launched via `scripts/start-chrome.sh` (opens both provider tabs), loopback debug port 9333. Dev server `npm run serve` on 0.0.0.0:8804; it exits with ECONNREFUSED if Chrome is not up. `npm run channels` re-enumerates both providers.
 - Read-only reference tree: `/Apps/marlin-iptv-editor`.
-- Profiles on marlinpc: `data/chrome-profile` (live, both providers) · `backups/chrome-profile-2providers-20260913-0746.tgz` (deployed copy) · `backups/chrome-profile-basic-20260911-110129/` (YouTube TV only) · v11 profiles (machine-bound, not usable in Docker). `/tmp/mc-test/data` is a logged-in copy owned by 99:100 — owner removes it with `sudo rm -rf /tmp/mc-test`.
+- Profiles on marlinpc: `data/chrome-profile` (live, both providers) · `backups/chrome-profile-2providers-20260913-0746.tgz` (deployed copy) · `backups/chrome-profile-basic-20260911-110129/` (YouTube TV only) · v11 profiles (machine-bound, not usable in Docker).
 - Owner logs in by hand: on marlinpc over Jump Desktop (display `:10`), or in production through the viewer. The app never types credentials and never navigates to a login page.
 
 ## STANDING PROHIBITIONS — every prompt carries these
@@ -87,21 +89,29 @@ Carried from earlier sessions:
 - Never touch any container on it: `marlin-cast`, `prismcast`, `channelsdvr_intel`, `fastchannels`, `marlin-iptv-editor`, `marlin-cad`.
 - `/Apps/marlin-iptv-editor` is never written to.
 - Never restart, attach to, navigate, or close the owner's live Chrome tabs except through the app's own tune/enumerate paths, and never without saying so first. Never open any login/accounts page.
-- `backups/`, `data/chrome-profile-v11-*`, and `/tmp/mc-test` are read-only.
+- `backups/` and `data/chrome-profile-v11-*` are read-only.
 - No host installers: apt, snap, flatpak, brew. Docker image pulls and builds are permitted on marlinpc.
 - No credentials, cookies, tokens, session IDs, emails, avatars, or account identifiers in the repo, image, logs, reports, screenshots, or commits. `VNC_PASSWORD` only via env at run time.
 - Never force-push or rewrite history. Pushes verified by `git fetch` + SHA comparison.
 
 ## NOT YET BUILT
 
-Hardware (VAAPI) encoding · D014 GPU decode test on Unraid · concurrency beyond one stream · Fios (parked) · any UI beyond the status page, `/playlist*`, the stream endpoint, `/health` and `/icon.png`. The owner wants no settings pages.
+Hardware (VAAPI) encoding · D014 GPU decode test on Unraid (closed by D029, not pursued) · concurrency beyond one stream · Fios (parked) · any UI beyond the status page, `/playlist*`, the stream endpoint, `/health` and `/icon.png`. The owner wants no settings pages.
 
 ## KNOWN OPEN QUESTIONS
 
-- Whether the 20 s idle timeout is the right number (no evidence behind it).
-- Whether `isDiscreteStation:true` ever appears on a regular channel (it would silently drop out; the only sign is the skipped-row list from `npm run channels`).
-- Whether YouTube TV `stationId` survives a rotation of a regular channel (none has been observed rotating).
-- What happens to a running Philo capture at a programme boundary.
-- Whether the Philo overlay sweep holds up over many tunes (1–3 sweeps in testing).
-- A/V drift on long captures: measured between −139.7 ms and +13.7 ms; nothing has run longer than 5.7 minutes under measurement.
-- Before/after playlist checks must ignore `tvg-logo` (programme thumbnails drift between enumerations).
+Closed 2026-09-26 by D029, not pursued: the idle-timeout number, `isDiscreteStation` on a regular channel, stationId across a rotation, a Philo capture at a programme boundary, the overlay sweep over many tunes, A/V drift on long captures. Left for the owner's call (2026-09-26 inventory; file:line in the notebook):
+- Unraid's running image: no pull after 0.1.1 is recorded (task-027:138), so whether it runs `sha-c876a3a` is unknown.
+- Release tags: the `v*` path has never run; GHCR holds no `X.Y.Z` tag (task-025:201, 207; task-027:150).
+- `notebook/OPEN-ITEMS.md` still lists four 2026-09-11 items, all since settled (OPEN-ITEMS:10–21).
+- YouTube TV quality pin across ad breaks and long runs; a progressively filled quality list could latch hd720 (task-002:375, 405; task-006:367; task-008:402; task-011:248).
+- Sub-1080p channels proceed with a warning rather than fail; never ruled (task-011:85, 235, 255). 60 fps never pursued, `MC_FPS` 30 (task-006:156, 450).
+- Long-run behaviour other than drift: MediaRecorder output after 20–30 min (task-001-kickoff:276), switch-storm and park/tune races (task-008:417; task-018:150), lip-sync never checked against the broadcast (task-006:302).
+- Session durability across days, reboots and Chrome updates is unmeasured (task-002:351; task-003:229; task-005:244, 275).
+- Philo tune-path fragility: live-edge seek off AMC or in ads (task-021:592), persisted-query hash (task-021:551), `tileGroupId` staleness (task-021:557), the no-live-broadcast path (task-021:568), `channelId` across days and tiers (recon-stable-ids:206, 332), CSS-module class names (recon-philo:166), logos in clients (task-021:562).
+- Philo playback speed at 720p on the QNAP is not stated (D028 note).
+- Hardware (VAAPI) encoding and its CPU saving (task-006:385; task-007:289, 345).
+- Container: Chrome 153 deb pin may vanish from Google's pool (recon-docker:131); nothing restarts Chrome if it dies (task-001c:226); `triggerAction` has no fallback (task-006:380, 483).
+- Code hygiene: unused Playwright dependency (task-021:565); no type-check gate (task-008:309; task-022:58); dead PDT rewrite (task-019:45); `last_error` on a normal stop (task-008:396); ffmpeg exit 255 at idle stop (task-022:211); `is1080` name (task-028:75).
+- Never ruled: `/health` shows the key (task-022:384); `access-control-allow-origin: *` with no auth (task-009:391); the parked guide keeps `#movie_player` mounted (task-018:135, 144); duplicate names in the consumer (task-008:385).
+- Unverified minor: noVNC `/` forward and copy buttons in a real browser (task-026:95; task-027:120); GHCR attestation entry in Unraid's UI (task-025:211); a larger guide body (task-022:410); task-024 V5 silent/black runs (task-024:336); CPU figures are single windows (task-028:74); Chrome exits on marlinpc (recon-stable-ids:336).

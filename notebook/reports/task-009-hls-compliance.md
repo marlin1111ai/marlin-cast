@@ -414,3 +414,7 @@ was never queried, including its logs.** `backups/` and
    Apple's `mediastreamvalidator` — is not installed and installing is
    out of scope, so the RFC 8216 checks in (ii) are my own
    implementation of the spec's rules, and one of them had a real bug.
+
+---
+
+**Note (2026-09-26):** closed by D029 — line 315 (A/V drift on long captures).

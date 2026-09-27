@@ -293,3 +293,7 @@ written to, or launched against in this task.
    the credential. Anyone who can read that path on Unraid can take the
    session. Filesystem permissions on the volume are now the only thing
    protecting it.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 240 and 282, the `/dev/dri` part (the D014 GPU decode test).

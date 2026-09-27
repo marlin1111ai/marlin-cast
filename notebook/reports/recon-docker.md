@@ -771,3 +771,7 @@ behaviour, the 8091 host port, GHCR pull, `appdata` ownership.
    the only external evidence, and PrismCast's Xvfb is GPU-backed.
 5. **Audio capture with no audio device** — found by reading
    `extension/offscreen.js:49-51`, never considered in any report.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 20, 436, 440, 447, 449, 453, 462, 476, 506, 627, 657, 701 (the D014 GPU decode test); line 507 (long runs / A/V drift); line 588 (the 20 s idle default).

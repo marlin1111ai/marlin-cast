@@ -157,3 +157,7 @@ the running container when the owner updates it on Unraid (not done here —
   re-pulled to `259873e4…`. No container.
 - `/tmp/mc-test` unchanged, still 99:100 — owner's `sudo rm -rf /tmp/mc-test`.
 - Live Chrome still quit; dev server not running.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 21, 23, the GPU decode part (the D014 GPU decode test).

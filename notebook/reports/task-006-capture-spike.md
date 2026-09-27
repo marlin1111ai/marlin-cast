@@ -488,3 +488,7 @@ occlusion test. All were killed; only pid 76888 remains.
    would look, and I found its `tab`-versus-`page` target requirement
    only by hitting the error. It is the part of this design I would
    least want to discover was fragile in month three.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 335, 341, 468 (capture under hardware decode / L1 — the D014 GPU decode test); line 460 (A/V drift on long captures).

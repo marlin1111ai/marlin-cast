@@ -211,3 +211,7 @@ cd /Apps/marlin-cast && npm run serve
    the old id still plays, as the event feed's did in task-022 V5, a tune
    serves stale content silently until the next `npm run channels`. It has
    never been observed on a regular channel.
+
+---
+
+**Note (2026-09-26):** closed by D029 — line 201 (isDiscreteStation:true on a regular channel).

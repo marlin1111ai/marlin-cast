@@ -426,3 +426,7 @@ Nothing touched Unraid or `/Apps/marlin-iptv-editor`. No installer ran.
    sits captured with nobody watching. HLS gives no disconnect signal,
    so something like this is necessary — but the number has no evidence
    behind it at all.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 200, 380, 400 (A/V drift on long captures); lines 254, 423 (the 20 s idle timeout).

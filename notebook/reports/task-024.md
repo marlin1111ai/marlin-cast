@@ -349,3 +349,7 @@ Committed: `Dockerfile`,
 5. **Lineup 141 vs 142.** Attributed to Sunday-morning guide drift by the row
    counts (147 vs 151 rows, no event rows today); not compared row by row
    against the task-023 cache.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 55, 307 (the D014 GPU decode test).

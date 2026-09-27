@@ -410,3 +410,7 @@ running on 0.0.0.0:8804, idle. Both owner tabs are parked on their guides.
 4. **Reading a ~2.4 MB guide body through `Network.getResponseBody` in the
    owner's tab.** It worked once (V2). The buffer sizes were set explicitly,
    and a larger guide is untested.
+
+---
+
+**Note (2026-09-26):** closed by D029 — line 406 (stationId surviving a rotation of a regular channel).

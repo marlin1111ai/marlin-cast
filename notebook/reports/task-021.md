@@ -690,3 +690,7 @@ background task*, which is why the harness could kill it under memory
 pressure. `scripts/start-chrome.sh` is meant to be run by the owner in a
 terminal on the marlinpc desktop; launched that way it is outside the
 builder's reach and survives this class of event.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 22, 236, 241, 550, 579 (the Philo overlay sweep over many tunes); lines 361, 542 (a running Philo capture at a programme boundary).

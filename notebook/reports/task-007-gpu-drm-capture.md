@@ -437,3 +437,7 @@ bash: connect: Connection refused
    account. The binary result (picture, not black) is robust to that.
    Anything finer — the 0.3 fps gap, the 2.4 MB size difference — is
    not, and I would not read those numbers as measuring the GPU path.
+
+---
+
+**Note (2026-09-26):** closed by D029 — lines 6, 142, 158, 219, 236, 243, 252, 257, 265, 315, 323, 330, 338, 415, 423, 426 (the D014 GPU decode test).
