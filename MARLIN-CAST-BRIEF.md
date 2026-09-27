@@ -50,6 +50,7 @@ Philo:
 - Unmuted play in a CDP-created tab is blocked until one real `Input.dispatchMouseEvent`; that click shows a control overlay that only hides on mousemove, so the app sweeps the pointer until it clears (1–3 sweeps observed; fails loud, not silent).
 - Idle guide: no autoplay after 60 s. Occluded keeps playing; minimized stops presenting after ~10 s.
 - A capture still running when a programme ends is untested.
+- Known, not fixed: in 720p mode (D028) Philo's tune warning reads "upscaled into the 1280x720 frame" though nothing is upscaled.
 
 Container / Docker:
 - Chrome's sandbox needs `--cap-add SYS_ADMIN`; default 64 MB `/dev/shm` is a known crash cause, so `--shm-size=1g`.
@@ -72,7 +73,8 @@ Carried from earlier sessions:
 ## ENVIRONMENT
 
 - **Production:** Unraid 192.168.1.250, container `marlin-cast` (fields in D026). Status page `http://192.168.1.250:8091/` lists all four URLs. Viewer `http://192.168.1.250:8092/` (password). Profile volume `/mnt/user/appdata/marlin-cast/data`. Re-login path: the viewer.
-- **Second install — the owner's father's QNAP TVS-EC1080** (Xeon E3-1245 v3, 4C/8T, 32 GB, QTS 5.2.10), at 192.168.1.30 on *that house's* network (on this network that address is a different device — never connect). Container Station compose application: `ghcr.io/marlin1111ai/marlin-cast:latest`; ports 8091→8804, 8092→6080; volume `/share/Container/marlin-cast/data` → `/data`; env `VNC_PASSWORD`, `PUID` 99, `PGID` 100; `cap_add: SYS_ADMIN`; `shm_size: 1gb`; no `/dev/dri`. The owner signed in to both providers through the viewer. First enumeration 2026-09-26 19:04 UTC: 377 channels (YouTube TV 143, Philo 234). Channels DVR there played a Marlin Cast stream on Apple TV in slow motion at 97% CPU (1080p YouTube TV, WBAL 11: chrome 76.1% combined, largest single 58.67%; ffmpeg 17.72%; channels-dvr 0.7%) — D028.
+- **Second install — the owner's father's QNAP TVS-EC1080** (Xeon E3-1245 v3, 4C/8T, 32 GB, QTS 5.2.10), at 192.168.1.30 on *that house's* network (on this network that address is a different device — never connect). Container Station compose application: `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` (pinned); ports 8091→8804, 8092→6080; volume `/share/Container/marlin-cast/data` → `/data`; env `VNC_PASSWORD`, `PUID` 99, `PGID` 100, `MC_WIDTH` 1280, `MC_HEIGHT` 720 (no `MC_XVFB_SCREEN`); `cap_add: SYS_ADMIN`; `shm_size: 1gb` — honoured, `/dev/shm` in the container reads 1.0G (owner-run `df -h`, 2026-09-26); no `/dev/dri`. Container Station would not let the owner edit the application's YAML, so the owner deleted the application and created it again with the new text; `/share/Container/marlin-cast/data` survived — channel list and sign-ins carried over, no re-login. The owner signed in to both providers through the viewer. First enumeration 2026-09-26 19:04 UTC: 377 channels (YouTube TV 143, Philo 234). At 1080p Channels DVR there played a Marlin Cast stream on Apple TV in slow motion at 97% CPU (1080p YouTube TV, WBAL 11: chrome 76.1% combined, largest single 58.67%; ffmpeg 17.72%; channels-dvr 0.7%) — D028.
+  - 720p (D028 note, 2026-09-26): total CPU 33.04% on WBAL 11 (owner: normal speed), 32.08% on Philo History (speed not stated), against 97.4% at 1080p.
 - **Dev:** marlinpc (Pop!_OS 24.04), repo `/Apps/marlin-cast`, remote `git@github.com:marlin1111ai/marlin-cast.git` over SSH (never HTTPS). main fully pushed (verify with git fetch). Docker 29.1.3 present; the owner's user is in the docker group.
 - Dev Chrome: owner-launched via `scripts/start-chrome.sh` (opens both provider tabs), loopback debug port 9333. Dev server `npm run serve` on 0.0.0.0:8804; it exits with ECONNREFUSED if Chrome is not up. `npm run channels` re-enumerates both providers.
 - Read-only reference tree: `/Apps/marlin-iptv-editor`.
@@ -103,4 +105,3 @@ Hardware (VAAPI) encoding · D014 GPU decode test on Unraid · concurrency beyon
 - Whether the Philo overlay sweep holds up over many tunes (1–3 sweeps in testing).
 - A/V drift on long captures: measured between −139.7 ms and +13.7 ms; nothing has run longer than 5.7 minutes under measurement.
 - Before/after playlist checks must ignore `tvg-logo` (programme thumbnails drift between enumerations).
-- Whether Container Station on the QNAP honours `shm_size` (`df -h /dev/shm` in the container) is not yet checked.

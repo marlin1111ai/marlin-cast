@@ -1,6 +1,6 @@
 # SESSION-STATE.md
 
-Updated 2026-09-13. This is a cold-start brief for the Marlin Cast
+Updated 2026-09-26. This is a cold-start brief for the Marlin Cast
 project. See DECISIONS.md for the standing rules that govern every
 session.
 
@@ -18,6 +18,16 @@ on Apple TV through Marlin IPTV Editor, sources `/playlist/youtube-tv` and
 repo is public (D027); the container icon comes from the raw GitHub URL
 (KNOWN-FIXES). `VERSION` is 0.1.2 (task-027: the status page lists all four
 URLs).
+
+**2026-09-26 (D028 and its note):**
+- **QNAP** (the owner's father's, second install): running at 720p on
+  `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` with `MC_WIDTH=1280`
+  `MC_HEIGHT=720`, no `MC_XVFB_SCREEN`. Total CPU ~33% (was 97.4% at 1080p).
+- **Unraid:** no change made on 2026-09-26; the container sets no size env.
+- **Pushed:** main through this notebook commit. The last code commit is
+  c876a3a (task-028, YouTube TV quality follows `MC_HEIGHT`), published as
+  `sha-c876a3a`; the notebook/brief commit after it builds no image (D025
+  path filter).
 
 **Open / parked:**
 - **GPU decode test on Unraid — open** (D014 note). The container runs on CPU

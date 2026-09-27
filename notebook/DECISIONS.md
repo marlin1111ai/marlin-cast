@@ -533,3 +533,13 @@ container CPU); the table uses the second, mostly-programme window. The
 smaller display is not ruled out as a factor.
 
 **Dated 2026-09-26. Owner-ruled.**
+
+**Note (2026-09-26, owner-observed):** the QNAP now runs image sha-c876a3a
+with MC_WIDTH=1280 MC_HEIGHT=720 (MC_XVFB_SCREEN not set). QNAP Resource
+Monitor at 720p:
+- WBAL 11 (YouTube TV): total 33.04%; chrome processes 18.1% combined;
+  ffmpeg 12.39%; channels-dvr 0.38%. Owner: plays at normal speed.
+- Philo History: total 32.08%; chrome processes 16.4% combined; ffmpeg
+  9.47%; channels-dvr 0.52%. Playback speed not stated by the owner.
+
+Against 97.4% at 1080p (D028 reason).
