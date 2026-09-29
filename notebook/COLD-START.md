@@ -1,6 +1,6 @@
 # MARLIN CAST — COLD-START BRIEF (v6, 2026-09-29)
 
-Supersedes v5 (2026-09-26). This file lives at the repo root as `MARLIN-CAST-BRIEF.md`.
+Supersedes v5 (2026-09-26). This file lives at `notebook/COLD-START.md`.
 
 ## FOREMAN: READ BEFORE WRITING ANY PROMPT
 

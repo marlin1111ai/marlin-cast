@@ -809,3 +809,13 @@ Items closed (reports are in `notebook/reports/`; line numbers are at commit
 - The post-collection point taken at 24 s, not 10 s — task-031.md:172.
 
 **Dated 2026-09-29. Owner-ruled.**
+
+---
+
+## D037 — Cold-start brief location
+
+The cold-start brief is notebook/COLD-START.md, moved from the repo root's
+MARLIN-CAST-BRIEF.md with its history kept (git mv). Earlier notebook entries
+that name MARLIN-CAST-BRIEF.md refer to this file.
+
+**Dated 2026-09-29. Owner-ruled.**
