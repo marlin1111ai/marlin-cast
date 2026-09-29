@@ -735,3 +735,77 @@ joined.
 **Note (2026-09-29, owner-ruled):** eight Philo channels named only in
 USA-YTBE512-X take that lineup's ids; CNBC → 58780; MPT (both) and Cheddar
 News stay untagged (task-033).
+
+---
+
+## D036 — Session items closed; acceptance
+
+Owner-confirmed 2026-09-29: the Unraid container was force-updated to latest =
+sha-0f042a9 (task-033); in Marlin DVR the guide is present and channels play;
+docker stats read 869.8 MiB after one tune.
+
+Owner's calls, closed, not pursued, reopen if seen:
+- the D033 memory fix on hours-long tunes and on Philo;
+- the name-only station pairs (task-032, task-033);
+- the untagged channels;
+- the backup's one-off YouTube TV sign-out (task-033);
+- VERSION staying 0.1.2;
+- recon-chrome-memory.md's not-determined items;
+- the 'least sure of' items in recon-chrome-memory.md and task-030 to task-033;
+- successful-collection logging;
+- the station table not warning on channels a provider adds later;
+- no backpressure on ffmpeg writes;
+- Marlin DVR's 346 against 401 stations for USA-YTBE512-X;
+- the post-collection point taken at 24 s, not 10 s.
+
+The QNAP stays pinned to sha-c876a3a (owner's choice). The Unraid memory
+recheck is closed on the 869.8 MiB reading; reopen if it climbs past 2 GiB.
+
+The Schedules Direct username occurring in the repo is left as it is (owner's
+call; history is not rewritten).
+
+Marlin DVR reads Marlin Cast directly through two sources, /playlist/youtube-tv
+and /playlist/philo, and takes its guide from Schedules Direct joined by
+tvc-guide-stationid (D035). This updates D026's 2026-09-13 note that the editor
+used the single /playlist source. Owner, 2026-09-29.
+
+Items closed (reports are in `notebook/reports/`; line numbers are at commit
+8511fb4; "also" marks the same item recorded in a second place):
+- The D033 memory fix on hours-long tunes — recon-chrome-memory.md:676;
+  task-031.md:695; also SESSION-STATE.md:1455.
+- The D033 memory fix on Philo — task-031.md:699; also SESSION-STATE.md:1456.
+- The name-only station pairs — task-032.md:658, 661, 666, 669;
+  task-033.md:372, 378, 381; also SESSION-STATE.md:1530, 1596.
+- The untagged channels — the lists at task-032.md:424–447 and
+  task-033.md:331–345; MPT — task-032.md:638; Cheddar News — task-032.md:642;
+  the Philo channels with no station — task-032.md:644, task-033.md:357; also
+  DECISIONS.md:735 (D035 note), SESSION-STATE.md:1525, 1592.
+- The backup's one-off YouTube TV sign-out — task-033.md:124, 351, 383; also
+  SESSION-STATE.md:1555, 1590.
+- `VERSION` staying 0.1.2 — task-031.md:667; task-032.md:651;
+  task-033.md:360; also SESSION-STATE.md:1449, 1527, 1593.
+- recon-chrome-memory.md's not-determined items —
+  recon-chrome-memory.md:673 (what the browser process holds per tune and
+  what decides its release; the cause was proven afterwards by task-031,
+  D033), 676 (whether the growth has a ceiling), 680 (the unmapped renderer;
+  also :322), 681 (the omnibox renderer's `documents` counter; also :478).
+- The 'least sure of' items — recon-chrome-memory.md:685, 688, 691, 694,
+  696; task-030.md:250, 254, 258, 261; task-031.md:684, 687, 689, 692, 695,
+  697, 699, 701; task-032.md:658, 661, 666, 669, 672, 677, 680;
+  task-033.md:372, 378, 381, 383, 386, 389.
+- Unraid and the QNAP not running the latest change until updated —
+  task-031.md:676; task-032.md:652; task-033.md:361; also
+  SESSION-STATE.md:1451, 1527, 1593 (answered above: Unraid runs sha-0f042a9;
+  the QNAP stays pinned).
+- The Unraid memory recheck — no file records it as owed under that name; the
+  nearest items are "that marlinpc predicts Unraid",
+  recon-chrome-memory.md:696 and task-031.md:701 (answered above: 869.8 MiB
+  after one tune).
+- Successful-collection logging — task-031.md:679; also SESSION-STATE.md:1452.
+- The station table not warning on channels a provider adds later —
+  task-032.md:648; task-033.md:359; also SESSION-STATE.md:1526, 1593.
+- No backpressure on ffmpeg writes — task-030.md:61, 243.
+- Marlin DVR's 346 against 401 stations for USA-YTBE512-X — task-032.md:151.
+- The post-collection point taken at 24 s, not 10 s — task-031.md:172.
+
+**Dated 2026-09-29. Owner-ruled.**

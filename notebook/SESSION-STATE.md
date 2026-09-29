@@ -1,58 +1,65 @@
 # SESSION-STATE.md
 
-Updated 2026-09-26. This is a cold-start brief for the Marlin Cast
+Updated 2026-09-29. This is a cold-start brief for the Marlin Cast
 project. See DECISIONS.md for the standing rules that govern every
 session.
 
 ---
 
-## Where things stand (2026-09-26, handoff after D031)
+## Where things stand (2026-09-29, handoff after D036)
 
-**Pushed.** main is pushed through the commit that records D031 (2026-09-26,
+**Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
-(task-033, D035 note; the table only); it is the image `sha-0f042a9`, which
-GHCR `latest` also points to (same digest). `sha-1d307b1` (task-032, D035)
-remains in GHCR. `sha-13071d7` (task-031) carries the D033 memory fix
-and is what Unraid runs since the owner's force-update on 2026-09-28 (D026
-note). `sha-c876a3a` (task-028) remains in GHCR, and the QNAP is still pinned
-to it. Notebook- and brief-only commits build no image (D025).
-`VERSION` is 0.1.2; no git tag exists, so GHCR holds no `X.Y.Z` image tag.
-Rollback tag `sha-e28689d` is still in GHCR.
+(task-033, D035 note; the station table only); it is the image `sha-0f042a9`,
+which GHCR `latest` also points to (same digest). Also in GHCR:
+`sha-1d307b1` (task-032, D035), `sha-13071d7` (task-031, D033),
+`sha-c876a3a` (task-028) and the rollback tag `sha-e28689d`. Notebook- and
+brief-only commits build no image (D025). `VERSION` is 0.1.2 (D036); no git
+tag exists, so GHCR holds no `X.Y.Z` image tag.
 
 **Deployed where:**
 - **Unraid** (D026): container `marlin-cast` on `ghcr.io/marlin1111ai/marlin-cast:latest`
   with no size env, so 1080p (D028). Deployed 2026-09-13 at `VERSION` 0.1.1.
-  Unraid runs `sha-13071d7` since the 2026-09-28 force-update (D026 note).
-  No change was made there on 2026-09-26. App on host 8091, viewer on host 8092,
-  `/mnt/user/appdata/marlin-cast/data` → `/data`, `--cap-add SYS_ADMIN
-  --shm-size=1g`. Consumed by Marlin IPTV Editor from the single `/playlist`
-  source (D026 note). marlinpc is dev-only (D012 fulfilled).
+  Force-updated to `latest` = `sha-0f042a9` (D036, owner-confirmed
+  2026-09-29): in Marlin DVR the guide is present and channels play;
+  `docker stats` read 869.8 MiB after one tune. The memory recheck is closed
+  on that reading; reopen if it climbs past 2 GiB (D036). App on host 8091,
+  viewer on host 8092, `/mnt/user/appdata/marlin-cast/data` → `/data`,
+  `--cap-add SYS_ADMIN --shm-size=1g`. Unraid served 367 channels (YouTube TV
+  141, Philo 226) per the Marlin DVR report of 2026-09-28. marlinpc is
+  dev-only (D012 fulfilled).
+- **Consumer** (D036): Marlin DVR reads Marlin Cast directly through two
+  sources, `/playlist/youtube-tv` and `/playlist/philo`, and takes its guide
+  from Schedules Direct joined by `tvc-guide-stationid` (D035). This updates
+  D026's 2026-09-13 note that the editor used the single `/playlist` source.
 - **QNAP** (the owner's father's, second install): Container Station
-  application on `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` at 720p
-  (`MC_WIDTH=1280` `MC_HEIGHT=720`, no `MC_XVFB_SCREEN`). Total CPU ~33%
-  against 97.4% at 1080p (D028 note); WBAL 11 and Philo History both play at
-  normal speed (owner). `/dev/shm` reads 1.0G there.
+  application pinned to `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` (the
+  owner's choice, D036) at 720p (`MC_WIDTH=1280` `MC_HEIGHT=720`, no
+  `MC_XVFB_SCREEN`), so it has neither the D033 memory fix nor the D035
+  station ids. Total CPU ~33% against 97.4% at 1080p (D028 note); WBAL 11 and
+  Philo History both play at normal speed (owner). `/dev/shm` reads 1.0G
+  there. WBAL 11 seen about 6 hours behind live once, not pursued (D034).
 
-**Closed by D029 (2026-09-26), not pursued:** the 20 s idle-timeout number,
-`isDiscreteStation:true` on a regular channel, stationId across a regular
-channel's rotation, a Philo capture at a programme boundary, the Philo overlay
-sweep over many tunes, A/V drift on long captures, the D014 GPU decode test on
-Unraid. Philo's 720p warning text is left as is.
+**Since D031:** the Chrome memory recon closed at 12 of 20 cycles (D032); the
+browser process's per-tune step is gone with a forced collection on the
+extension's offscreen document every 60 s and at stop (D033); every playlist
+line with a credible station carries `tvc-guide-stationid` from
+`src/stations.json`, built on the owner's Schedules Direct lineups — 217
+entries, 217 of 375 lines on the marlinpc test enumeration (YouTube TV 128 of
+141, Philo 89 of 234) (D035 and its note); every item the recon and tasks
+030–033 left for the owner is closed, each with file:line (D036).
+
+**Closed, not pursued, reopen if seen:** D029, D030, D031 (2026-09-26); D032
+and D034 (2026-09-28); D036 (2026-09-29). **No open items are left.**
 
 **Parked, unchanged:** Fios (notebook/reports/fios-splash.md); stale-watch-id
 detection (D020 note); the Channels DVR playback defect (D016).
 
-**Closed by D030 (2026-09-26), not pursued:** every item that task-029 left
-for the owner's call (listed with file:line in D030); `notebook/OPEN-ITEMS.md`
-is settled.
-
-**Closed by D031 (2026-09-26), not pursued:** the remaining report items
-(listed with file:line in D031). **No open items are left.**
-
-**marlinpc:** `/tmp/mc-test` is gone (confirmed 2026-09-26). Local images
-`marlin-cast:task024`, `:task026`, `:task027` and a 2026-09-13 pull of
-`ghcr.io/…/marlin-cast:latest` were deleted on 2026-09-26 (D030 pass), with
-the task-028 image before them; no Marlin Cast image is left locally.
+**marlinpc** (checked 2026-09-29): no Marlin Cast container, image or process;
+the builder's scratchpads are empty; the builder's leftover files are deleted
+and three recordings a report names are kept in `data/captures/`
+(notebook/reports/handoff-2026-09-29.md). The backup's sha256 is unchanged:
+`6ebd9ea976118bcb8c24e10b590680e5d44e405d1b3a9f7f09a0a3982258dbe3`.
 
 The task records below are the history, oldest first.
 
