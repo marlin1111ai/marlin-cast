@@ -1349,3 +1349,44 @@ dev server was running during either pass. "Where things stand" at the top of
 this file is unchanged and predates this pass.
 
 See notebook/reports/recon-chrome-memory.md.
+
+---
+
+## Task 030 — chunk references traced; nothing holds a sent chunk; no code change (2026-09-28)
+
+**Stopped after step 1, on the brief's own branch.** The brief asked for every
+place that keeps a reference to a recorded chunk after it is sent, then a fix
+in the file holding it. The trace of `extension/` and `src/` found none, so no
+fix was made and steps 2–7 (image, run, 12-cycle measurement, GHCR check) were
+not run.
+
+**The path of one chunk:** MediaRecorder's `dataavailable`
+(`extension/offscreen.js:56`) → a callback queued on the send chain that
+captures the event (`:63-74`) → `fetch` with the Blob as its body (`:65-69`) →
+`express.raw` builds `req.body` (`src/server.ts:71`) → `ingest()` writes it to
+ffmpeg's stdin (`src/capture.ts:375-382`). The last holder in the extension is
+the send callback, which ends when the POST is answered; the server keeps
+nothing past the request. The arrays and Blob that would hold a whole
+recording (`offscreen.js:9-11`, `:58`, `:107-108`) are file mode only and the
+app always streams (`src/capture.ts:357-361`). `background.js` never receives
+a chunk.
+
+**Not determined:** why the browser process still steps up 27–30 MB per tune.
+The recon's inference stands and fits the trace — a sent chunk is garbage, not
+freed memory; Chrome holds a Blob's bytes in the browser process until the
+offscreen document's garbage collector takes the Blob; nothing closes that
+document or asks for a collection. Nothing was run to test it.
+
+**Open, the owner's call** (each needs a change in a file that holds no
+reference; none tried): force a collection on the offscreen document over CDP
+from `src/capture.ts`; close the offscreen document at stop in
+`extension/background.js`; or leave it.
+
+**Hand-off:** the report and this entry are committed and pushed in one
+notebook-only commit, which builds no image (D025); GHCR is unchanged,
+`latest` = `sha-c876a3a`. No image was built or pulled, no container was run,
+the backup was not read, the scratchpad is empty. No owner Chrome and no dev
+server was touched. "Where things stand" at the top of this file is unchanged
+and predates this pass.
+
+See notebook/reports/task-030.md.
