@@ -1390,3 +1390,72 @@ server was touched. "Where things stand" at the top of this file is unchanged
 and predates this pass.
 
 See notebook/reports/task-030.md.
+
+---
+
+## Task 031 — forced collection on the offscreen document; the per-tune step is gone (2026-09-28)
+
+**Owner's call carried out:** Marlin Cast forces a garbage collection on the
+capture extension's offscreen document over CDP
+(`HeapProfiler.collectGarbage`) every 60 s during a capture and once at stop.
+
+**Cause proven first, on the unchanged image** (`sha-c876a3a`, container on a
+working copy of the 2026-09-13 two-provider backup, the D024 run line, 1080p,
+both providers signed in, 375 channels). After three WBAL 11 tunes the
+browser process read 448,924 kB (RssAnon 177,012) against 351,004 (89,732) at
+startup. One collection sent to the offscreen document took it to 362,520
+(92,592): 88% of the RSS growth and 97% of the RssAnon growth released. The
+point was taken 24 s after the collection, not the 10 s intended.
+
+**Reached how:** the offscreen document is a CDP target of its own — type
+`background_page`, URL `chrome-extension://<id>/offscreen.html` — listed by
+the unfiltered `Target.getTargets` the app already uses. The app did not
+reach it before; it only talked to the service worker.
+
+**Built:** `src/capture.ts` only (+48 −1). `collectOffscreen()` attaches to
+that target, sends the collection and detaches, raced against a 5 s timeout;
+a timer set once the recorder is running calls it every 60 s; `stop()` clears
+the timer and calls it once after the recorder has stopped. A failure logs
+`[gc] WARNING: offscreen collection failed (<interval|stop>): <error>` and
+the capture goes on. A success logs nothing. `src/cdp.ts` needed no change.
+`VERSION` stays 0.1.2.
+
+**Measured on an image built from the working tree** (same run line and
+profile copy; no page probed):
+- **12 cycles** (60 s pull, idle stop, park, 10 s): browser process
+  356,556–360,084 kB; per-tune change −660 to +1,412 kB from cycle 2 on,
+  against +26,056 to +29,960 in the recon.
+- **One 10-minute pull, a point a minute:** 364,372–380,556 kB, two levels
+  (RssAnon about 96,000–97,400 and about 108,400–111,900), no climb; 356,808
+  after the stop.
+- **Pulls:** 14 of 14 exited 0 with as much media as wall time (59.98 s in
+  59.9–60.5 s; 599.98 s in 599.7 s; 29.99 s in 30.2 s). ffprobe on the 30 s
+  pull: H.264 High 1920×1080 30 fps, AAC-LC 48 kHz stereo.
+- **Cold tune:** 12 of 14 at 4.09–4.62 s; 6.71 s on the container's first
+  tune and 7.39 s on one where the player took 4,930 ms to start. The
+  unchanged image shows both patterns; passed on that judgement.
+- **Warning line:** 0 times in 14 tunes.
+
+**Cleaned up:** both containers removed; the profile copy deleted through a
+throwaway root container of the local image; the local image and the pulled
+`sha-c876a3a` removed; the scratchpad emptied after the raw logs were checked
+identical to the report's appendices. The backup's sha256 is unchanged:
+`6ebd9ea976118bcb8c24e10b590680e5d44e405d1b3a9f7f09a0a3982258dbe3`.
+
+**Open, the owner's call:** `VERSION` not bumped; the call has no decision
+number in DECISIONS.md; "Where things stand" at the top of this file and
+`MARLIN-CAST-BRIEF.md` still name `sha-c876a3a` as `latest`; Unraid and the
+QNAP do not run this change until the owner updates them; whether a
+successful collection should be logged.
+
+**Not seen:** the warning path (never fired, no failure induced); a capture
+longer than about 10 minutes; Philo with the change.
+
+**Hand-off:** the code change, the report and this entry are one commit on
+main, pushed; a push that touches `src/` builds an image (D025), so GHCR gets
+`latest` and `sha-<short>` for it. No container, image or scratch file is
+left on marlinpc; the builder's background-task output files remain in the
+harness's `tasks/` directory (named in the report). No owner Chrome and no
+dev server was running during the pass.
+
+See notebook/reports/task-031.md.

@@ -29,6 +29,13 @@ const TIMESLICE_MS = Number(process.env.MC_TIMESLICE ?? 1000);
 /** HLS is pull-based and gives no disconnect signal, so "client gone" is
  *  inferred from silence. See the report. */
 export const IDLE_MS = Number(process.env.MC_IDLE_MS ?? 20000);
+/** How often the extension's offscreen document is made to collect garbage
+ *  while a capture runs (task-031). Every timeslice is a Blob, and Chrome keeps
+ *  a Blob's bytes in the browser process until the document that cut it
+ *  collects it — which, left alone, it did once in twelve tunes. */
+const GC_MS = 60000;
+/** A collection that has not answered by then is reported, not waited for. */
+const GC_TIMEOUT_MS = 5000;
 
 export type Status = {
   state: "idle" | "starting" | "streaming" | "stopping";
@@ -61,6 +68,8 @@ type Live = {
   chunksIn: number;
   bytesIn: number;
   stopping: boolean;
+  /** The collection timer (task-031); set once the recorder is running. */
+  gc: ReturnType<typeof setInterval> | null;
 };
 
 /**
@@ -159,6 +168,32 @@ export class Pipeline {
       await sleep(500);
     }
     throw new Error("extension service worker never appeared");
+  }
+
+  /** Force a garbage collection in the extension's offscreen document
+   *  (task-031). The document is a target of its own, not reached through the
+   *  service worker; the session is attached for the one call and detached
+   *  again. A failure is a loud named warning and never stops the capture. */
+  private async collectOffscreen(when: string): Promise<void> {
+    const collect = async () => {
+      const { targetInfos } = await this.cdp.send<any>("Target.getTargets");
+      const doc = targetInfos.find((t: any) => t.url === `chrome-extension://${this.extId}/offscreen.html`);
+      if (!doc) throw new Error("no offscreen document target");
+      const { sessionId } = await this.cdp.send<any>("Target.attachToTarget", { targetId: doc.targetId, flatten: true });
+      try {
+        await this.cdp.send("HeapProfiler.collectGarbage", {}, sessionId);
+      } finally {
+        await this.cdp.send("Target.detachFromTarget", { sessionId }).catch(() => {});
+      }
+    };
+    try {
+      await Promise.race([
+        collect(),
+        sleep(GC_TIMEOUT_MS).then(() => { throw new Error(`no answer within ${GC_TIMEOUT_MS}ms`); }),
+      ]);
+    } catch (e) {
+      console.error(`[gc] WARNING: offscreen collection failed (${when}): ${String(e)}`);
+    }
   }
 
   status(): Status {
@@ -348,7 +383,7 @@ export class Pipeline {
     this.live = {
       channel, provider, session, pageTargetId: tab.id, token, dir, ffmpeg,
       startedAt: Date.now(), lastAccess: Date.now(),
-      chunksIn: 0, bytesIn: 0, stopping: false,
+      chunksIn: 0, bytesIn: 0, stopping: false, gc: null,
     };
 
     // --- arm the extension and record ------------------------------------
@@ -370,6 +405,13 @@ export class Pipeline {
     }
     if (started.phase !== "recording") throw new Error(`capture did not start: ${started.error}`);
     console.log(`[capture] ${channel.name} recording ${JSON.stringify(started.note?.tracks?.video?.settings ?? {})}`);
+
+    const live = this.live;
+    if (live && live.token === token && !live.stopping) {
+      live.gc = setInterval(() => {
+        if (this.live === live && !live.stopping) void this.collectOffscreen("interval");
+      }, GC_MS);
+    }
   }
 
   ingest(key: string, token: string, buf: Buffer): boolean {
@@ -385,12 +427,17 @@ export class Pipeline {
     const l = this.live;
     if (!l || l.stopping) return;
     l.stopping = true;
+    if (l.gc) clearInterval(l.gc);
     console.log(`[stop] ${l.channel.name}: ${reason}`);
 
     try {
       const sw = await this.swSession(l.session);
       await evalIn(this.cdp, sw, `self.mcStop({})`);
     } catch (e) { console.error(`[stop] recorder stop failed: ${String(e)}`); }
+
+    // The extension reports stopped only once every timeslice is away, so
+    // this collection takes the last of them (task-031).
+    await this.collectOffscreen("stop");
 
     try { l.ffmpeg.stdin.end(); } catch { /* already closed */ }
     await new Promise<void>((res) => {
