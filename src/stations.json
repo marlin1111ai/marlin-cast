@@ -830,5 +830,41 @@
   "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NzY": {
     "stationId": "177501",
     "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3Mzc": {
+    "stationId": "115679",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3NDI": {
+    "stationId": "115678",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3OTE": {
+    "stationId": "131737",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NDI": {
+    "stationId": "146769",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3Mzk": {
+    "stationId": "122435",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NDE": {
+    "stationId": "115539",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NDM": {
+    "stationId": "137752",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3MzU": {
+    "stationId": "115540",
+    "basis": "hand"
+  },
+  "UCBvMULs2YrbFjhPJQBKILhw": {
+    "stationId": "58780",
+    "basis": "hand"
   }
 }

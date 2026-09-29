@@ -731,3 +731,7 @@ Direct guide by this tag (Marlin DVR decision 4a); by name only 69 of 367
 joined.
 
 **Dated 2026-09-29. Owner-ruled.**
+
+**Note (2026-09-29, owner-ruled):** eight Philo channels named only in
+USA-YTBE512-X take that lineup's ids; CNBC → 58780; MPT (both) and Cheddar
+News stay untagged (task-033).

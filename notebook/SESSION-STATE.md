@@ -21,8 +21,8 @@ Rollback tag `sha-e28689d` is still in GHCR.
 **Deployed where:**
 - **Unraid** (D026): container `marlin-cast` on `ghcr.io/marlin1111ai/marlin-cast:latest`
   with no size env, so 1080p (D028). Deployed 2026-09-13 at `VERSION` 0.1.1.
-  Unraid shows tag `latest` and no version, so which build it runs is not
-  known (D030). No change was made there on 2026-09-26. App on host 8091, viewer on host 8092,
+  Unraid runs `sha-13071d7` since the 2026-09-28 force-update (D026 note).
+  No change was made there on 2026-09-26. App on host 8091, viewer on host 8092,
   `/mnt/user/appdata/marlin-cast/data` → `/data`, `--cap-add SYS_ADMIN
   --shm-size=1g`. Consumed by Marlin IPTV Editor from the single `/playlist`
   source (D026 note). marlinpc is dev-only (D012 fulfilled).
@@ -1538,3 +1538,69 @@ statements about GHCR `latest` in "Where things stand" and the brief. The
 clean-up follows the pushes; its evidence is in the hand-off.
 
 See notebook/reports/task-032.md.
+
+---
+
+## Task 033 — nine more station ids; 217 of 375 lines tagged (2026-09-29)
+
+**Owner's calls carried out (note under D035):** the eight Philo channels
+named only in `USA-YTBE512-X` take that lineup's station ids (All Reality WE
+tv, AMC Thrillers, Overtime, Pickleball TV, Portlandia, Stories by AMC, The
+Tennis Channel 2, The Walking Dead Universe); CNBC → 58780; MPT (both) and
+Cheddar News stay untagged. **Also:** "Where things stand" and the brief now
+say Unraid runs `sha-13071d7` since the 2026-09-28 force-update (D026 note);
+the brief's D030 summary line is left as it is.
+
+**Run in two parts.** The first stopped at the throwaway container's sign-in
+check: on the first boot of a fresh copy of the 2026-09-13 two-provider
+backup, YouTube TV read SIGNED OUT (it landed on the welcome page), though the
+guide then enumerated 141 channels and the tab read signed in two minutes
+later. Nothing had been changed and no Schedules Direct request had been made.
+The owner ruled: start that container once more and continue only if both
+providers read signed in. They did, on that boot and on the verify
+container's. Why the first boot read signed out is not proven.
+
+**Lineup:** one token request, one read of `USA-YTBE512-X`, nothing changed
+on the account; 401 station entries (393 distinct ids), the same as
+task-032's read. Each of the eight names has exactly one station of that
+exact name; none was left out. The lineup data stayed in the scratchpad.
+
+**The table, 217 entries** (208 + 9, appended; no existing entry changed):
+
+| | channels | tagged | untagged | name | callsign | hand |
+|---|---|---|---|---|---|---|
+| YouTube TV | 141 | 128 | 13 | 28 | 5 | 95 |
+| Philo | 234 | 89 | 145 | 19 | 0 | 70 |
+
+All nine are basis `hand`. Seven of the eight stations were already in the
+table under a YouTube TV channel; Overtime's and CNBC's are new to it. 181
+distinct stations. No code change: `src/server.ts` is as task-032 left it.
+`VERSION` stays 0.1.2.
+
+**Verified on an image built from the working tree** (the D024 run line, the
+same `/data`, so the same channel cache as `b2df851`'s output):
+- `/playlist` 217 of 375 tagged; `/playlist/youtube-tv` 128 of 141;
+  `/playlist/philo` 89 of 234. Counted with `grep` and again by a script
+  against the table; both agree.
+- Against `b2df851`'s output the only differences are the nine added tags;
+  ESPN's line is byte-identical; no URL line differs.
+- No channel was tuned; the steps did not ask for one.
+
+**Open, the owner's call:** the backup's YouTube TV session read signed out
+once, so a later pass may need a newer profile backup, and whether production
+is affected is not known (Unraid was not contacted); 145 Philo channels with
+no station; the table is a snapshot; `VERSION` not bumped; Unraid and the QNAP
+do not run this until the owner updates them.
+
+**Not checked:** whether each of the eight Philo channels shows the schedule
+of the station Schedules Direct lists for YouTube TV (the pairs were made on
+names); which of the two CNBC stations YouTube TV's CNBC follows (the owner's
+pick).
+
+**Hand-off:** the table, DECISIONS.md, the two statements, the report and
+this entry are one commit on main, pushed; it touches `src/`, so GHCR gets
+`latest` and `sha-<short>` for it (D025). A second, notebook-only commit
+changes GHCR `latest` in "Where things stand" and the brief to that image.
+The clean-up follows the pushes; its evidence is in the hand-off.
+
+See notebook/reports/task-033.md.
