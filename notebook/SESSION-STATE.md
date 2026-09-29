@@ -9,9 +9,10 @@ session.
 ## Where things stand (2026-09-26, handoff after D031)
 
 **Pushed.** main is pushed through the commit that records D031 (2026-09-26,
-verified with `git fetch` + SHA comparison). The last code commit is 1d307b1
-(task-032, D035); it is the image `sha-1d307b1`, which GHCR `latest` also
-points to (same digest). `sha-13071d7` (task-031) carries the D033 memory fix
+verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
+(task-033, D035 note; the table only); it is the image `sha-0f042a9`, which
+GHCR `latest` also points to (same digest). `sha-1d307b1` (task-032, D035)
+remains in GHCR. `sha-13071d7` (task-031) carries the D033 memory fix
 and is what Unraid runs since the owner's force-update on 2026-09-28 (D026
 note). `sha-c876a3a` (task-028) remains in GHCR, and the QNAP is still pinned
 to it. Notebook- and brief-only commits build no image (D025).
