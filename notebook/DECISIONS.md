@@ -464,6 +464,9 @@ two editor sources with the single /playlist source; the editor separates
 providers by group-title. /playlist/youtube-tv and /playlist/philo remain
 available (D021).
 
+**Note (2026-09-28, owner):** the Unraid container was force-updated to
+latest = sha-13071d7 (task-031).
+
 ---
 
 ## D027 — The repo is public
@@ -689,3 +692,42 @@ ready not satisfied within 30000ms, readyState 1) is not pursued; reopen if
 seen on Unraid.
 
 **Dated 2026-09-28. Owner-ruled.**
+
+---
+
+## D033 — Chrome memory: forced collection on the offscreen document
+
+Marlin Cast forces a garbage collection on the capture extension's offscreen
+document over CDP (HeapProfiler.collectGarbage) every 60 s during a capture
+and once at stop. Reason: the browser process kept each tune's recorded chunks
+until the offscreen document's collector ran, about 27–30 MB per tune
+(recon-chrome-memory.md); one forced collection released 88% of the growth
+(task-031). Built in task-031, 13071d7.
+
+**Dated 2026-09-28. Owner-ruled.**
+
+---
+
+## D034 — QNAP: WBAL 11 started hours behind live, not pursued
+
+Owner-observed on the QNAP, reported 2026-09-28: WBAL 11 tuned from Channels
+DVR's live guide on Apple TV showed the local news at about 6:03 am when it
+was about noon, roughly 6 hours behind live. WBAL 11 had been watched that
+morning; what was watched in between is not known. Not pursued; reopen if seen
+again.
+
+**Dated 2026-09-28. Owner-ruled.**
+
+---
+
+## D035 — Station ids on every playlist line, from a table in the repo
+
+Every playlist line carries tvc-guide-stationid from a table in the repo
+(`src/stations.json`), built on 2026-09-29 from the owner's Schedules Direct
+lineups USA-YTBE512-X and USA-PHILO-X and keyed on the D020 key. Channels with
+no credible station carry no tag. Amends D015: the source is Schedules Direct,
+not PrismCast's /playlist. Reason: Marlin DVR 1.12.0 joins its Schedules
+Direct guide by this tag (Marlin DVR decision 4a); by name only 69 of 367
+joined.
+
+**Dated 2026-09-29. Owner-ruled.**

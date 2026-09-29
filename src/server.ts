@@ -101,11 +101,20 @@ function baseUrl(req: express.Request): string {
   return `http://${req.headers.host ?? `127.0.0.1:${PORT}`}`;
 }
 
-/** Test sliver toward D015 (task-017), re-keyed by D020: an explicit Gracenote
- *  station id for ONE channel only — ESPN guide row 17, the regular ESPN feed
- *  the owner tunes. 32645 is PrismCast's own tvc-guide-stationid for ESPN.
- *  Hardcoded on this one key; no mapping table, file, or config. */
-const ESPN_SLIVER_KEY = "UCW7W_WAogi3qWDbO9PqOmZQ";
+/** D035: the Schedules Direct / Gracenote station id of each channel, keyed on
+ *  the channel key (D020). The table is src/stations.json, built from the
+ *  owner's Schedules Direct lineups; `basis` says how each pair was made
+ *  (notebook/reports/task-032.md). A key with no entry carries no
+ *  tvc-guide-stationid. Replaces the task-017 ESPN sliver (D015). */
+type Station = { stationId: string; basis: "name" | "callsign" | "hand" };
+const STATIONS_FILE = join(ROOT, "src", "stations.json");
+let stations: Map<string, Station>;
+try {
+  stations = new Map(Object.entries(JSON.parse(readFileSync(STATIONS_FILE, "utf8")) as Record<string, Station>));
+} catch (e) {
+  console.error(`The station table ${STATIONS_FILE} cannot be read: ${String(e)}`);
+  process.exit(1);
+}
 
 function playlist(req: express.Request, providers: Provider[]): string {
   const base = baseUrl(req);
@@ -120,7 +129,7 @@ function playlist(req: express.Request, providers: Provider[]): string {
         `tvg-name="${name.replace(/"/g, "")}"`,
         c.logo ? `tvg-logo="${c.logo}"` : null,
         `group-title="${provider.label}"`,
-        c.key === ESPN_SLIVER_KEY ? `tvc-guide-stationid="32645"` : null,
+        stations.has(c.key) ? `tvc-guide-stationid="${stations.get(c.key)!.stationId}"` : null,
       ].filter(Boolean).join(" ");
       lines.push(`#EXTINF:-1 ${attrs},${name}`);
       lines.push(`${base}/stream/${c.key}/index.m3u8`);

@@ -1,0 +1,834 @@
+{
+  "UC6GmRNuKNw063eFfPKSjwrg": {
+    "stationId": "21230",
+    "basis": "hand"
+  },
+  "UCZmySpv9dwlwsU2ZxS0pipQ": {
+    "stationId": "21231",
+    "basis": "callsign"
+  },
+  "UCZpGPCjhzK5orxXIq9v3ISw": {
+    "stationId": "21232",
+    "basis": "callsign"
+  },
+  "UCwvyEt7pbq70uwkCFHpl6BA": {
+    "stationId": "21233",
+    "basis": "hand"
+  },
+  "UCnyI2GlwOcVb3uaXaK-65Iw": {
+    "stationId": "34522",
+    "basis": "hand"
+  },
+  "UCjkZit5yL9Eaa7VnAx4hJpw": {
+    "stationId": "77606",
+    "basis": "hand"
+  },
+  "UCJc8oTwG4BuXZhkYSimpXNw": {
+    "stationId": "68049",
+    "basis": "hand"
+  },
+  "UCL56IuYSxfOp1I__FBFtM7w": {
+    "stationId": "73882",
+    "basis": "hand"
+  },
+  "UC7Ir3yo2wlwLnV2KEtTMCoA": {
+    "stationId": "97051",
+    "basis": "hand"
+  },
+  "UCtfoIx_MZ0h5bX3i9YsF5xw": {
+    "stationId": "171005",
+    "basis": "name"
+  },
+  "UCmaPhYJOxFSETzGlJzZytpA": {
+    "stationId": "60222",
+    "basis": "hand"
+  },
+  "UC3A3AJWkUb8xZnlmL6ayOOQ": {
+    "stationId": "62077",
+    "basis": "hand"
+  },
+  "UCNStN294rsyi9hrNLou-eBQ": {
+    "stationId": "50339",
+    "basis": "hand"
+  },
+  "UCD9-oAYJYLAX5GAKCz_48SA": {
+    "stationId": "58515",
+    "basis": "hand"
+  },
+  "UCMrLeKNQLIcj2l1k4yqkILQ": {
+    "stationId": "42642",
+    "basis": "hand"
+  },
+  "UCW7W_WAogi3qWDbO9PqOmZQ": {
+    "stationId": "32645",
+    "basis": "hand"
+  },
+  "UCOtYFLYvZEiaZw4YpSjOndw": {
+    "stationId": "45507",
+    "basis": "hand"
+  },
+  "UCpj5ieQ9I6GFSsRnON4AOBQ": {
+    "stationId": "89714",
+    "basis": "hand"
+  },
+  "UCdj7clRJstl32igUku_7Jaw": {
+    "stationId": "111871",
+    "basis": "name"
+  },
+  "UCtGP7XtIzd3bwARBmJNcZYA": {
+    "stationId": "60696",
+    "basis": "hand"
+  },
+  "UChukTzuQDPENsI9IYCvDEaA": {
+    "stationId": "59976",
+    "basis": "hand"
+  },
+  "UC8f_6NxAk-x_HqzrIHTem9w": {
+    "stationId": "82547",
+    "basis": "hand"
+  },
+  "UCFsj5mvKOU6gEkbaptDHc3w": {
+    "stationId": "59305",
+    "basis": "hand"
+  },
+  "UC2tza2d01CFaPEYsFxYoqvQ": {
+    "stationId": "194412",
+    "basis": "name"
+  },
+  "UCjeeSYEak0yoYOPXtKlLjOQ": {
+    "stationId": "45526",
+    "basis": "hand"
+  },
+  "UCNp8TLrPZ6VB52E6tjqgu7w": {
+    "stationId": "34710",
+    "basis": "name"
+  },
+  "UCmBskGxtl-7At_lMzyLJYKA": {
+    "stationId": "58321",
+    "basis": "hand"
+  },
+  "UCJCcn5FyhJeu718vX-7jnJQ": {
+    "stationId": "59250",
+    "basis": "hand"
+  },
+  "UCWBR8qGJOBAe5PJXOeMLB0w": {
+    "stationId": "137752",
+    "basis": "callsign"
+  },
+  "UCaY_dmTBpOG9kWfXq-VLgtQ": {
+    "stationId": "102148",
+    "basis": "name"
+  },
+  "UCl7SHXEgznwaw_X0jsZFEcg": {
+    "stationId": "102116",
+    "basis": "hand"
+  },
+  "UCChSzsVWe1H3Kc2Fqn4atEQ": {
+    "stationId": "99380",
+    "basis": "hand"
+  },
+  "UCQRRBYgUQJ_EhwqS_dAy33w": {
+    "stationId": "146769",
+    "basis": "name"
+  },
+  "UC6e9zqzPIz3HgBfOEVkZX3A": {
+    "stationId": "147367",
+    "basis": "name"
+  },
+  "UCVN4FmqZlqjiNT9uR48Ll1Q": {
+    "stationId": "59684",
+    "basis": "hand"
+  },
+  "UCwCx1zNO1Qd4BHq3Jjl064Q": {
+    "stationId": "74885",
+    "basis": "hand"
+  },
+  "UCGbypKg9TspCXLL3yYzz31g": {
+    "stationId": "60006",
+    "basis": "hand"
+  },
+  "UCCYrcqAHdnJzkes2xe_X4Yw": {
+    "stationId": "60048",
+    "basis": "hand"
+  },
+  "UCEo26zV6dzpkFvEd1408olw": {
+    "stationId": "59432",
+    "basis": "hand"
+  },
+  "UC2HeknU5r0Gmr1a9Pz1O2Ug": {
+    "stationId": "82649",
+    "basis": "hand"
+  },
+  "UCRpa59GI1QwGkXq2V0kSCVQ": {
+    "stationId": "82654",
+    "basis": "hand"
+  },
+  "UCDn_3JCrVk1CD8aBWvW-QQQ": {
+    "stationId": "97047",
+    "basis": "hand"
+  },
+  "UCbjVsshw_-h8ZRQBYAacA2Q": {
+    "stationId": "59337",
+    "basis": "hand"
+  },
+  "UCiiV9Ifjzxq1R0VhMs8DmOw": {
+    "stationId": "115539",
+    "basis": "name"
+  },
+  "UC3rkSU0RQVyFYK-roH4jOnA": {
+    "stationId": "115678",
+    "basis": "name"
+  },
+  "UCXgV84lI09EqItQYLxCrZ0w": {
+    "stationId": "122435",
+    "basis": "name"
+  },
+  "UCv15E33qNOnHUKi188QZ7Aw": {
+    "stationId": "64492",
+    "basis": "hand"
+  },
+  "UCgAaOBjobOPnRRACWlMn30w": {
+    "stationId": "63236",
+    "basis": "hand"
+  },
+  "UCFSR1oVlgsOSiQe4dPnBOfw": {
+    "stationId": "63220",
+    "basis": "hand"
+  },
+  "UC3g9rzlm1aasACEwPMRV-5A": {
+    "stationId": "59440",
+    "basis": "hand"
+  },
+  "UCwig0jo9FYVff261Pd05MgQ": {
+    "stationId": "62420",
+    "basis": "hand"
+  },
+  "UC2vtKivdDk-kjg_qTzZTzUg": {
+    "stationId": "82470",
+    "basis": "hand"
+  },
+  "UCv_pZhnIyyPj3jf9TS9uToQ": {
+    "stationId": "59615",
+    "basis": "hand"
+  },
+  "UC8lqGZa37U4OO610SMbyQJw": {
+    "stationId": "119212",
+    "basis": "name"
+  },
+  "UCP7l2eYJokMkMQVwPs8WB_A": {
+    "stationId": "58574",
+    "basis": "hand"
+  },
+  "UC2u6by_bSmjjFSThIktJSRQ": {
+    "stationId": "66379",
+    "basis": "hand"
+  },
+  "UC0ARTCKFnn6CNqBnrV3VLRg": {
+    "stationId": "70253",
+    "basis": "hand"
+  },
+  "UCrxOU69oUq5Pb8oneCtTIyQ": {
+    "stationId": "11221",
+    "basis": "name"
+  },
+  "UCi2WWF4AMSF8vvNjMrBvDgw": {
+    "stationId": "105723",
+    "basis": "name"
+  },
+  "UCwmtfDGiiipObmIEi37e9hg": {
+    "stationId": "61522",
+    "basis": "name"
+  },
+  "UCguDPkNwA5sSy3C3upoKGDg": {
+    "stationId": "59444",
+    "basis": "hand"
+  },
+  "UCQBq9yc19hqHFxMhFLDcXCA": {
+    "stationId": "60964",
+    "basis": "hand"
+  },
+  "UC8cihSzdMLhd7Z1LpHubbTQ": {
+    "stationId": "75077",
+    "basis": "hand"
+  },
+  "UCIVWabtxQrh8o2lzEu4EvBw": {
+    "stationId": "22561",
+    "basis": "name"
+  },
+  "UCIfeUa31arBgYR1GuDzMR6w": {
+    "stationId": "60046",
+    "basis": "hand"
+  },
+  "UCIZnLsx7JgR0b47tsmO9j1g": {
+    "stationId": "59186",
+    "basis": "hand"
+  },
+  "UCWmVVvAgjJQzvI29zWD4V-Q": {
+    "stationId": "68796",
+    "basis": "hand"
+  },
+  "UCWkkY4JJBkGZtFae6kkUbSw": {
+    "stationId": "64312",
+    "basis": "hand"
+  },
+  "UCp9TSEVSOM5TrZR1xyftSDQ": {
+    "stationId": "64490",
+    "basis": "hand"
+  },
+  "UCxXjdrevcsy6xh0_O3KhokA": {
+    "stationId": "103838",
+    "basis": "hand"
+  },
+  "UC-lP-hsD59yeNhLV-cL266A": {
+    "stationId": "91096",
+    "basis": "name"
+  },
+  "UCRQcfaq4UbB7EisWRXD-9xA": {
+    "stationId": "49438",
+    "basis": "hand"
+  },
+  "UCevSLUtapg5P80Eu2WIDzdg": {
+    "stationId": "67331",
+    "basis": "hand"
+  },
+  "UCDRP-3aMlEQ6uoYm_RKeCOg": {
+    "stationId": "57394",
+    "basis": "hand"
+  },
+  "UC3KZEZtc4Iz9A_x6ms5KMOA": {
+    "stationId": "56905",
+    "basis": "hand"
+  },
+  "UCFehJp_rl3lm8-8OHoqO3gw": {
+    "stationId": "58532",
+    "basis": "hand"
+  },
+  "UC4S7frnF1aFbe_zcygsYe3A": {
+    "stationId": "101410",
+    "basis": "hand"
+  },
+  "UCO0DprpzkgRs0zpSGxMI6bw": {
+    "stationId": "59303",
+    "basis": "hand"
+  },
+  "UCko2QKmtBtKuh6KoKVDZWtA": {
+    "stationId": "73541",
+    "basis": "hand"
+  },
+  "UCbFaRGY8Bw3eLldVIFPDYhw": {
+    "stationId": "99936",
+    "basis": "hand"
+  },
+  "UCRiIubRNtAUghYKB0_KFtGQ": {
+    "stationId": "111043",
+    "basis": "name"
+  },
+  "UCI-EfxFyywB_IrXCyUgLYow": {
+    "stationId": "112157",
+    "basis": "callsign"
+  },
+  "UCgTSem_UW-4aayO03h3NQFw": {
+    "stationId": "95601",
+    "basis": "hand"
+  },
+  "UCwOohtHXo0hkQMB4WO3Ib8g": {
+    "stationId": "50747",
+    "basis": "hand"
+  },
+  "UC7I_eOniDUFbPeESYDeL4DQ": {
+    "stationId": "67375",
+    "basis": "hand"
+  },
+  "UClxYtgBSuQzBdpIsGHXJx5g": {
+    "stationId": "49788",
+    "basis": "hand"
+  },
+  "UC2NY4WS4K-rSwsDRHIKWKwg": {
+    "stationId": "78850",
+    "basis": "hand"
+  },
+  "UCZaTc6ohEtA1uNyWD_5-O8Q": {
+    "stationId": "65342",
+    "basis": "hand"
+  },
+  "UCJDNzpdVXySLwZPI5GwhTNQ": {
+    "stationId": "31046",
+    "basis": "hand"
+  },
+  "UC-HQSAeHQfSy-MEsqMIzJgA": {
+    "stationId": "70388",
+    "basis": "hand"
+  },
+  "UCyeti25JXK1zbcL33QtJ2zg": {
+    "stationId": "114278",
+    "basis": "hand"
+  },
+  "UCNxCYxwUbCRBDzA0RB0bSDw": {
+    "stationId": "99381",
+    "basis": "hand"
+  },
+  "UCA6ODcHN12JiMJ-D8qOfW_w": {
+    "stationId": "81289",
+    "basis": "hand"
+  },
+  "UCvtIF-MwpMBXKsbYZvuHpYg": {
+    "stationId": "107076",
+    "basis": "name"
+  },
+  "UC4WzX4rjxyOavZENjRCHEaw": {
+    "stationId": "57391",
+    "basis": "hand"
+  },
+  "UCmzl5oTI37uvXbAv_UN9NNQ": {
+    "stationId": "68827",
+    "basis": "hand"
+  },
+  "UCRXsF67RpQTpfgrHdCKoOSA": {
+    "stationId": "59296",
+    "basis": "hand"
+  },
+  "UCV2pXl1pkayqpxL8KWY6zfg": {
+    "stationId": "115679",
+    "basis": "hand"
+  },
+  "UChAbpGpJzppYHFhHflFvTQg": {
+    "stationId": "113380",
+    "basis": "name"
+  },
+  "UCjwQspjtRywSoImMpdFiaXw": {
+    "stationId": "105725",
+    "basis": "hand"
+  },
+  "UCULL3PM8sg7l7yAEocqkZ6w": {
+    "stationId": "101103",
+    "basis": "name"
+  },
+  "UCStfhR2V58QkCCyq_8dlk6g": {
+    "stationId": "58646",
+    "basis": "hand"
+  },
+  "UCztf61frc248u2S_AMhcMbg": {
+    "stationId": "10161",
+    "basis": "hand"
+  },
+  "UCm20W8G3leJQev6jDzW2WpQ": {
+    "stationId": "68334",
+    "basis": "hand"
+  },
+  "UCERQ1rgFP5AWpoHQUSbP6cA": {
+    "stationId": "68332",
+    "basis": "hand"
+  },
+  "UCLzVssMTD4F7XUR1sh3JZMA": {
+    "stationId": "58718",
+    "basis": "hand"
+  },
+  "UCqWYIzQLZFW4NFXPfWBLW1w": {
+    "stationId": "60179",
+    "basis": "hand"
+  },
+  "UCOjTLqTl1gVybbm5iOT9o9g": {
+    "stationId": "121307",
+    "basis": "name"
+  },
+  "UCPIvHJrgKn3AWMhkMA8EoPQ": {
+    "stationId": "64549",
+    "basis": "hand"
+  },
+  "UC33MnhgSnxj6gi6u78KFsBg": {
+    "stationId": "119219",
+    "basis": "name"
+  },
+  "UC_iYDoUH42IulhrKQnUdLgw": {
+    "stationId": "70938",
+    "basis": "hand"
+  },
+  "UCyEo_lB-yFN_0svEw7_WroA": {
+    "stationId": "99988",
+    "basis": "name"
+  },
+  "UCPMoZoTUinLM-MngPHWijUw": {
+    "stationId": "99954",
+    "basis": "hand"
+  },
+  "UClJKvIp41p37bGJOPWEO2Og": {
+    "stationId": "87925",
+    "basis": "hand"
+  },
+  "UCbji8ZLXWwsBOrw6VQB7IgQ": {
+    "stationId": "18633",
+    "basis": "callsign"
+  },
+  "UCD2hzWipLHCVmwHux7oZbKw": {
+    "stationId": "96827",
+    "basis": "name"
+  },
+  "UCSRDwPEZ5tkrRx_oXYX4o_Q": {
+    "stationId": "114174",
+    "basis": "name"
+  },
+  "UCcHKBCoR3g3jorhhRgdrjRg": {
+    "stationId": "58812",
+    "basis": "hand"
+  },
+  "UCgLwjiTwZRuiiEfvZXjSZBw": {
+    "stationId": "107478",
+    "basis": "hand"
+  },
+  "UCK9Q4fLemL37Au_y0UgNM4A": {
+    "stationId": "165997",
+    "basis": "name"
+  },
+  "UCKowx-8h-zSLiVshzKgcsRw": {
+    "stationId": "68367",
+    "basis": "hand"
+  },
+  "UCNd6UJFGnUUjllgfXMz_Y7A": {
+    "stationId": "77033",
+    "basis": "name"
+  },
+  "UCJ1bMGjLxUVz_uQL-3UyvlA": {
+    "stationId": "109454",
+    "basis": "hand"
+  },
+  "UC9oV5ZyHOEfA93G7y-vsnVA": {
+    "stationId": "89994",
+    "basis": "hand"
+  },
+  "UC2zFZSlhcDtpYBUr57eymPw": {
+    "stationId": "82563",
+    "basis": "hand"
+  },
+  "UCHa70oFCrg1M4sFJbhV5L7g": {
+    "stationId": "115540",
+    "basis": "name"
+  },
+  "UC8j-HIVNIgtewBryQ4o2k8A": {
+    "stationId": "71280",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MDg": {
+    "stationId": "92022",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1Mjg": {
+    "stationId": "92259",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1MjI": {
+    "stationId": "92258",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2ODE": {
+    "stationId": "56193",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MDI": {
+    "stationId": "78808",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NDY": {
+    "stationId": "57394",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MjA": {
+    "stationId": "97409",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg2MTc": {
+    "stationId": "28506",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1MTg": {
+    "stationId": "76850",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg2MDM": {
+    "stationId": "63236",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1Nzg": {
+    "stationId": "63220",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2OTU": {
+    "stationId": "122694",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2Mjg": {
+    "stationId": "110288",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1OTk": {
+    "stationId": "59440",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg0OTk": {
+    "stationId": "62420",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg0NzM": {
+    "stationId": "68065",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1Nzc": {
+    "stationId": "61469",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1NzY": {
+    "stationId": "60468",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NDA": {
+    "stationId": "56905",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1ODg": {
+    "stationId": "67749",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MjI": {
+    "stationId": "92204",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NDU": {
+    "stationId": "31046",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg0NzI": {
+    "stationId": "50747",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MjQ": {
+    "stationId": "92256",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1OTE": {
+    "stationId": "68827",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2NzE": {
+    "stationId": "82563",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2OTM": {
+    "stationId": "90858",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2Njc": {
+    "stationId": "82892",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MjY": {
+    "stationId": "101884",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MjM": {
+    "stationId": "105723",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2Mjc": {
+    "stationId": "101934",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg0Njc": {
+    "stationId": "49788",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MTE": {
+    "stationId": "92008",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2NzI": {
+    "stationId": "82773",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NTM": {
+    "stationId": "65342",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MjI": {
+    "stationId": "109553",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MjU": {
+    "stationId": "92260",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MjY": {
+    "stationId": "92261",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MzM": {
+    "stationId": "96971",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg0Njk": {
+    "stationId": "67375",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3MDE": {
+    "stationId": "122696",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg2MDY": {
+    "stationId": "60964",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg2MTM": {
+    "stationId": "22561",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg4NTU": {
+    "stationId": "49141",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1OTg": {
+    "stationId": "75077",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MDg": {
+    "stationId": "82649",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NzI": {
+    "stationId": "59432",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MDk": {
+    "stationId": "82654",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1OTQ": {
+    "stationId": "70388",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg0ODQ": {
+    "stationId": "59186",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NTA": {
+    "stationId": "57390",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2OTY": {
+    "stationId": "109454",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3MDA": {
+    "stationId": "122968",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MTA": {
+    "stationId": "92041",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MTU": {
+    "stationId": "107076",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MzU": {
+    "stationId": "97047",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1NDM": {
+    "stationId": "57391",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1Mzg": {
+    "stationId": "59303",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg1Nzg": {
+    "stationId": "73541",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2NzM": {
+    "stationId": "35513",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2MjE": {
+    "stationId": "66143",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzg2MTI": {
+    "stationId": "60046",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MjM": {
+    "stationId": "92255",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk1MDk": {
+    "stationId": "92020",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4OTM": {
+    "stationId": "193653",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4ODE": {
+    "stationId": "160400",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NzQ": {
+    "stationId": "178243",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3ODg": {
+    "stationId": "89690",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4ODI": {
+    "stationId": "104846",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk5NTQ": {
+    "stationId": "151953",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NzM": {
+    "stationId": "191641",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3MjI": {
+    "stationId": "121204",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2OTA": {
+    "stationId": "111140",
+    "basis": "hand"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4Nzc": {
+    "stationId": "170347",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NzU": {
+    "stationId": "177498",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3MjE": {
+    "stationId": "122524",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk3MjM": {
+    "stationId": "121165",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2Nzc": {
+    "stationId": "113603",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk2ODQ": {
+    "stationId": "118462",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk5Mzg": {
+    "stationId": "211754",
+    "basis": "name"
+  },
+  "Q2hhbm5lbDo2MDg1NDg4OTk2NDg0Mzk4NzY": {
+    "stationId": "177501",
+    "basis": "name"
+  }
+}

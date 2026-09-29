@@ -1459,3 +1459,79 @@ harness's `tasks/` directory (named in the report). No owner Chrome and no
 dev server was running during the pass.
 
 See notebook/reports/task-031.md.
+
+---
+
+## Task 032 — tvc-guide-stationid from a table built on Schedules Direct; 208 of 375 lines tagged (2026-09-29)
+
+**Owner's calls carried out (D035):** every playlist line carries
+`tvc-guide-stationid` where a credible station exists; the ids come from a
+table in the repo, `src/stations.json`, built from the owner's Schedules
+Direct lineups `USA-YTBE512-X` and `USA-PHILO-X` and keyed on the D020 key.
+Amends D015. **Also recorded:** D033 (the task-031 forced collection), D034
+(QNAP: WBAL 11 seen about 6 hours behind live, not pursued), and a note under
+D026 (Unraid force-updated to `latest` = `sha-13071d7` on 2026-09-28).
+
+**Run in two parts.** The first stopped at step 3: the Schedules Direct env
+file did not exist. The owner supplied it and ruled: a Marlin Cast name
+matched against a callsign is a callsign pair; the table holds only key,
+station id and basis; Schedules Direct names and callsigns go in the report
+only.
+
+**Lineups:** one token request, two lineup reads, nothing changed on the
+account. `USA-YTBE512-X` 401 station entries (393 distinct ids),
+`USA-PHILO-X` 109. The lineup data stayed in the scratchpad.
+
+**Channel list:** image `sha-13071d7` in a throwaway container on a working
+copy of the 2026-09-13 two-provider backup, the D024 run line, no size env.
+Both providers signed in; first boot enumerated 375 (YouTube TV 141, Philo
+234).
+
+**The table, 208 entries:**
+
+| | channels | tagged | untagged | name | callsign | hand |
+|---|---|---|---|---|---|---|
+| YouTube TV | 141 | 127 | 14 | 28 | 5 | 94 |
+| Philo | 234 | 81 | 153 | 19 | 0 | 62 |
+
+Each provider is paired against its own lineup only. East feeds, not Pacific;
+main feeds, not 4K or overflow. ESPN stays `32645`. WBAL 11 is `21231` in
+`USA-YTBE512-X`, the same id as the owner's pick in Marlin DVR. Left out
+because nothing tells the candidates apart: CNBC (two stations), the two MPT
+channels (one station), Philo's Cheddar News (two stations). Eight Philo
+channels have their exact name in the YouTube TV lineup only and carry no
+tag.
+
+**Built:** `src/server.ts` (+15 −6) reads the table once at start and emits
+the tag as the last attribute, where the ESPN line had it; the hardcoded ESPN
+key is gone. A table that cannot be read is a loud exit 1. No other line of
+any playlist changed. `VERSION` stays 0.1.2.
+
+**Verified on an image built from the working tree** (same container run
+line, same `/data`, so the same channel cache):
+- `/playlist` 208 of 375 tagged; `/playlist/youtube-tv` 127 of 141;
+  `/playlist/philo` 81 of 234. Counted with `grep` and again by a script
+  against the table; both agree.
+- Against HEAD's output the only differences are the 207 added tags; ESPN's
+  line is byte-identical.
+- One WBAL 11 tune pulled for 30 s: exit 0, H.264 High 1920×1080 30 fps,
+  AAC-LC 48 kHz stereo.
+
+**Open, the owner's call:** the eight Philo channels named only in the
+YouTube TV lineup; CNBC, MPT and Cheddar News; 153 Philo channels with no
+station in `USA-PHILO-X`; the table is a snapshot and nothing warns when a
+provider adds a channel; `VERSION` not bumped; Unraid and the QNAP do not run
+this until the owner updates them.
+
+**Not checked:** whether each hand pair is the feed the provider shows (the
+pairs were made on names); whether Unraid's channel cache holds keys this
+list does not (its playlist had 367 channels on 2026-09-28, this list has
+375).
+
+**Hand-off:** the table, the code change, DECISIONS.md, the report and this
+entry are one commit on main, pushed; it touches `src/`, so GHCR gets `latest`
+and `sha-<short>` for it (D025). A second, notebook-only commit corrects the
+statements about GHCR `latest` in "Where things stand" and the brief. The
+clean-up follows the pushes; its evidence is in the hand-off.
+
+See notebook/reports/task-032.md.
