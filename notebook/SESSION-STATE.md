@@ -1286,3 +1286,66 @@ running. `/tmp/mc-test` still present — owner's `sudo rm -rf /tmp/mc-test`.
 Image `marlin-cast:task027` added to the local cache.
 
 See notebook/reports/task-027.md.
+
+---
+
+## Recon — Chrome memory across tunes (2026-09-28) — closed at 12 of 20 cycles (D032)
+
+**Recorded:** a note under D030 — ffmpeg exit 255 at idle stop was re-seen on
+Unraid on 2026-09-28 on three consecutive WBAL 11 tunes and stays closed
+(D006, live only). **D032** — the Chrome memory recon stopped at 12 of 20
+cycles and is recorded as it stands; the cycle-13 tune stall is not pursued,
+reopen if seen on Unraid.
+
+**Run on marlinpc:** image `sha-c876a3a` as container `marlin-cast-recon`, a
+working copy of the 2026-09-13 two-provider backup as `/data`, the D024 run
+line, no size env (1080p). Both providers signed in; first boot enumerated 375
+(YouTube TV 141, Philo 234). Measured at startup, after 15 minutes idle, and
+after each of 12 tune cycles on WBAL 11 (60 s pull, idle stop, park, 10 s
+settle): `docker stats`, every process's RSS, and each renderer's tab through
+the container's loopback CDP.
+
+**Cycle 13's tune failed** (`player ready: not satisfied within 30000ms`, last
+probe `readyState: 1`, HTTP 503) and the pass stopped there; cycles 13–20 were
+not run and nothing was retried. The player was stuck in a seek with nothing
+buffered while YouTube TV reported the stream playable and media requests
+answered 200. Memory was not exhausted and no Chrome process died. Cause not
+determined. **Owner's calls (D032):** the stall is closed, not pursued, reopen
+if seen on Unraid; the measurement stops at 12 cycles and the result is
+recorded as it stands.
+
+**What 12 cycles show:**
+- **The browser process grows with tunes, not time.** RSS 348,836 kB at
+  startup, 349,276 kB after 15 minutes idle, then +26,780 to +29,960 kB of
+  RssAnon per tune — the size of one tune's recording (27.9–29.9 MB at
+  ffmpeg's stop). It was released once, by 143,172 kB between cycles 6 and 7,
+  and climbed again to 527,096 kB by cycle 12. Highest reading 530,028 kB.
+- **The YouTube TV tab's renderer** stepped from 452,492 kB idle to a band of
+  506,428–649,196 kB once tuned and parked, with no trend across the 12.
+- **Container (`docker stats`):** 704.8 MiB at startup, 723.7 MiB after 15
+  minutes idle, 903.2 MiB–1.154 GiB over cycles 1–12.
+- One renderer could not be mapped to any tab.
+
+**Cleaned up (close-out pass, 2026-09-29 00:10Z):**
+- Container `marlin-cast-recon` stopped (1.26 s, exit 0) and removed;
+  `docker ps -a` lists nothing; no chrome/Xvfb/x11vnc/websockify/ffmpeg on
+  the host, nothing on 8091/8092/8804/9333.
+- The profile working copy (owned by 99:100; 58,097 entries, 1.8G) deleted
+  through a throwaway root container of the same image; the rest of the
+  scratchpad (raw logs, pull logs, scripts, the throwaway password file)
+  deleted; the scratchpad is empty. The raw logs are in the report's
+  appendices, checked identical before deletion.
+- Image `ghcr.io/marlin1111ai/marlin-cast:sha-c876a3a` removed; no Marlin
+  Cast image is left locally.
+- The backup's sha256 is unchanged:
+  `6ebd9ea976118bcb8c24e10b590680e5d44e405d1b3a9f7f09a0a3982258dbe3` before
+  extraction and after the clean-up.
+
+**Hand-off:** the D030 note, D032, the report and this entry are committed and
+pushed in one notebook-only commit, which builds no image (D025). Left on
+marlinpc: three output files of the builder's own background tasks in its
+`tasks/` directory (named in the report); nothing else. No owner Chrome and no
+dev server was running during either pass. "Where things stand" at the top of
+this file is unchanged and predates this pass.
+
+See notebook/reports/recon-chrome-memory.md.

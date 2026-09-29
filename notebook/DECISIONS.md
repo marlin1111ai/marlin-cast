@@ -638,6 +638,11 @@ recorded in a second place):
 
 **Dated 2026-09-26. Owner-ruled.**
 
+**Note (2026-09-28, owner-ruled):** ffmpeg exit 255 at idle stop ("File ended
+prematurely", then `exited code=255`) was re-seen on Unraid on 2026-09-28, on
+three consecutive WBAL 11 tunes. It stays closed: Marlin Cast serves live only
+(D006).
+
 ---
 
 ## D031 — Remaining report items closed
@@ -673,3 +678,14 @@ Items closed (reports are in `notebook/reports/`):
   no tag and fails at the build step.
 
 **Dated 2026-09-26. Owner-ruled.**
+
+---
+
+## D032 — Chrome memory recon closed
+
+Chrome memory recon (notebook/reports/recon-chrome-memory.md) stopped at 12 of
+20 cycles and recorded as it stands. The cycle-13 WBAL 11 tune stall (player
+ready not satisfied within 30000ms, readyState 1) is not pursued; reopen if
+seen on Unraid.
+
+**Dated 2026-09-28. Owner-ruled.**
