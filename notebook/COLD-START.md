@@ -4,7 +4,7 @@ Supersedes v5 (2026-09-26). This file lives at `notebook/COLD-START.md`.
 
 ## FOREMAN: READ BEFORE WRITING ANY PROMPT
 
-Read in full: the FOREMAN INSTRUCTIONS (v6.2) the owner pastes at the top of the chat, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-024 through task-028, recon-docker, recon-stable-ids, recon-philo at minimum). First reply in every chat is a CONTEXT CHECK. Nothing settled below gets re-asked or re-derived.
+Read in full: the FOREMAN INSTRUCTIONS (v6.4) the owner pastes at the top of the chat, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-024 through task-028, recon-docker, recon-stable-ids, recon-philo at minimum). First reply in every chat is a CONTEXT CHECK. Nothing settled below gets re-asked or re-derived.
 
 The 2026-09-29 handoff checked the reports through task-033; its record is `notebook/reports/handoff-2026-09-29.md`.
 
@@ -43,6 +43,7 @@ D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) 
 **D034** QNAP: WBAL 11 seen about 6 hours behind live (2026-09-28); not pursued, reopen if seen again.
 **D035** Every playlist line carries `tvc-guide-stationid` from `src/stations.json`, built from the owner's Schedules Direct lineups `USA-YTBE512-X` and `USA-PHILO-X`, keyed on the D020 key; no credible station, no tag. Amends D015. Note: eight Philo channels named only in `USA-YTBE512-X` take its ids; CNBC → 58780; MPT (both) and Cheddar News stay untagged.
 **D036** Session items closed; acceptance. Unraid force-updated to `sha-0f042a9` and accepted (869.8 MiB after one tune; reopen past 2 GiB). Every item left open by recon-chrome-memory and task-030 to task-033 is closed, not pursued, reopen if seen, each with file:line in D036. The QNAP stays pinned to `sha-c876a3a`; `VERSION` stays 0.1.2; the Schedules Direct username occurring in the repo is left as it is (history is not rewritten). The consumer statement (above) updates D026's 2026-09-13 note.
+**D037** The cold-start brief is `notebook/COLD-START.md`, moved from the repo root's `MARLIN-CAST-BRIEF.md` with its history kept (git mv); earlier notebook entries that name `MARLIN-CAST-BRIEF.md` refer to this file.
 
 ## HARD-WON FACTS (all measured)
 
