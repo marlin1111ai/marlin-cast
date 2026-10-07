@@ -2,9 +2,9 @@
 
 Supersedes v5 (2026-09-26). This file lives at `notebook/COLD-START.md`.
 
-## FOREMAN: READ BEFORE WRITING ANY PROMPT
+## READ BEFORE STARTING WORK
 
-Read in full: the FOREMAN INSTRUCTIONS (v6.4) the owner pastes at the top of the chat, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-024 through task-028, recon-docker, recon-stable-ids, recon-philo at minimum). First reply in every chat is a CONTEXT CHECK. Nothing settled below gets re-asked or re-derived.
+Since 2026-10-07 the owner directs the work directly and Claude reports only to the owner; there is no foreman and no builder prompts. The session rules are in `CLAUDE.md` at the repo root. Read in full: `CLAUDE.md`, this brief, `notebook/DECISIONS.md`, `notebook/KNOWN-FIXES.md`, `notebook/SESSION-STATE.md`, and the most recent reports in `notebook/reports/` (task-024 through task-028, recon-docker, recon-stable-ids, recon-philo at minimum). Nothing settled below gets re-asked or re-derived.
 
 The 2026-09-29 handoff checked the reports through task-033; its record is `notebook/reports/handoff-2026-09-29.md`.
 
@@ -89,7 +89,7 @@ Carried from earlier sessions:
 - `chrome://gpu` reports policy, not silicon — verify decode with media-internals.
 - On marlinpc the xrdp display exists only while Jump Desktop is connected; closing the Terminus window that launched Chrome kills Chrome.
 - Marlin Cast's own HLS output (fMP4, 1 s segments, `repeat-headers=1`, no PROGRAM-DATE-TIME) and the PrismCast comparison facts from tasks 012–019 are unchanged; PrismCast itself serves variable-length fMP4, Constrained Baseline L4.2, with PROGRAM-DATE-TIME.
-- Restarting the dev server from the builder: use the tool's background mode, never `&`; `pkill -f 'src/server.ts'` can match an unrelated shell.
+- Restarting the dev server from Claude: use the tool's background mode, never `&`; `pkill -f 'src/server.ts'` can match an unrelated shell.
 - Chrome on marlinpc died twice on 2026-09-12 while a ~51 GB Python process was running; cause not proven — closed by D030 (2026-09-26), not pursued.
 
 ## ENVIRONMENT
@@ -103,9 +103,9 @@ Carried from earlier sessions:
 - Profiles on marlinpc: `data/chrome-profile` (live, both providers) · `backups/chrome-profile-2providers-20260913-0746.tgz` (deployed copy) · `backups/chrome-profile-basic-20260911-110129/` (YouTube TV only) · v11 profiles (machine-bound, not usable in Docker).
 - Owner logs in by hand: on marlinpc over Jump Desktop (display `:10`), or in production through the viewer. The app never types credentials and never navigates to a login page.
 
-## STANDING PROHIBITIONS — every prompt carries these
+## STANDING PROHIBITIONS — apply in every session
 
-- The builder never connects to the Unraid host at 192.168.1.250 — no ssh, docker, container inspection, logs, nothing on any port. The owner operates the production container.
+- Claude never connects to the Unraid host at 192.168.1.250 — no ssh, docker, container inspection, logs, nothing on any port. The owner operates the production container.
 - Never touch any container on it: `marlin-cast`, `prismcast`, `channelsdvr_intel`, `fastchannels`, `marlin-iptv-editor`, `marlin-cad`.
 - `/Apps/marlin-iptv-editor` is never written to.
 - Never restart, attach to, navigate, or close the owner's live Chrome tabs except through the app's own tune/enumerate paths, and never without saying so first. Never open any login/accounts page.
