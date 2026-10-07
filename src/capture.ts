@@ -247,10 +247,14 @@ export class Pipeline {
   }
 
   private async start(channel: Channel): Promise<void> {
-    if (this.live) await this.stop(`switching to ${channel.name}`);
+    const provider = providerFor(channel);
+    // D039: a switch to the OTHER provider parks the tab being left, or it
+    // keeps playing its channel while hidden (recon-idle B/C: ≈4.2 Mbit/s
+    // indefinitely). A switch within one provider navigates the same tab
+    // straight on, as task-018 reasoned.
+    if (this.live) await this.stop(`switching to ${channel.name}`, { returnToGuide: this.live.provider.id !== provider.id });
     this.lastError = null;
 
-    const provider = providerFor(channel);
     const token = Math.random().toString(36).slice(2, 10);
     const dir = this.dirFor(channel.key);
     rmSync(dir, { recursive: true, force: true });
