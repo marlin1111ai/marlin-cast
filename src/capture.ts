@@ -125,6 +125,34 @@ export class Pipeline {
     return this.cdp.browser;
   }
 
+  /** D040: at server start, park every provider tab that is confirmed signed
+   *  in on the page it is on now, and bring the quiet one (not parkHidden) to
+   *  the front. The login check (stage 5) leaves YouTube TV on its home page,
+   *  which plays six live previews while visible (recon-idle), and a fresh
+   *  enumeration leaves it on the guide (seven). A tab that is not signed in
+   *  is never navigated — the owner may be signing in through the viewer —
+   *  and a missing tab is logged, not fatal here (the entrypoint already
+   *  checked). Nothing here throws. */
+  async parkAtStart(): Promise<void> {
+    let front: { id: string; provider: Provider } | null = null;
+    for (const provider of PROVIDERS) {
+      try {
+        const tab = await this.selectTab(provider);
+        const state = await provider.signedInHere(this.cdp, tab.session);
+        if (!state.signedIn) { console.warn(`[start] ${provider.id}: left where it is — ${state.detail}`); continue; }
+        await this.cdp.send("Page.navigate", { url: provider.parkUrl }, tab.session);
+        console.log(`[start] parked the ${provider.id} tab on ${provider.parkUrl} (was ${tab.url.slice(0, 60)})`);
+        if (!provider.parkHidden && !front) front = { id: tab.id, provider };
+      } catch (e) { console.error(`[start] ${provider.id}: could not park: ${String(e)}`); }
+    }
+    if (front) {
+      try {
+        await this.cdp.send("Target.activateTarget", { targetId: front.id });
+        console.log(`[start] brought the ${front.provider.id} tab to the front`);
+      } catch (e) { console.error(`[start] could not bring the ${front.provider.id} tab to the front: ${String(e)}`); }
+    }
+  }
+
   /** D018: the page target whose URL host is this provider's, attached and
    *  ready to drive. Throws loud if that tab is not open. */
   private async selectTab(provider: Provider): Promise<{ id: string; session: Session; url: string }> {

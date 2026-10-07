@@ -229,6 +229,17 @@ export const youtubeTv: Provider = {
     return { signedIn: !signedOut, detail: `${HOST}: ${signedOut ? "SIGNED OUT" : "signed in"}` };
   },
 
+  /** D040: no navigation. Signed in = a tv.youtube.com page that is not the
+   *  /welcome landing and shows no "SIGN IN" call to action. */
+  async signedInHere(cdp: Cdp, session: Session) {
+    const href = await evalIn<string>(cdp, session, `location.href`).catch(() => "");
+    const onHost = href.startsWith(`https://${HOST}/`);
+    const welcome = /^https:\/\/tv\.youtube\.com\/welcome/.test(href);
+    const signedOut = onHost ? await evalIn<boolean>(cdp, session, SIGNED_OUT_TEST).catch(() => true) : true;
+    const signedIn = onHost && !welcome && !signedOut;
+    return { signedIn, detail: `${HOST}: ${signedIn ? "signed in" : "not signed in"} on ${href || "?"}` };
+  },
+
   /** Read the guide. The count is whatever the guide has — never hardcoded.
    *  Rows with no stationId or no watch link are not channels (D013 note) and
    *  are returned as skipped. */

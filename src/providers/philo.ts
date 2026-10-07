@@ -271,6 +271,13 @@ export const philo: Provider = {
     return waitForPlayerPath(cdp, session);
   },
 
+  /** D040: no navigation. Signed in = the tab is on a /player/ path now. */
+  async signedInHere(cdp: Cdp, session: Session) {
+    const href = await evalIn<string>(cdp, session, `location.href`).catch(() => "");
+    const onPlayer = await evalIn<boolean>(cdp, session, ON_PLAYER_PATH).catch(() => false);
+    return { signedIn: onPlayer, detail: `${HOST}: ${onPlayer ? "signed in" : "not signed in"} on ${href || "?"}` };
+  },
+
   /** D019: every row the guide's channel list returns, unfiltered, all three
    *  tiers (Favorite / All / Free). The list is the guide page's own `page`
    *  query, re-issued here in the page with the page's own session — the same

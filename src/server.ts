@@ -42,6 +42,7 @@ console.log(`channels: ${cache.count} (enumerated ${cache.enumeratedAt}) ${JSON.
 
 const pipeline = new Pipeline(CDP_PORT);
 const browser = await pipeline.connect();
+await pipeline.parkAtStart();   // D040
 console.log(`attached to Chrome ${browser} on 127.0.0.1:${CDP_PORT}`);
 
 const app = express();

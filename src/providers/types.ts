@@ -90,6 +90,11 @@ export interface Provider {
   /** Run after navigating the tab to homeUrl. */
   checkSignedIn(cdp: Cdp, session: Session): Promise<{ signedIn: boolean; detail: string }>;
 
+  /** D040: read the sign-in state off the page the tab is on NOW, with no
+   *  navigation at all — the server's start-up park must never move a tab
+   *  that sits on a sign-in page. */
+  signedInHere(cdp: Cdp, session: Session): Promise<{ signedIn: boolean; detail: string }>;
+
   /** The full unfiltered lineup (D013/D019). Count is whatever the provider
    *  reports — never hardcoded. */
   enumerate(cdp: Cdp, session: Session): Promise<Enumerated>;
