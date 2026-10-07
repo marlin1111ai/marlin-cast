@@ -168,7 +168,7 @@ Whether the hidden start plays any part is not shown by this sample; the
 overlay behaviour is the one task-021 recorded and D029 closed. Tune time
 otherwise 3.2–5.2 s, as before the change.
 
-**B. Cross-provider switch, YouTube TV live → Philo, then idle.** After
+**B. Cross-provider switch, YouTube TV live → Philo, then idle (before D039).** After
 Philo's idle park and the bring-forward, the YouTube TV tab was in front on
 its *watch* page, still playing WBAL 11 at 4197 kbit/s with Chrome at 141%
 of a core. **C. Philo live → YouTube TV, then idle.** YouTube TV parked on
@@ -184,18 +184,57 @@ raised to the owner (open question 1).
 Chrome 0.8% of a core in total, `docker stats` CPU 7.86% (the viewer's
 x11vnc and Xvfb). Left idle from 15:28Z.
 
-**E. The morning after.** OVERNIGHT_PENDING
+**E. Side-by-side: Philo tunes from a hidden start against a visible start
+(owner's condition before accepting the bring-forward half).** Second test
+container `marlin-cast-d040` (image from the three commits), 16:00–16:39Z.
+Same five channels (AMC, HISTORY, A&E, AccuWeather Network, American Heroes
+Channel), two passes of 20 tunes, arms alternating: *hidden* = the YouTube
+TV tab in front on `/library`, as the new code leaves it; *visible* = the
+Philo tab activated (no navigation) four seconds before the tune. Each tune
+pulled 20 s, then the idle stop. All 40 tuned (`ok:true`, HTTP 200).
+
+| arm (20 each) | overlay clear on sweep 1 | cleared on sweep 2–3 | stuck after 3 sweeps | tune-ms playing: median / mean / range |
+|---|---|---|---|---|
+| hidden start | 11 | 2 | 7 | 5.0 s / 8.7 s / 3.2–14.7 s |
+| visible start | 14 | 1 | 5 | 3.5 s / 6.3 s / 3.2–13.0 s |
+
+Per pass: pass 1 hidden 7 / 1 / 2, visible 9 / 0 / 1; pass 2 hidden 4 / 1 /
+5, visible 5 / 1 / 4. The stuck rate rose through the afternoon in both arms
+(0 of the day's first 13 Philo tunes, then 3 of 20 in pass 1, 9 of 20 in pass
+2), and stuck tunes came in runs across both arms (pass 1 tunes 13–15; pass 2
+tunes 1–4, 9–11, 14–15), which points at a Philo-side condition rather than
+the start state. A stuck tune costs about 11 s more and, per task-021, the
+player's title bar, scrubber and buttons are in the capture. The hidden arm
+read worse by two stuck tunes in 20 and a 1.5 s longer median; with this
+sample that is not a clear difference, and it is the owner's call.
+
+For the owner's count: of the first test container's 21 Philo tunes
+(14:58–15:26Z), 19 started hidden and 2 started with the Philo tab visible
+on a playing broadcast page (channel switches, not guide starts); the recon
+container's 3 Philo tunes were 1 hidden, 2 visible. Note that before D038 a
+Philo tune after any YouTube TV tune already started hidden (the YouTube TV
+tab is activated at tune and stays in front after its park), so dropping the
+bring-forward would not remove hidden Philo starts; it would only make them
+less frequent.
+
+**F. The morning after.** OVERNIGHT_PENDING
 
 ## Open questions — the owner's call
 
-1. **A switch between providers leaves the old tab playing** (B and C
-   above): park the previous provider's tab when the next channel is on the
-   other provider. One `Page.navigate` on a tab that is about to be hidden;
-   not asked for, so not done.
-2. **Startup state.** Both boot paths leave the YouTube TV tab visible on a
-   page with previews (`/live` or `/`) until the first YouTube TV tune. A
-   park of both tabs at server start (navigate YouTube TV to `/library`,
-   bring it forward) would close that; also not asked for.
+1. ~~A switch between providers leaves the old tab playing~~ — ruled and
+   done as **D039** (own commit `e02bb79`). Verified on a second test
+   container (`marlin-cast-d040`, image from the two new commits): YouTube
+   TV → Philo left YouTube TV on `/library` hidden; Philo → YouTube TV left
+   Philo on its guide hidden with YouTube TV brought forward; after the idle
+   stop both tabs read 0 kbit/s, Chrome 2.0% of a core.
+2. ~~Startup state~~ — ruled and done as **D040** (own commit `2b1c63c`),
+   with the owner's condition: a tab is parked only once it is confirmed
+   signed in on the page it is on, and a tab on a sign-in page is never
+   navigated. Verified on both boot paths: `[start] parked the youtubetv tab
+   on …/library (was …/live)` after a fresh enumeration and `(was
+   https://tv.youtube.com/)` after a restart with the cache present; Philo
+   parked from `/player/mytv`; YouTube TV brought to the front; nothing
+   playing.
 3. **`VERSION`** is 0.1.2 (D036). This is the first code change since; a
    push builds `latest` and `sha-<short>` either way.
 4. **The Unraid readings** (three read-only commands) were requested on

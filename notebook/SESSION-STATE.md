@@ -1652,5 +1652,28 @@ between providers leaves the previous tab playing its channel at ≈4.2
 Mbit/s (both directions; pre-existing) — raised to the owner. The test
 container is idle overnight on `/library` for the owner's second condition.
 
-**Not done, the owner's call:** parking the previous provider's tab on a
-cross-provider switch; parking both tabs at server start; `VERSION`.
+**Then, the owner's rulings (same day):** D039 — a switch to the other
+provider parks the tab being left (`e02bb79`); D040 — both tabs parked at
+server start, only when confirmed signed in on the page they are on, never
+navigating a sign-in page (`2b1c63c`). Each its own commit so either can be
+backed out alone. Both verified on a second test container
+(`marlin-cast-d040`): switches in both directions leave the old tab on its
+park page hidden at 0 kbit/s; both boot paths start with YouTube TV parked
+on `/library` in front and Philo's guide hidden.
+
+**Side-by-side (owner's condition on the bring-forward half):** 20 Philo
+tunes from a hidden start against 20 from a visible start, alternating, same
+five channels. Hidden: 11 cleared the overlay on sweep 1, 2 on sweeps 2–3, 7
+stuck; median 5.0 s. Visible: 14 / 1 / 5; median 3.5 s. The stuck rate rose
+through the afternoon in both arms and came in runs across both, so the
+difference is not clear with this sample. Awaiting the owner's call: keep
+the bring-forward (hidden Philo starts already occur after any YouTube TV
+tune) or drop it.
+
+**Unraid readings (owner, 11:50 EDT):** the last park was on `/live`; pid
+204 (786 MB RSS, 7.4% CPU over 17.5 h) is almost certainly the YouTube TV
+tab's renderer — the one process that grew in the test with the previews
+playing; `anon` 1.13 GB, `file` 676 MB (cache, reclaimable), `shmem` 55 MB.
+
+**Pending:** the overnight check on `marlin-cast-d038` (scheduled 2026-10-08
+08:03 EDT), the owner's call on the bring-forward, `VERSION`, "push it".

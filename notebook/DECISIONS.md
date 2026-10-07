@@ -850,3 +850,35 @@ recon is recorded as `notebook/reports/recon-idle.md` (owner's choice 2(a)).
 Nothing is restarted or redeployed on Unraid without telling the owner first.
 
 **Dated 2026-10-07. Owner-ruled.**
+
+## D039 — A switch to the other provider parks the tab being left
+
+Stopping a live channel to tune the other provider left the old tab on its
+watch or broadcast page, playing hidden at about 4.2 Mbit/s until that
+provider was tuned again (recon-idle B and C, 2026-10-07, both directions;
+pre-existing since task-018 gated the park on the idle path). The switch
+now parks the previous provider's tab exactly as an idle stop would (for
+Philo, it also goes behind, D038). A switch within one provider still
+navigates the same tab straight on. Own commit, so it can be backed out
+alone. Verified on a test container in both directions: the left tab read
+its park page, hidden, 0 kbit/s.
+
+**Dated 2026-10-07. Owner-ruled (owner's choice 1(a)).**
+
+## D040 — Both tabs are parked at server start, only when confirmed signed in
+
+The login check leaves the YouTube TV tab on its home page and a fresh
+enumeration leaves it on the guide; both play live previews while visible,
+so a restarted container idled loud until the first YouTube TV tune. At
+server start the pipeline reads each tab's sign-in state off the page it is
+on now, with no navigation (`Provider.signedInHere`): YouTube TV = a
+tv.youtube.com page that is not `/welcome` and shows no "SIGN IN"; Philo = a
+`/player/` path. A tab confirmed signed in is parked on its park page, and
+the YouTube TV tab is brought to the front. **A tab that is not signed in is
+never navigated** — the owner may be signing in through the viewer — and a
+missing tab is logged, not fatal (the entrypoint already checked). Own
+commit. Verified on a test container on both boot paths (fresh enumeration;
+restart with the channel cache present): both tabs parked, YouTube TV in
+front on `/library`, nothing playing.
+
+**Dated 2026-10-07. Owner-ruled (owner's choice 2(a)).**

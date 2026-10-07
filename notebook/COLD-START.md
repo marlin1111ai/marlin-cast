@@ -43,6 +43,8 @@ D001 name/repo · D002 YouTube TV first (its one-provider clause spent by D017) 
 **D034** QNAP: WBAL 11 seen about 6 hours behind live (2026-09-28); not pursued, reopen if seen again.
 **D035** Every playlist line carries `tvc-guide-stationid` from `src/stations.json`, built from the owner's Schedules Direct lineups `USA-YTBE512-X` and `USA-PHILO-X`, keyed on the D020 key; no credible station, no tag. Amends D015. Note: eight Philo channels named only in `USA-YTBE512-X` take its ids; CNBC → 58780; MPT (both) and Cheddar News stay untagged.
 **D036** Session items closed; acceptance. Unraid force-updated to `sha-0f042a9` and accepted (869.8 MiB after one tune; reopen past 2 GiB). Every item left open by recon-chrome-memory and task-030 to task-033 is closed, not pursued, reopen if seen, each with file:line in D036. The QNAP stays pinned to `sha-c876a3a`; `VERSION` stays 0.1.2; the Schedules Direct username occurring in the repo is left as it is (history is not rewritten). The consumer statement (above) updates D026's 2026-09-13 note.
+**D040** Both tabs are parked at server start, only when confirmed signed in on the page they are on (no navigation; a tab not signed in is never moved). Own commit.
+**D039** A switch to the other provider parks the tab being left (it kept playing hidden, ≈4.2 Mbit/s). Own commit.
 **D038** Idle park: YouTube TV parks on `/library` (the guide and home page play six or seven live previews while visible, ≈0.75 GB/hour, a third of a core); after a Philo park the YouTube TV tab is brought to the front (`parkHidden`). Report `notebook/reports/recon-idle.md`.
 **D037** The cold-start brief is `notebook/COLD-START.md`, moved from the repo root's `MARLIN-CAST-BRIEF.md` with its history kept (git mv); earlier notebook entries that name `MARLIN-CAST-BRIEF.md` refer to this file.
 
@@ -81,7 +83,7 @@ Chrome memory (D032, D033):
 
 Idle (recon-idle, D038, 2026-10-07):
 - Only the visible tab does anything while idle. YouTube TV `/live` and `/`: 6–7 muted 426×240 previews (`video.ytu-tenx-video`), 1.6–2.4 Mbit/s, 37–40% of a core; `/library`, `/settings`: 0 kbit/s, <1%. Philo guide: no video, 0 kbit/s, ~20% of a core while visible, 0 hidden. `about:blank` breaks tab selection (D018).
-- A channel switch stops the capture but does not park the previous tab; across providers the old tab keeps playing its channel hidden (≈4.2 Mbit/s) until that provider is tuned again. Open, the owner's call.
+- Before D039 a channel switch did not park the previous tab; across providers the old tab kept playing its channel hidden (≈4.2 Mbit/s). Before D040 a (re)start left YouTube TV on its home page or guide, previews playing, until the first YouTube TV tune.
 - Measuring memory on marlinpc: a working copy under `/tmp` is tmpfs, so Chrome's cache churn shows as container `shmem` in `docker stats`; read per-process RssAnon or cgroup `memory.stat` instead.
 
 Station ids (D035):
