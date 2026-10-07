@@ -16,7 +16,10 @@ import type { Channel, Enumerated, Provider, QualityResult, TuneCtx } from "./ty
 const HOST = "www.philo.com";
 const HOME_URL = "https://www.philo.com/";
 /** Idle park: the guide leaves no <video> at all and issues no media traffic
- *  (recon 2e), so it is a cleaner park than YouTube TV's. */
+ *  (recon 2e). It does keep redrawing while it is the visible tab — about a
+ *  fifth of a core, 0 kbit/s (recon-idle, 2026-10-07; /player/mytv measured
+ *  no better) — and goes quiet when another tab is in front, so the pipeline
+ *  brings the other provider's tab forward after parking it (parkHidden, D038). */
 const GUIDE_URL = "https://www.philo.com/player/guide";
 const PLAYER_URL = "https://www.philo.com/player/player/broadcast/";
 
@@ -258,6 +261,7 @@ export const philo: Provider = {
   host: HOST,
   homeUrl: HOME_URL,
   parkUrl: GUIDE_URL,
+  parkHidden: true,
 
   /** Signed in = navigating to philo.com settles on a /player/ path (recon 2a).
    *  Anything else is SIGNED OUT. Nothing here looks for, or navigates to, a

@@ -14,7 +14,7 @@ import { mkdirSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Cdp, evalIn, findPageTarget, sleep, tabTargetId, type Session } from "./cdp.js";
 import { ROOT, saveChannel } from "./channels.js";
-import { providerFor, type Channel, type Probe, type Provider, type TuneCtx } from "./providers/index.js";
+import { PROVIDERS, providerFor, type Channel, type Probe, type Provider, type TuneCtx } from "./providers/index.js";
 
 const EXT_DIR = join(ROOT, "extension");
 const EXT_NAME = "Marlin Cast Capture Spike";
@@ -461,6 +461,20 @@ export class Pipeline {
         await this.cdp.send("Page.navigate", { url: l.provider.parkUrl }, l.session);
         console.log(`[stop] parked the ${l.provider.id} tab on ${l.provider.parkUrl}`);
       } catch (e) { console.error(`[stop] guide navigation failed: ${String(e)}`); }
+      // D038: a parked page that stays busy while visible (Philo's guide) is
+      // put behind another provider's tab, whose own park page is quiet. The
+      // next tune of either provider activates its tab as it always has.
+      // Nothing is navigated here; a failure is logged and never thrown.
+      if (l.provider.parkHidden) {
+        const other = PROVIDERS.find((p) => p.id !== l.provider.id);
+        if (other) {
+          try {
+            const t = await findPageTarget(this.port, other);
+            await this.cdp.send("Target.activateTarget", { targetId: t.id });
+            console.log(`[stop] brought the ${other.id} tab to the front; the parked ${l.provider.id} page is quiet only while hidden`);
+          } catch (e) { console.error(`[stop] could not bring the ${other.id} tab to the front: ${String(e)}`); }
+        }
+      }
     }
   }
 

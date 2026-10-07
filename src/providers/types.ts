@@ -82,6 +82,10 @@ export interface Provider {
   readonly homeUrl: string;
   /** Where an idle stop parks the tab. */
   readonly parkUrl: string;
+  /** D038: true when the parked page keeps its renderer busy while it is the
+   *  visible tab; after parking it the pipeline brings another provider's tab
+   *  to the front so the container idles quiet. */
+  readonly parkHidden: boolean;
 
   /** Run after navigating the tab to homeUrl. */
   checkSignedIn(cdp: Cdp, session: Session): Promise<{ signedIn: boolean; detail: string }>;

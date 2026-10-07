@@ -819,3 +819,34 @@ MARLIN-CAST-BRIEF.md with its history kept (git mv). Earlier notebook entries
 that name MARLIN-CAST-BRIEF.md refer to this file.
 
 **Dated 2026-09-29. Owner-ruled.**
+
+## D038 — Idle park: YouTube TV on Library; the Philo tab goes behind
+
+The YouTube TV guide (`tv.youtube.com/live`, the task-018 park) plays the
+live thumbnails of every channel row on screen — seven muted 426×240 streams
+— for as long as that tab is the visible one: 1.6–2.4 Mbit/s (≈0.75 GB/hour)
+and 37–40% of one core, measured idle on 2026-10-07
+(notebook/reports/recon-idle.md). The home page `tv.youtube.com/` does the
+same with six. Philo's parked guide downloads nothing but keeps its renderer
+at about a fifth of a core while visible; both pages are silent when another
+tab is in front.
+
+Ruled, owner's choice 1(a) of the options offered:
+
+1. An idle stop parks the YouTube TV tab on `https://tv.youtube.com/library`
+   (a signed-in page with no video: 0 kbit/s, under 1% CPU; the next tune
+   from it measured 1.82 s to playing against 1.74 s from the guide). The
+   guide stays the enumeration page.
+2. After parking the Philo tab on its guide, the pipeline brings the YouTube
+   TV tab to the front (`Provider.parkHidden`), so the Philo page idles
+   hidden. Nothing is navigated for that; a failure is logged, never thrown.
+3. `about:blank` is not a park page: D018 selects the tab by URL host and a
+   blank tab has none (measured: every tune failed loud).
+
+The owner's acceptance conditions: several Philo tunes in a row from the
+hidden state with their times and failures reported, and the first tune after
+an overnight idle on Library confirmed not to land on a sign-in page. The
+recon is recorded as `notebook/reports/recon-idle.md` (owner's choice 2(a)).
+Nothing is restarted or redeployed on Unraid without telling the owner first.
+
+**Dated 2026-10-07. Owner-ruled.**

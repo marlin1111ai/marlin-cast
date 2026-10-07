@@ -8,6 +8,14 @@ session.
 
 ## Where things stand (2026-09-29, handoff after D036)
 
+**2026-10-07 — the owner directs the work (no foreman; `CLAUDE.md`).** The
+idle recon and the D038 fix are committed on main and **not pushed**: parking
+YouTube TV on `/library` and putting the Philo tab behind. Section "Recon
+idle / D038" at the end of this file; report `notebook/reports/recon-idle.md`.
+Pending the owner: the overnight check on the test container, the Unraid
+readings, and the open questions in that report (a switch between providers
+leaves the old tab playing; the startup state; `VERSION`).
+
 **Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
 (task-033, D035 note; the station table only); it is the image `sha-0f042a9`,
@@ -1612,3 +1620,37 @@ changes GHCR `latest` in "Where things stand" and the brief to that image.
 The clean-up follows the pushes; its evidence is in the hand-off.
 
 See notebook/reports/task-033.md.
+
+## Recon idle / D038 — the parked guide plays previews; park on Library (2026-10-07)
+
+**Owner's question.** Unraid's container used CPU, downloaded about 0.5
+GB/hour and grew slowly while nothing was watched. Theory: the parked
+YouTube TV guide keeps playing.
+
+**Found (test container from `sha-0f042a9`, backup working copy; report
+`notebook/reports/recon-idle.md`).** The guide's rows are live previews:
+seven muted 426×240 streams play while that tab is visible — 1.6–2.4
+Mbit/s, 37–40% of a core; they stop when another tab is in front. The home
+page does the same with six. Philo's parked guide: no video, no download,
+about a fifth of a core while visible, silent hidden. Nothing survives an
+idle stop. The YouTube TV renderer's anonymous memory grew ≈1.2 MB/minute
+with the previews playing and not at all without them; `docker stats` on
+marlinpc also counts Chrome's cache churn on the tmpfs working copy and is
+not comparable to Unraid. `about:blank` cannot be a park page (D018 selects
+by host; tunes fail loud). `/library` and `/settings`: 0 kbit/s, <1% CPU.
+
+**Done (D038, owner's choice).** `parkUrl` for YouTube TV →
+`https://tv.youtube.com/library`; `Provider.parkHidden`; after a Philo park
+the pipeline activates the YouTube TV tab. Files: `src/providers/types.ts`,
+`youtubetv.ts`, `philo.ts`, `src/capture.ts`. Image built locally as
+`marlin-cast-test:d038` for the acceptance only (not pushed anywhere).
+
+**Acceptance so far.** Six Philo tunes from the hidden state all tuned;
+times 3.2–5.2 s except three at 14.8–15.9 s, two of them with the task-021
+overlay stuck (first stuck overlays of the day's 21 Philo tunes). A switch
+between providers leaves the previous tab playing its channel at ≈4.2
+Mbit/s (both directions; pre-existing) — raised to the owner. The test
+container is idle overnight on `/library` for the owner's second condition.
+
+**Not done, the owner's call:** parking the previous provider's tab on a
+cross-provider switch; parking both tabs at server start; `VERSION`.

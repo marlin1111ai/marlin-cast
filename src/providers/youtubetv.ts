@@ -10,9 +10,15 @@ import { evalIn, navigateAndSettle, sleep, type Cdp, type Session } from "../cdp
 import type { Channel, Enumerated, Provider, QualityResult, Skipped, TuneCtx } from "./types.js";
 
 const HOST = "tv.youtube.com";
-/** Where the capture tab parks after an idle stop: the YouTube TV live
- *  guide, logged in, with no channel playing (task-018). */
+/** The live guide: where enumeration reads the lineup (recon-stable-ids). */
 const GUIDE_URL = "https://tv.youtube.com/live";
+/** Where the capture tab parks after an idle stop (D038). Not the guide: its
+ *  rows are live previews — seven muted 426x240 streams play whenever the tab
+ *  is in front, ~0.75 GB/hour and about a third of a core
+ *  (notebook/reports/recon-idle.md). Library is a signed-in page with no
+ *  video; measured 0 kbit/s and <1% CPU parked, tune from it 1.82 s against
+ *  1.74 s from the guide. Task-018's park on the guide is superseded. */
+const PARK_URL = "https://tv.youtube.com/library";
 
 /** The guide's own request for its rows. recon-stable-ids step 2: one
  *  /youtubei/v1/browse response carries every row under
@@ -210,7 +216,8 @@ export const youtubeTv: Provider = {
   slug: "youtube-tv",
   host: HOST,
   homeUrl: "https://tv.youtube.com",
-  parkUrl: GUIDE_URL,
+  parkUrl: PARK_URL,
+  parkHidden: false,
 
   /** Navigates the tab to the home URL and reads the session marker off the
    *  page it lands on. The 6 s settle is what task-001c's check used: the
