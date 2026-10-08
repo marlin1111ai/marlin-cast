@@ -4,7 +4,8 @@
 
 **2026-10-07:** one item open — the Philo stuck control overlay, below.
 Owner: record it, do not work on it yet.
-**2026-10-08:** a second item — Philo's guide found in front on Unraid.
+**2026-10-08:** a second item — Philo's guide found in front on Unraid —
+opened and closed the same day (no code change); one low-priority note added.
 
 Fresh as of 2026-09-11, at project creation. Contains only genuinely
 live items for this project. See DECISIONS.md for standing rules.
@@ -13,16 +14,12 @@ live items for this project. See DECISIONS.md for standing rules.
 
 ## Open since 2026-10-07
 
-- **Unraid, 0.1.3: Philo's guide was in front at 09:41 EDT on 2026-10-08**,
-  not YouTube TV Library, after the owner clicked the Philo tab in the
-  viewer at 09:26 and then played channels in Marlin DVR. Philo's guide in
-  front idles at about a fifth of a core (recon-idle), so it matters. Cause
-  not known; the owner has three read-only commands to run and their output
-  is pending. The candidate readings are listed in `notebook/SESSION-STATE.md`
-  ("Wrap 2026-10-08"); one of them is a design gap found by reading the
-  code — only a Philo stop brings YouTube TV forward, so a manual switch to
-  Philo during a YouTube TV capture is not undone by that capture's stop.
-
+- **Low priority, for later (owner, 2026-10-08): maybe make every idle stop
+  bring the YouTube TV tab forward**, not only a Philo stop (D038), so a
+  stray click on the Philo tab in the viewer cannot leave Philo's busy guide
+  in front. Caveat: that covers a click made while a YouTube TV channel is
+  playing; a click made after the last stop would still stay until the next
+  tune. Not asked to build.
 - **Philo: the control overlay sometimes does not clear (task-021).** After
   the autoplay click, the app sweeps the pointer up to three times until
   Philo hides the player's title bar, scrubber and button row. When it does
@@ -59,3 +56,20 @@ live items for this project. See DECISIONS.md for standing rules.
   extension tab-capture path; the owner rules. See the report.
 - **Playwright vs puppeteer-stream.** The recommended capture path has
   no Playwright equivalent today. See OPEN QUESTIONS in the report.
+
+## Closed
+
+- **Unraid, 0.1.3: Philo's guide in front at 09:41 EDT on 2026-10-08** —
+  closed the same day, no code change (owner). The owner's three read-only
+  readings: the running code has the bring-forward (grep printed 2);
+  container started 13:24:20Z; the log shows the start-up park (both tabs
+  parked, YouTube TV brought forward), then three YouTube TV tunes — FOX 45
+  13:32Z, SundanceTV 13:33Z, SYFY 13:34Z — each playing in about 2 s and
+  parked on `/library`; no Philo tune, no "could not" line, no error. Cause:
+  a click on the Philo tab in the viewer. Every tune activates its own
+  provider's tab (`src/capture.ts:294`; seen in the 2026-10-07 tests), so
+  the 13:32Z tune brought YouTube TV forward after the owner's 13:26Z
+  (09:26 EDT) click; Philo was therefore clicked again some time after
+  13:32Z, during or after those tunes. After the owner clicked YouTube TV
+  back to the front: 0.5% CPU, 806 MB, network in flat.
+

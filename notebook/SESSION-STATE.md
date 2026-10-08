@@ -17,9 +17,10 @@ SHA comparison), then the tag `v0.1.3` on that commit. Both workflow runs
 succeeded: GHCR `latest` = `sha-bd0f90f` (same digest) and `0.1.3`.
 **Unraid now runs the 0.1.3 code** (`latest` = `sha-bd0f90f`; owner
 force-updated on the morning of 2026-10-08 and reported it live); the QNAP
-stays pinned to `sha-c876a3a`. **Half-finished:** on Unraid the viewer showed
-Philo's guide in front at 09:41 EDT, not YouTube TV Library — see "Wrap
-2026-10-08" at the end of this file. Section "Recon idle / D038" at the end of this
+stays pinned to `sha-c876a3a`. Philo's guide seen in front on Unraid at
+09:41 EDT turned out to be a click in the viewer; closed, no code change
+("Closed 2026-10-08" at the end of this file). Marlin DVR uses only the
+YouTube TV playlist (owner, 2026-10-08). Section "Recon idle / D038" at the end of this
 file; report `notebook/reports/recon-idle.md`. One open item: the Philo
 stuck overlay.
 
@@ -1753,3 +1754,19 @@ Readings to expect:
 is, and propose a fix only if it is the app. Nothing changes on Unraid
 without telling the owner first. Open items: this one and the Philo stuck
 overlay (`notebook/OPEN-ITEMS.md`).
+
+## Closed 2026-10-08 — Philo in front on Unraid was a viewer click
+
+The owner ran the three read-only commands: 0.1.3 running (grep 2);
+container started 13:24:20Z; start-up park of both tabs with YouTube TV
+brought forward, then YouTube TV tunes FOX 45 13:32Z, SundanceTV 13:33Z,
+SYFY 13:34Z, each ~2 s and parked on `/library`; no Philo tune, no
+"could not", no error. Every tune activates its own tab, so the 13:32Z tune
+undid the 09:26 EDT click; Philo was clicked again after 13:32Z. After the
+owner put YouTube TV back in front: 0.5% CPU, 806 MB, network flat. Closed,
+no code change. Kept for later, low priority: maybe every idle stop brings
+YouTube TV forward (covers a click during a capture, not one after the last
+stop). Owner also states Marlin DVR uses only `/playlist/youtube-tv` — Philo
+is never tuned in normal use (updates D036). Open items now: the Philo stuck
+overlay, and that low-priority note.
+

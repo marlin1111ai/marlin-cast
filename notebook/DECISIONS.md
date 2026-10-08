@@ -909,3 +909,14 @@ at 09:26; cause not known, logs requested (`notebook/OPEN-ITEMS.md`). No
 answers were pending from the owner at this session's wrap other than those
 logs.
 
+**Note (2026-10-08, owner):** the Philo-in-front observation is closed with
+no code change: a click on the Philo tab in the viewer, not the app (readings
+in `notebook/OPEN-ITEMS.md`, Closed). Settled afterwards at 0.5% CPU, 806 MB,
+network flat. A low-priority idea is kept in the open items: every idle stop
+could bring YouTube TV forward.
+
+**Note (2026-10-08, owner):** Marlin DVR uses only `/playlist/youtube-tv`;
+Philo is never tuned in normal use. This updates D036's consumer statement
+(two sources, `/playlist/youtube-tv` and `/playlist/philo`). Both playlists
+are still served.
+
