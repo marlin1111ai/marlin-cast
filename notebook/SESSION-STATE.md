@@ -1686,6 +1686,6 @@ no tune or stop logged since 15:27Z.
 own cron at 2026-10-08 08:03 EDT (`~/marlin-cast-overnight-check/run.sh`,
 result in `RESULT.txt` there; the line removes itself), then the owner's
 "push it". Nothing is pushed before both. At the push: `main`, then the tag
-`v0.1.3` (owner's choice (a), D036 VERSION note). After the result: delete
+`v0.1.3` (owner's choice (a); the VERSION note after D040 in DECISIONS.md). After the result: delete
 that folder, the test container `marlin-cast-d038`, its image and the
 scratch profile copies.
