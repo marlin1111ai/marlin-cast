@@ -1772,6 +1772,14 @@ Marlin Cast is used by the owner's Marlin DVR (Unraid, YouTube TV only) and
 by the father's Channels DVR (QNAP install); the owner's own Channels DVR
 does not use it. Asked, not answered: whether the father's Channels DVR uses
 Philo. The QNAP stays pinned to `sha-c876a3a`, which predates D033, D035 and
-D038–D040 (owner's choice, D036). Open items now: the Philo stuck
+D038–D040 (owner's choice, D036).
+
+**Waiting for the owner's next visit to their father's house (owner,
+2026-10-08):** (1) whether the father's Channels DVR uses Philo channels from
+Marlin Cast — check its custom channel sources for a Marlin Cast address
+ending in `philo`; (2) whether to update the QNAP from `sha-c876a3a`, which
+still parks YouTube TV on the preview-playing guide and lacks the D033 memory
+fix and the D035 station ids. Nothing on the QNAP is changed until then; it
+is never connected to from marlinpc. Open items now: the Philo stuck
 overlay, and that low-priority note.
 

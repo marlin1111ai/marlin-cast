@@ -41,7 +41,8 @@ live items for this project. See DECISIONS.md for standing rules.
     item and look at it later. Not worked on.
   - Owner, 2026-10-08: Philo is not used from Unraid. Whether the father's
     Channels DVR (QNAP install) uses Philo is asked, not answered; if it
-    does not, this matters only if Philo is used again.
+    does not, this matters only if Philo is used again. The owner will
+    check on their next visit to their father's house.
 
 ---
 
