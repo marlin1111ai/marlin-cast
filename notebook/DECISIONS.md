@@ -918,5 +918,9 @@ could bring YouTube TV forward.
 **Note (2026-10-08, owner):** Marlin DVR uses only `/playlist/youtube-tv`;
 Philo is never tuned in normal use. This updates D036's consumer statement
 (two sources, `/playlist/youtube-tv` and `/playlist/philo`). Both playlists
-are still served.
+are still served. The owner added the same day: Philo isn't used anywhere;
+Marlin DVR is the only place Marlin Cast's channels are used, YouTube TV
+only. Asked, not yet answered: whether that includes the QNAP install at the
+owner's father's house, where Channels DVR played Marlin Cast streams,
+Philo History among them (D028, D030; ENVIRONMENT in the brief).
 

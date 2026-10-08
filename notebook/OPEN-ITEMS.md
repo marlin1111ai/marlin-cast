@@ -39,6 +39,8 @@ live items for this project. See DECISIONS.md for standing rules.
     14–15 s to stream. Today's stuck tunes were not checked for ads.
   - Owner's ruling (2026-10-07): keep the D038 bring-forward; record this
     item and look at it later. Not worked on.
+  - Owner, 2026-10-08: Philo isn't used anywhere, so this matters only if
+    Philo is used again (the QNAP install is asked about, not answered).
 
 ---
 

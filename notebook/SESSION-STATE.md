@@ -1767,6 +1767,9 @@ owner put YouTube TV back in front: 0.5% CPU, 806 MB, network flat. Closed,
 no code change. Kept for later, low priority: maybe every idle stop brings
 YouTube TV forward (covers a click during a capture, not one after the last
 stop). Owner also states Marlin DVR uses only `/playlist/youtube-tv` — Philo
-is never tuned in normal use (updates D036). Open items now: the Philo stuck
+is never tuned in normal use (updates D036) — and, later the same day, that
+Philo isn't used anywhere and Marlin DVR is the only place Marlin Cast's
+channels are used. Asked, not answered: whether that includes the QNAP
+install, where Channels DVR played Marlin Cast streams (D028, D030). Open items now: the Philo stuck
 overlay, and that low-priority note.
 
