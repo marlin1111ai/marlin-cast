@@ -2,12 +2,39 @@
 
 **2026-09-26:** All items settled; see D030.
 
+**2026-10-07:** one item open — the Philo stuck control overlay, below.
+Owner: record it, do not work on it yet.
+
 Fresh as of 2026-09-11, at project creation. Contains only genuinely
 live items for this project. See DECISIONS.md for standing rules.
 
 ---
 
-## Live items
+## Open since 2026-10-07
+
+- **Philo: the control overlay sometimes does not clear (task-021).** After
+  the autoplay click, the app sweeps the pointer up to three times until
+  Philo hides the player's title bar, scrubber and button row. When it does
+  not clear, the tune takes about 11 s longer (12–16 s to playing instead
+  of 3–5 s) and those controls are burnt into the capture. Closed by D029
+  as "whether the Philo overlay sweep holds up over many tunes — reopen if
+  seen"; it has now been seen.
+  - Counts on 2026-10-07, test containers on marlinpc (recon-idle E and
+    the D038 acceptance): 0 of the day's first 13 Philo tunes stuck; then
+    2 of 6; then 3 of 20 and 9 of 20 in two side-by-side passes (16:00–16:39Z).
+    The rate rose through the afternoon and stuck tunes came in runs, in
+    both the hidden-start and visible-start arms (hidden 7 of 20, visible
+    5 of 20).
+  - Lead, not verified: the D028 note (2026-09-26) records the only two
+    earlier stuck overlays, on the QNAP-style 720p runs, and both had landed
+    in an ad break ("Advertisements · LIVE / Fast Forward Restricted"), also
+    14–15 s to stream. Today's stuck tunes were not checked for ads.
+  - Owner's ruling (2026-10-07): keep the D038 bring-forward; record this
+    item and look at it later. Not worked on.
+
+---
+
+## Live items (2026-09-11; all settled by D030)
 
 - **MARLIN-CAST-BRIEF.md was never supplied.** D001–D006 are
   unrecorded and `notebook/BRIEF-v1.md` does not exist. Blocks nothing

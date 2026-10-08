@@ -882,3 +882,15 @@ restart with the channel cache present): both tabs parked, YouTube TV in
 front on `/library`, nothing playing.
 
 **Dated 2026-10-07. Owner-ruled (owner's choice 2(a)).**
+
+**Note (2026-10-07, owner-ruled):** the bring-forward half of D038 stays.
+The owner's condition was a side-by-side of Philo tunes from a hidden start
+against a visible start (recon-idle E: 20 each, alternating, same five
+channels). Hidden: 11 cleared the overlay on the first sweep, 2 on sweeps
+2–3, 7 stuck, median 5.0 s to playing. Visible: 14 / 1 / 5, median 3.5 s.
+The owner keeps the bring-forward and asked for no larger test. The stuck
+overlay is recorded as its own open item in `notebook/OPEN-ITEMS.md`.
+
+**Note (2026-10-07, owner-ruled):** `VERSION` is 0.1.3 for the D038–D040
+release, its own commit. This amends D036's "`VERSION` stays 0.1.2". Not
+pushed; the push waits for the overnight check and the owner's "push it".

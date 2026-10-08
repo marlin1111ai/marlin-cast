@@ -9,12 +9,12 @@ session.
 ## Where things stand (2026-09-29, handoff after D036)
 
 **2026-10-07 — the owner directs the work (no foreman; `CLAUDE.md`).** The
-idle recon and the D038 fix are committed on main and **not pushed**: parking
-YouTube TV on `/library` and putting the Philo tab behind. Section "Recon
+idle recon, D038, D039, D040 and `VERSION` 0.1.3 are committed on main and
+**not pushed**: parking YouTube TV on `/library`, putting the Philo tab
+behind, parking on a cross-provider switch and at server start. Section "Recon
 idle / D038" at the end of this file; report `notebook/reports/recon-idle.md`.
-Pending the owner: the overnight check on the test container, the Unraid
-readings, and the open questions in that report (a switch between providers
-leaves the old tab playing; the startup state; `VERSION`).
+Pending: the overnight check on the test container (2026-10-08 08:03 EDT)
+and the owner's "push it". One open item: the Philo stuck overlay.
 
 **Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
@@ -1675,5 +1675,12 @@ tune) or drop it.
 tab's renderer — the one process that grew in the test with the previews
 playing; `anon` 1.13 GB, `file` 676 MB (cache, reclaimable), `shmem` 55 MB.
 
+**Owner's rulings, evening of 2026-10-07:** keep the bring-forward, no
+larger test; `VERSION` 0.1.3 as its own commit (`d4dd858`); the Philo stuck
+overlay recorded as its own open item (`notebook/OPEN-ITEMS.md`), not worked
+on. At 02:55Z on 2026-10-08 the overnight container still read YouTube TV on
+`/library` in front, Philo's guide hidden, nothing playing, 0.56% CPU, and
+no tune or stop logged since 15:27Z.
+
 **Pending:** the overnight check on `marlin-cast-d038` (scheduled 2026-10-08
-08:03 EDT), the owner's call on the bring-forward, `VERSION`, "push it".
+08:03 EDT), then the owner's "push it". Nothing is pushed before both.

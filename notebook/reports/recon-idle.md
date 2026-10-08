@@ -235,8 +235,9 @@ less frequent.
    https://tv.youtube.com/)` after a restart with the cache present; Philo
    parked from `/player/mytv`; YouTube TV brought to the front; nothing
    playing.
-3. **`VERSION`** is 0.1.2 (D036). This is the first code change since; a
-   push builds `latest` and `sha-<short>` either way.
+3. ~~`VERSION`~~ — the owner ruled 0.1.3, its own commit (`d4dd858`).
+   The bring-forward half of D038 stays after the side-by-side (E); the
+   stuck overlay is its own open item in `notebook/OPEN-ITEMS.md`.
 4. **The Unraid readings** (three read-only commands) were requested on
    2026-10-07 and had not arrived when this report was written.
 
