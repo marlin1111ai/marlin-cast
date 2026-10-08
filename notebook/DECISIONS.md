@@ -898,3 +898,14 @@ At the push, the D025 release procedure is followed in full (owner's choice
 (a), 2026-10-07): push `main` (publishes `latest` and `sha-<short>`), then
 tag `v0.1.3` on that commit and push the tag (publishes the immutable image
 tag `0.1.3`).
+
+**Note (2026-10-08):** pushed on the owner's "push it" after the overnight
+check passed — main `bd0f90f`, tag `v0.1.3`; GHCR `latest` = `sha-bd0f90f`
+and `0.1.3`. The owner force-updated Unraid to it the same morning and
+reports, before any tune: parked on YouTube TV Library, CPU 0.5%, network
+flat (D038's aim met on Unraid). Open, owner-observed: at 09:41 EDT the
+viewer showed Philo's guide in front after the owner clicked the Philo tab
+at 09:26; cause not known, logs requested (`notebook/OPEN-ITEMS.md`). No
+answers were pending from the owner at this session's wrap other than those
+logs.
+

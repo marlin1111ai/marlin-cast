@@ -4,6 +4,7 @@
 
 **2026-10-07:** one item open — the Philo stuck control overlay, below.
 Owner: record it, do not work on it yet.
+**2026-10-08:** a second item — Philo's guide found in front on Unraid.
 
 Fresh as of 2026-09-11, at project creation. Contains only genuinely
 live items for this project. See DECISIONS.md for standing rules.
@@ -11,6 +12,16 @@ live items for this project. See DECISIONS.md for standing rules.
 ---
 
 ## Open since 2026-10-07
+
+- **Unraid, 0.1.3: Philo's guide was in front at 09:41 EDT on 2026-10-08**,
+  not YouTube TV Library, after the owner clicked the Philo tab in the
+  viewer at 09:26 and then played channels in Marlin DVR. Philo's guide in
+  front idles at about a fifth of a core (recon-idle), so it matters. Cause
+  not known; the owner has three read-only commands to run and their output
+  is pending. The candidate readings are listed in `notebook/SESSION-STATE.md`
+  ("Wrap 2026-10-08"); one of them is a design gap found by reading the
+  code — only a Philo stop brings YouTube TV forward, so a manual switch to
+  Philo during a YouTube TV capture is not undone by that capture's stop.
 
 - **Philo: the control overlay sometimes does not clear (task-021).** After
   the autoplay click, the app sweeps the pointer up to three times until

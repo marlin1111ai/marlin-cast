@@ -15,8 +15,11 @@ TV on `/library`, putting the Philo tab behind, parking on a cross-provider
 switch and at server start. main → `bd0f90f` (verified with `git fetch` +
 SHA comparison), then the tag `v0.1.3` on that commit. Both workflow runs
 succeeded: GHCR `latest` = `sha-bd0f90f` (same digest) and `0.1.3`.
-**Unraid still runs `sha-0f042a9`** until the owner force-updates; the QNAP
-stays pinned to `sha-c876a3a`. Section "Recon idle / D038" at the end of this
+**Unraid now runs the 0.1.3 code** (`latest` = `sha-bd0f90f`; owner
+force-updated on the morning of 2026-10-08 and reported it live); the QNAP
+stays pinned to `sha-c876a3a`. **Half-finished:** on Unraid the viewer showed
+Philo's guide in front at 09:41 EDT, not YouTube TV Library — see "Wrap
+2026-10-08" at the end of this file. Section "Recon idle / D038" at the end of this
 file; report `notebook/reports/recon-idle.md`. One open item: the Philo
 stuck overlay.
 
@@ -1709,3 +1712,44 @@ test containers, images, profile copies, scratch scripts and
 when nothing is recording, then the five-step check in the 2026-10-07
 report to the owner (Library in front in the viewer, low idle CPU and
 network, one tune per provider).
+
+## Wrap 2026-10-08 — where things stand
+
+**Done this session (2026-10-07 to 2026-10-08).** The foreman role was
+dropped; `CLAUDE.md` and `/wrap` (`.claude/commands/wrap.md`) hold the rules.
+Idle recon (`notebook/reports/recon-idle.md`); D038 (YouTube TV parks on
+`/library`, Philo tab put behind), D039 (cross-provider switch parks the tab
+left), D040 (start-up park, only when signed in); `VERSION` 0.1.3; pushed
+main `bd0f90f` and tag `v0.1.3`, both image builds green; notebook follow-up
+`919f213` pushed (no image). Overnight acceptance passed. Unraid
+force-updated to 0.1.3 by the owner.
+
+**Owner's first Unraid readings on 0.1.3 (2026-10-08):** before any tune,
+parked on YouTube TV Library, CPU 0.5%, network in flat. At 09:26 EDT the
+owner clicked the Philo tab in the viewer and may not have clicked back;
+then played channels in Marlin DVR (which, and when the last stopped, was
+left blank in the owner's message). 09:37: CPU 7.5%, network in flat at
+70.4 MB. 09:41: the viewer showed the Philo guide in front.
+
+**Half-finished — why Philo stayed in front.** Not yet known. Three
+read-only commands were given to the owner (the running code has the
+bring-forward; the container's start time; every `[start]`, `[tune]`,
+`[stop]` and error line since the update) and their output has not arrived.
+Readings to expect:
+- no tune between 13:26Z and 13:41Z → nothing reached Marlin Cast and the
+  owner's click left Philo in front (most likely, inferred: 70.4 MB total
+  network in is too little for minutes of live TV, and 7.5% CPU with flat
+  network matches Philo's guide visible);
+- a Philo idle stop ending "brought the youtubetv tab to the front" → the
+  app did its part and the tab was moved afterwards;
+- "could not bring the youtubetv tab to the front" → the bring-forward
+  failed; the line says why;
+- the last stop is a YouTube TV channel after the click → a design gap: only
+  a Philo stop re-fronts YouTube TV, so a manual click to Philo during a
+  YouTube TV capture survives that capture's stop (from reading
+  `src/capture.ts`; not observed).
+
+**Next.** The owner sends the three outputs; read them, say which case it
+is, and propose a fix only if it is the app. Nothing changes on Unraid
+without telling the owner first. Open items: this one and the Philo stuck
+overlay (`notebook/OPEN-ITEMS.md`).
