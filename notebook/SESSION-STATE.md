@@ -9,12 +9,16 @@ session.
 ## Where things stand (2026-09-29, handoff after D036)
 
 **2026-10-07 — the owner directs the work (no foreman; `CLAUDE.md`).** The
-idle recon, D038, D039, D040 and `VERSION` 0.1.3 are committed on main and
-**not pushed**: parking YouTube TV on `/library`, putting the Philo tab
-behind, parking on a cross-provider switch and at server start. Section "Recon
-idle / D038" at the end of this file; report `notebook/reports/recon-idle.md`.
-The overnight check passed (2026-10-08). Pending: the owner's "push it"
-(then `main`, then the tag `v0.1.3`). One open item: the Philo stuck overlay.
+idle recon, D038, D039, D040 and `VERSION` 0.1.3 are **pushed** (2026-10-08,
+on the owner's "push it" after the overnight check passed): parking YouTube
+TV on `/library`, putting the Philo tab behind, parking on a cross-provider
+switch and at server start. main → `bd0f90f` (verified with `git fetch` +
+SHA comparison), then the tag `v0.1.3` on that commit. Both workflow runs
+succeeded: GHCR `latest` = `sha-bd0f90f` (same digest) and `0.1.3`.
+**Unraid still runs `sha-0f042a9`** until the owner force-updates; the QNAP
+stays pinned to `sha-c876a3a`. Section "Recon idle / D038" at the end of this
+file; report `notebook/reports/recon-idle.md`. One open item: the Philo
+stuck overlay.
 
 **Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
@@ -1694,3 +1698,14 @@ result in `RESULT.txt` there; the line removes itself), then the owner's
 `v0.1.3` (owner's choice (a); the VERSION note after D040 in DECISIONS.md). After the result: delete
 that folder, the test container `marlin-cast-d038`, its image and the
 scratch profile copies.
+
+**Pushed (2026-10-08, owner's "push it"):** main `b56155c..bd0f90f`, then tag
+`v0.1.3` → bd0f90f; `git fetch` + SHA comparison match. Workflow runs: main
+12:50:37–12:53:24Z success, v0.1.3 12:50:43–12:54:04Z success. GHCR: `latest`
+and `sha-bd0f90f` share amd64 manifest `sha256:f5b4d41cb711…`; `0.1.3` is
+`sha256:a9e18522d0ce…` (separate build of the same commit). Clean-up done:
+test containers, images, profile copies, scratch scripts and
+`~/marlin-cast-overnight-check` deleted. Next: the owner force-updates Unraid
+when nothing is recording, then the five-step check in the 2026-10-07
+report to the owner (Library in front in the viewer, low idle CPU and
+network, one tune per provider).
