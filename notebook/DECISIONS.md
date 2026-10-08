@@ -894,3 +894,7 @@ overlay is recorded as its own open item in `notebook/OPEN-ITEMS.md`.
 **Note (2026-10-07, owner-ruled):** `VERSION` is 0.1.3 for the D038–D040
 release, its own commit. This amends D036's "`VERSION` stays 0.1.2". Not
 pushed; the push waits for the overnight check and the owner's "push it".
+At the push, the D025 release procedure is followed in full (owner's choice
+(a), 2026-10-07): push `main` (publishes `latest` and `sha-<short>`), then
+tag `v0.1.3` on that commit and push the tag (publishes the immutable image
+tag `0.1.3`).

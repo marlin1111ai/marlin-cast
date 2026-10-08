@@ -1682,5 +1682,10 @@ on. At 02:55Z on 2026-10-08 the overnight container still read YouTube TV on
 `/library` in front, Philo's guide hidden, nothing playing, 0.56% CPU, and
 no tune or stop logged since 15:27Z.
 
-**Pending:** the overnight check on `marlin-cast-d038` (scheduled 2026-10-08
-08:03 EDT), then the owner's "push it". Nothing is pushed before both.
+**Pending:** the overnight check on `marlin-cast-d038`, now run by the PC's
+own cron at 2026-10-08 08:03 EDT (`~/marlin-cast-overnight-check/run.sh`,
+result in `RESULT.txt` there; the line removes itself), then the owner's
+"push it". Nothing is pushed before both. At the push: `main`, then the tag
+`v0.1.3` (owner's choice (a), D036 VERSION note). After the result: delete
+that folder, the test container `marlin-cast-d038`, its image and the
+scratch profile copies.
