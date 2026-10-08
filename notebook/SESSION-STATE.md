@@ -1732,7 +1732,8 @@ then played channels in Marlin DVR (which, and when the last stopped, was
 left blank in the owner's message). 09:37: CPU 7.5%, network in flat at
 70.4 MB. 09:41: the viewer showed the Philo guide in front.
 
-**Half-finished — why Philo stayed in front.** Not yet known. Three
+**Was half-finished — why Philo stayed in front (closed below, "Closed
+2026-10-08": a viewer click, no code change).** At the time not yet known. Three
 read-only commands were given to the owner (the running code has the
 bring-forward; the container's start time; every `[start]`, `[tune]`,
 `[stop]` and error line since the update) and their output has not arrived.
@@ -1750,10 +1751,9 @@ Readings to expect:
   YouTube TV capture survives that capture's stop (from reading
   `src/capture.ts`; not observed).
 
-**Next.** The owner sends the three outputs; read them, say which case it
-is, and propose a fix only if it is the app. Nothing changes on Unraid
-without telling the owner first. Open items: this one and the Philo stuck
-overlay (`notebook/OPEN-ITEMS.md`).
+**Next (as of this wrap; superseded by "Second wrap 2026-10-08" below).**
+The owner sends the three outputs; read them, say which case it is, and
+propose a fix only if it is the app.
 
 ## Closed 2026-10-08 — Philo in front on Unraid was a viewer click
 
@@ -1782,4 +1782,26 @@ still parks YouTube TV on the preview-playing guide and lacks the D033 memory
 fix and the D035 station ids. Nothing on the QNAP is changed until then; it
 is never connected to from marlinpc. Open items now: the Philo stuck
 overlay, and that low-priority note.
+
+## Second wrap 2026-10-08 — where things stand
+
+**Done.** Everything from the first wrap, plus: the Philo-in-front sighting
+on Unraid closed as a viewer click (no code change); consumers recorded —
+the owner's Marlin DVR uses the Unraid install, YouTube TV only; the
+father's Channels DVR uses the QNAP install; the owner's own Channels DVR
+does not use Marlin Cast.
+
+**Running.** Unraid on 0.1.3 (`sha-bd0f90f`), settled at 0.5% CPU, 806 MB,
+network flat. QNAP on `sha-c876a3a`, pinned, untouched.
+
+**Half-finished.** Nothing in progress.
+
+**Next — waiting for the owner's next visit to their father's house.**
+Whether the father's Channels DVR uses Philo; whether to update the QNAP.
+
+**Open items, for later** (`notebook/OPEN-ITEMS.md`): the Philo stuck
+overlay; low priority, maybe every idle stop brings YouTube TV forward.
+
+**Git.** Notebook-only commits since `607f98e` are local until the owner
+says "push it"; a push of them builds no image.
 
