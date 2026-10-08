@@ -217,7 +217,28 @@ tab is activated at tune and stays in front after its park), so dropping the
 bring-forward would not remove hidden Philo starts; it would only make them
 less frequent.
 
-**F. The morning after.** OVERNIGHT_PENDING
+**F. The morning after (the owner's second condition): passed.** The test
+container `marlin-cast-d038` (image with D038 only; D039 and D040 do not
+touch this path) sat idle from 15:28Z on 2026-10-07 to 12:03Z on
+2026-10-08, about 20.5 hours, with YouTube TV on `/library` in front and
+Philo's guide hidden. The check was run by the PC's own cron
+(`~/marlin-cast-overnight-check/run.sh`, a one-shot line that removed
+itself), so it did not depend on the Claude window, which had reset once
+that day.
+
+- Before any tune: both tabs on their park pages, 0 videos playing, 0
+  kbit/s on both tabs over 60 s, Chrome 0.7% of a core. Container network
+  in: 1.60 GB at 15:28Z, 1.61 GB at 02:55Z, 1.62 GB at 12:03Z — about 20 MB
+  in 20.5 hours, against ≈0.75 GB/hour with the guide in front.
+- Memory: all-Chrome RssAnon 554,276 kB, below the 647,664 kB of the
+  previous day's startup and the 711,348 kB after an hour of previews;
+  cgroup `anon` 530 MB. No overnight growth.
+- The YouTube TV page read signed in (`signInText:false`, avatar present).
+- First YouTube TV tune (WBAL 11, from `/library`): HTTP 200, playing at
+  2271 ms, hd1080; parked on `/library` after the idle stop.
+- First Philo tune (AMC): HTTP 200, playing at 3828 ms, overlay clear after
+  one sweep; parked, YouTube TV brought forward.
+- Neither tune met a sign-in page.
 
 ## Open questions — the owner's call
 

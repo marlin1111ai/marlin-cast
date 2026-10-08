@@ -13,8 +13,8 @@ idle recon, D038, D039, D040 and `VERSION` 0.1.3 are committed on main and
 **not pushed**: parking YouTube TV on `/library`, putting the Philo tab
 behind, parking on a cross-provider switch and at server start. Section "Recon
 idle / D038" at the end of this file; report `notebook/reports/recon-idle.md`.
-Pending: the overnight check on the test container (2026-10-08 08:03 EDT)
-and the owner's "push it". One open item: the Philo stuck overlay.
+The overnight check passed (2026-10-08). Pending: the owner's "push it"
+(then `main`, then the tag `v0.1.3`). One open item: the Philo stuck overlay.
 
 **Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
@@ -1682,7 +1682,12 @@ on. At 02:55Z on 2026-10-08 the overnight container still read YouTube TV on
 `/library` in front, Philo's guide hidden, nothing playing, 0.56% CPU, and
 no tune or stop logged since 15:27Z.
 
-**Pending:** the overnight check on `marlin-cast-d038`, now run by the PC's
+**Overnight check, 2026-10-08 08:03 EDT: passed** — 20.5 h idle on `/library`
+with Philo hidden, about 20 MB downloaded in total, Chrome 0.7% of a core, no
+memory growth; first tunes after the night WBAL 11 2.27 s and AMC 3.83 s, no
+sign-in page (recon-idle F).
+
+**Was pending:** the overnight check on `marlin-cast-d038`, run by the PC's
 own cron at 2026-10-08 08:03 EDT (`~/marlin-cast-overnight-check/run.sh`,
 result in `RESULT.txt` there; the line removes itself), then the owner's
 "push it". Nothing is pushed before both. At the push: `main`, then the tag
