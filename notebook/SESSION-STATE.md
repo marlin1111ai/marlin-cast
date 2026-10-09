@@ -1859,3 +1859,28 @@ given (about 11 s of a stuck tune is the sweep loop); the owner chose no fix
 for now and no test copies. A HISTORY side-by-side on Unraid, which would
 have needed an exception to the standing prohibition on connecting to the
 Unraid host, was skipped as moot. Nothing built, nothing pushed.
+
+## Wrap 2026-10-09 — where things stand
+
+**Done.** The owner's morning report recorded: Unraid's morning check passed
+on 0.1.3 (the 2026-10-08 19:49 restart was the whole Unraid box powered off by
+accident); the QNAP updated by the owner from `sha-c876a3a` to `0.1.3`
+(D036 note); ffmpeg's `exited code=255 signal=null` on a deliberate stop
+explained as expected (the D030 note's behaviour, nothing new). Philo is not
+used anywhere (owner): the father's Channels DVR uses Marlin Cast only as a
+YouTube TV backup for local channels, and the owner is removing its Philo
+source. A plan for the stuck overlay was given and held; the Unraid HISTORY
+side-by-side was skipped as moot.
+
+**Running.** Unraid on 0.1.3 (`latest` = `sha-bd0f90f`), idle on YouTube TV
+Library, 732–794 MiB, CPU about 0.6%. The QNAP on `0.1.3` at 720p, both
+providers signed in. Nothing runs on marlinpc for this project.
+
+**Half-finished.** Nothing.
+
+**Next.** Nothing asked. Open items, both low priority, on hold
+(`notebook/OPEN-ITEMS.md`): the Philo stuck overlay (task-021); maybe every
+idle stop brings YouTube TV forward.
+
+**Git.** Notebook-only commits since `0947561` are local until the owner says
+"push it"; a push of them builds no image (D025).

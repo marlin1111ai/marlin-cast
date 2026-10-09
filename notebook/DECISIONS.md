@@ -823,6 +823,10 @@ from YouTube TV; the owner is removing the Philo source from it. With the
 owner's Marlin DVR on YouTube TV only, Philo is not used anywhere. Both
 playlists are still served.
 
+**Note (2026-10-09, owner):** the Philo stuck overlay (task-021, the open
+item under D038) stays low priority and on hold: no fix chosen, no test
+copies run, and the HISTORY side-by-side on Unraid skipped as moot.
+
 ---
 
 ## D037 — Cold-start brief location
