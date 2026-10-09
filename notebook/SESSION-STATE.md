@@ -24,9 +24,10 @@ YouTube TV playlist (owner, 2026-10-08). Section "Recon idle / D038" at the end 
 file; report `notebook/reports/recon-idle.md`. One open item: the Philo
 stuck overlay.
 
-**2026-10-09:** the QNAP runs `0.1.3` (owner updated it that morning); the
-father's Channels DVR uses Philo, so the stuck overlay is no longer low
-priority. Section "2026-10-09" at the end of this file.
+**2026-10-09:** the QNAP runs `0.1.3` (owner updated it that morning).
+Philo is not used anywhere — the father's Channels DVR uses Marlin Cast only
+as a YouTube TV backup for local channels, and the owner is removing its
+Philo source — so the stuck overlay stays low priority, on hold. Section "2026-10-09" at the end of this file.
 
 **Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
@@ -1829,10 +1830,13 @@ update (`sha-c876a3a`, up 12 days, idle): CPU 20–23%, memory 3.9 GiB, network
 guide-preview drain D038 measured (≈0.75 GB/hour), plus the pre-D033 memory
 growth.
 
-**Answered:** the father's Channels DVR plays Philo channels from the QNAP
-install (owner). Both items "waiting for the owner's next visit" (above,
-"Closed 2026-10-08") are now answered. The Philo stuck overlay is no longer
-low priority (`notebook/OPEN-ITEMS.md`).
+**Answered:** the father does not need Philo. Marlin Cast is on his Channels
+DVR only as a backup for local channels when his antenna cannot get them, and
+those come from YouTube TV; the owner is removing the Philo source from it.
+With the owner's Marlin DVR on YouTube TV only, Philo is not used anywhere
+(owner). Both items "waiting for the owner's next visit" (above, "Closed
+2026-10-08") are now answered. The Philo stuck overlay stays low priority, on
+hold (`notebook/OPEN-ITEMS.md`).
 
 **First tunes on the QNAP at 0.1.3, 720p (owner):** Philo HISTORY
 `playing=15720 ms`, "the control overlay did NOT clear after 3 pointer
@@ -1850,8 +1854,8 @@ rather than being killed (the 4 s SIGKILL fallback would show
 2026-09-28 Unraid sighting (D030 note, closed). "File ended prematurely"
 depends on timing and its absence is not a change.
 
-**Asked by the owner, not done:** tune HISTORY on Unraid for a side-by-side
-with the QNAP's 15720 ms. It conflicts with the standing prohibition on
-connecting to the Unraid host (COLD-START), so the owner was asked which
-wins. Plan for the stuck overlay and the ~15 s Philo tune given to the owner;
-nothing built until the owner says go.
+**Held (owner):** a plan for the stuck overlay and the ~15 s Philo tune was
+given (about 11 s of a stuck tune is the sweep loop); the owner chose no fix
+for now and no test copies. A HISTORY side-by-side on Unraid, which would
+have needed an exception to the standing prohibition on connecting to the
+Unraid host, was skipped as moot. Nothing built, nothing pushed.

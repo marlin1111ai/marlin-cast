@@ -816,9 +816,12 @@ about 08:27 the owner changed only the image tag in Container Station's
 release tag) and ran `docker compose up -d`; the old file is kept as
 `docker-compose.yml.bak`. `/share/Container/marlin-cast/data` carried over
 and both providers came up signed in. The QNAP is now pinned to `0.1.3`.
-Also answered: the owner's father's Channels DVR plays Philo channels from
-the QNAP install, so Philo is in use there (the question left open in the
-2026-10-08 notes under D040).
+Also answered (the question left open in the 2026-10-08 notes under D040):
+the father does not need Philo. Marlin Cast is on his Channels DVR only as a
+backup for local channels when his antenna cannot get them, and those come
+from YouTube TV; the owner is removing the Philo source from it. With the
+owner's Marlin DVR on YouTube TV only, Philo is not used anywhere. Both
+playlists are still served.
 
 ---
 
