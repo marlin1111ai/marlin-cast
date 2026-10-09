@@ -6,6 +6,8 @@
 Owner: record it, do not work on it yet.
 **2026-10-08:** a second item — Philo's guide found in front on Unraid —
 opened and closed the same day (no code change); one low-priority note added.
+**2026-10-09:** the Philo stuck overlay is no longer low priority — the
+father's Channels DVR uses Philo (owner).
 
 Fresh as of 2026-09-11, at project creation. Contains only genuinely
 live items for this project. See DECISIONS.md for standing rules.
@@ -43,6 +45,14 @@ live items for this project. See DECISIONS.md for standing rules.
     Channels DVR (QNAP install) uses Philo is asked, not answered; if it
     does not, this matters only if Philo is used again. The owner will
     check on their next visit to their father's house.
+  - **Owner, 2026-10-09: the father's Channels DVR plays Philo channels
+    from the QNAP install, so this item is no longer low priority.** Seen
+    there the same morning on 0.1.3 at 720p: HISTORY `playing=15720 ms`,
+    "the control overlay did NOT clear after 3 pointer sweeps". Of a stuck
+    tune's time, about 11 s is the sweep loop itself (a 1.2 s look, then
+    three rounds of a sweep and a 2.5 s look, then a last sweep;
+    `src/providers/philo.ts`, `dismissControls`). A plan was given to the
+    owner on 2026-10-09; nothing built until the owner says go.
 
 ---
 

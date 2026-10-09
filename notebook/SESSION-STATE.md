@@ -24,6 +24,10 @@ YouTube TV playlist (owner, 2026-10-08). Section "Recon idle / D038" at the end 
 file; report `notebook/reports/recon-idle.md`. One open item: the Philo
 stuck overlay.
 
+**2026-10-09:** the QNAP runs `0.1.3` (owner updated it that morning); the
+father's Channels DVR uses Philo, so the stuck overlay is no longer low
+priority. Section "2026-10-09" at the end of this file.
+
 **Pushed.** main is pushed through the commit that records D036 (2026-09-29,
 verified with `git fetch` + SHA comparison). The last code commit is 0f042a9
 (task-033, D035 note; the station table only); it is the image `sha-0f042a9`,
@@ -1805,3 +1809,49 @@ overlay; low priority, maybe every idle stop brings YouTube TV forward.
 **Git.** Notebook-only commits since `607f98e` are local until the owner
 says "push it"; a push of them builds no image.
 
+
+## 2026-10-09 — owner's morning report; the QNAP on 0.1.3
+
+**Unraid, 0.1.3: morning check passed** (owner, readings 07:58–08:06 EDT):
+network in flat across 2-minute gaps, memory 732–794 MiB, CPU about 2.5%
+settling to about 0.6% with YouTube TV in front on Library. The container
+restart at 2026-10-08 19:49 was the whole Unraid box being powered off by
+accident (all 14 containers restarted), not Marlin Cast; the start-up after
+it parked YouTube TV on Library and brought it to the front (D040 seen
+working outside a test).
+
+**QNAP now on `0.1.3`** (owner, about 08:27): only the image tag changed in
+Container Station's `docker-compose.yml` (`sha-c876a3a` → `0.1.3`), then
+`docker compose up -d`; the old file kept as `docker-compose.yml.bak`; data
+carried over; both providers came up signed in (D036 note). Before the
+update (`sha-c876a3a`, up 12 days, idle): CPU 20–23%, memory 3.9 GiB, network
+198 GB in / 25.3 GB out, 240 PIDs — about 0.7 GB in per hour, the size of the
+guide-preview drain D038 measured (≈0.75 GB/hour), plus the pre-D033 memory
+growth.
+
+**Answered:** the father's Channels DVR plays Philo channels from the QNAP
+install (owner). Both items "waiting for the owner's next visit" (above,
+"Closed 2026-10-08") are now answered. The Philo stuck overlay is no longer
+low priority (`notebook/OPEN-ITEMS.md`).
+
+**First tunes on the QNAP at 0.1.3, 720p (owner):** Philo HISTORY
+`playing=15720 ms`, "the control overlay did NOT clear after 3 pointer
+sweeps", 720p (no hd1080, D017). YouTube TV WBAL 11 `playing=2742 ms`, no
+warnings, target hd720 from `MC_HEIGHT=720` (D028; hd1080 was offered). The
+Philo idle stop parked Philo and brought YouTube TV to the front; the YouTube
+TV idle stop parked on Library. Both stops logged `[ffmpeg] exited code=255
+signal=null`, no "File ended prematurely".
+
+**ffmpeg code 255 on a stop: expected.** `stop()` in `src/capture.ts` ends
+ffmpeg's input and sends it SIGTERM straight after; ffmpeg exits 255 whenever
+it quits on a signal it caught, and `signal=null` means it exited by itself
+rather than being killed (the 4 s SIGKILL fallback would show
+`signal=SIGKILL`). Same behaviour as task-022's "on every idle stop" and the
+2026-09-28 Unraid sighting (D030 note, closed). "File ended prematurely"
+depends on timing and its absence is not a change.
+
+**Asked by the owner, not done:** tune HISTORY on Unraid for a side-by-side
+with the QNAP's 15720 ms. It conflicts with the standing prohibition on
+connecting to the Unraid host (COLD-START), so the owner was asked which
+wins. Plan for the stuck overlay and the ~15 s Philo tune given to the owner;
+nothing built until the owner says go.

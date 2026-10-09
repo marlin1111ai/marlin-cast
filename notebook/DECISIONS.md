@@ -810,6 +810,16 @@ Items closed (reports are in `notebook/reports/`; line numbers are at commit
 
 **Dated 2026-09-29. Owner-ruled.**
 
+**Note (2026-10-09, owner):** the QNAP is no longer on `sha-c876a3a`. At
+about 08:27 the owner changed only the image tag in Container Station's
+`docker-compose.yml` (`sha-c876a3a` → `0.1.3`, the immutable D038–D040
+release tag) and ran `docker compose up -d`; the old file is kept as
+`docker-compose.yml.bak`. `/share/Container/marlin-cast/data` carried over
+and both providers came up signed in. The QNAP is now pinned to `0.1.3`.
+Also answered: the owner's father's Channels DVR plays Philo channels from
+the QNAP install, so Philo is in use there (the question left open in the
+2026-10-08 notes under D040).
+
 ---
 
 ## D037 — Cold-start brief location
